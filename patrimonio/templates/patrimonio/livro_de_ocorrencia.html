@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Tela de Ocorrências</h1>
+    <h2>Nova Ocorrência</h2>
+
+    <form method="post">
+    {% csrf_token %}
+    {{ form_ocorrencia.as_p }}
+    <button type="submit">Salvar</button>
+    </form> 
+    <h2>Registros Recentes</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Base</th>
+                <th>Tipo</th>
+                <th>Ocorrência</th>
+                <th>Usuário</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ocorrencia in ocorrencias %}
+            <tr>
+                <td>{{ ocorrencia.base }}</td>
+                <td>{{ ocorrencia.tipo }}</td>
+                <td>{{ ocorrencia.ocorrencia }}</td>
+                <td>{{ ocorrencia.usuario.get_full_name|default:ocorrencia.usuario.username }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Nenhuma ocorrência registrada.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html> 

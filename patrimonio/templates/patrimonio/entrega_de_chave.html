@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>entrega chave</h1>
+    <h2>Nova Movimentação de Chaves</h2>
+
+    <form method="post">
+    {% csrf_token %}
+    {{ form_chave.as_p }}
+    <button type="submit">Salvar</button>
+    </form> 
+
+    <h2>Registros Recentes</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Base</th>
+                <th>Matrícula</th>
+                <th>Colaborador</th>
+                <th>Departamento</th>
+                <th>Situação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for chave in chaves %}
+            <tr>
+                <td>{{ chave.base }}</td>
+                <td>{{ chave.matricula }}</td>
+                <td>{{ chave.colaborador }}</td>
+                <td>{{ chave.departamento }}</td>
+                <td>{{ chave.situacao }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Nenhum registro encontrado</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
