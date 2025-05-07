@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 import pandas as pd
-from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm
-from .models import Ocorrencia, ControleChaves, Colaborador
+from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm
+from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor
 
 # ===== Tela de Login ===== 
 def login_usuario(request):
@@ -105,3 +105,39 @@ def entrega_de_chave(request):
         'form_chave' : form_chave,
         'chaves': chaves,
     })
+
+def buscar_colaborador_por_matricula(request):
+    matricula = request.GET.get('matricula')
+    try:
+        colaborador = Colaborador.objects.get(matricula=matricula)
+        return JsonResponse({
+            'nome': colaborador.nome,
+            'departamento': colaborador.departamento
+        })
+    except Colaborador.DoesNotExist:
+        return JsonResponse({'erro': 'Colaborador não encontrado'}, status=404)
+    
+
+@login_required
+def devolver_chave(request, pk):
+    chave = get_object_or_404(ControleChaves, pk=pk)
+    chave.situacao = "DEVOLVIDO"
+    chave.save()
+    return redirect('entrega_de_chave')
+
+@login_required
+def controle_visitantes(request):
+
+    if request.method == 'POST':
+        form_fornecedor = FornecedorForm (request.POST)
+        if form_fornecedor.is_valid():
+            form_fornecedor.save()
+            return redirect('controle_visitantes')
+    else:
+        form_fornecedor = FornecedorForm()
+
+    fornecedores = Fornecedor.objects.all()
+
+    return render(request, 'patrimonio/entrada_saida_visitantes.html', {
+        'form_fornecedor': form_fornecedor, 
+        'fornecedores': fornecedores,})
