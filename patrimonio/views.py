@@ -4,8 +4,9 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 import pandas as pd
-from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm
-from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor
+from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm
+from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor
+from datetime import date
 
 # ===== Tela de Login ===== 
 def login_usuario(request):
@@ -124,20 +125,52 @@ def devolver_chave(request, pk):
     chave.situacao = "DEVOLVIDO"
     chave.save()
     return redirect('entrega_de_chave')
-
 @login_required
 def controle_visitantes(request):
+    
+    hoje = date.today()
 
-    if request.method == 'POST':
-        form_fornecedor = FornecedorForm (request.POST)
+    fornecedores_vencidos = Fornecedor.objects.filter(data_validade__lte =hoje, status='Integrado')
+    for fornecedor in fornecedores_vencidos:
+        fornecedor.status = 'Pendente'
+        fornecedor.save(update_fields=['status'])
+
+    # Processa formulário de Fornecedor
+    if request.method == 'POST' and 'submit_fornecedor' in request.POST:
+        form_fornecedor = FornecedorForm(request.POST)
+        form_entrada = EntradaFornecedorForm()
         if form_fornecedor.is_valid():
             form_fornecedor.save()
             return redirect('controle_visitantes')
+
+    # Processa formulário de EntradaFornecedor
+    elif request.method == 'POST' and 'submit_entrada' in request.POST:
+        form_entrada = EntradaFornecedorForm(request.POST)
+        form_fornecedor = FornecedorForm()
+        if form_entrada.is_valid():
+            entrada = form_entrada.save(commit=False)
+            entrada.status = 'Em andamento'  # status default
+            entrada.save()
+            return redirect('controle_visitantes')
+
     else:
         form_fornecedor = FornecedorForm()
+        form_entrada = EntradaFornecedorForm()
 
     fornecedores = Fornecedor.objects.all()
+    entradas = EntradaFornecedor.objects.all().order_by('-data', '-horario_entrada')
 
     return render(request, 'patrimonio/entrada_saida_visitantes.html', {
         'form_fornecedor': form_fornecedor, 
-        'fornecedores': fornecedores,})
+        'form_entrada': form_entrada,
+        'fornecedores': fornecedores,
+        'entradas': entradas,
+        })
+
+
+@login_required
+def status_fornecedor(request, pk):
+    entrada = get_object_or_404(EntradaFornecedor, pk=pk)
+    entrada.status = "Saiu"
+    entrada.save()
+    return redirect('controle_visitantes')

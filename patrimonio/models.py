@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 from dateutil.relativedelta import relativedelta  
 
 class Ocorrencia(models.Model):
@@ -40,7 +40,7 @@ class Fornecedor(models.Model):
         ('Pendente', 'Pendente'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Integrado')
-    validade_meses = models.IntegerField(help_text="Validade em meses")
+    validade_meses = models.IntegerField()
     data_integracao = models.DateField()
     data_validade = models.DateField(null=True, blank=True)
 
@@ -59,3 +59,36 @@ class Fornecedor(models.Model):
             self.status = 'Integrado'
 
         super().save(*args, **kwargs)
+        
+    def __str__(self):
+        return self.nome
+
+
+class EntradaFornecedor(models.Model):
+    STATUS_CHOICES = [
+        ('Em andamento', 'Em andamento'),
+        ('Saiu', 'Saiu'),
+    ]
+
+    data = models.DateField(auto_now_add=True)
+    horario_entrada = models.TimeField(auto_now_add=True)
+    horario_saida = models.TimeField(null=True, blank=True)
+
+    base = models.CharField(max_length=100)
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.CASCADE, related_name='entradas')
+    quantidade = models.IntegerField()
+    visitantes = models.TextField()
+    tipo_documento = models.TextField()
+    documento = models.TextField()
+    setor = models.CharField(max_length=100)
+    responsavel = models.CharField(max_length=100)
+    assinatura_portaria = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Em andamento')
+
+    def save(self, *args, **kwargs):
+        if self.status == 'Saiu' and self.horario_saida is None:
+            self.horario_saida = datetime.now().time()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.fornecedor.nome} - {self.data}"

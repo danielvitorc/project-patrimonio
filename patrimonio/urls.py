@@ -10,4 +10,5 @@ urlpatterns = [
     path('buscar_colaborador/', views.buscar_colaborador_por_matricula, name='buscar_colaborador'),
     path('devolver_chave/<int:pk>/', views.devolver_chave, name='devolver_chave'),
     path('controle_visitantes/', views.controle_visitantes, name='controle_visitantes'),
+    path('status_fornecedor/<int:pk>/', views.status_fornecedor, name='status_fornecedor'),
 ]
