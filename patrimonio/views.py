@@ -127,6 +127,17 @@ def devolver_chave(request, pk):
     chave.situacao = "DEVOLVIDO"
     chave.save()
     return redirect('entrega_de_chave')
+
+# Função para excluir movimentação de chave
+def excluir_chave(request, id):
+    chave = get_object_or_404(ControleChaves, id=id)
+    try:
+        chave.delete()
+        messages.success(request, "Movimentação de Chave excluído com sucesso.")
+    except Exception as e:
+        messages.error(request, f"Ocorreu um erro ao tentar excluir movimentação de chave: {e}")
+    return redirect('entrega_de_chave')  # Redirecionando para a view unificada
+
 @login_required
 def controle_visitantes(request):
     
