@@ -6,170 +6,271 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'patrimonio/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'patrimonio/css/visitantes.css' %}">
     <title>Document</title>
 </head>
 <body>
     {% include 'patrimonio/includes/sidebar.html' %}
-    <div class="main-content" style="margin-left: 25vw; padding: 20px;">
-        <!-- Botão para abrir o modal -->
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#fornecedorModal">
-            Novo Fornecedor
-        </button>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entradafornecedorModal">
-            Nova Entrada de Fornecedor 
-        </button>
-    <!-- Modal -->
+    <div class="main-content" id="mainContent">
+        <!-- Botões de Ação -->
+        <div class="mb-4 d-flex gap-2">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#fornecedorModal">
+                Novo Fornecedor
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entradafornecedorModal">
+                Nova Entrada de Fornecedor 
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entradaAvulsoModal">
+                Nova Entrada de Fornecedor Avulso
+            </button>
+        </div>
+
+        <!-- Modal Fornecedor Avulso -->
+        <div class="modal fade" id="entradaAvulsoModal" tabindex="-1" aria-labelledby="entradaAvulsoModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="entradaAvulsoModalLabel">Entrada de Fornecedor Avulso</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ form_avulso.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" name="submit_avulso">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Novo Fornecedor -->
         <div class="modal fade" id="fornecedorModal" tabindex="-1" aria-labelledby="fornecedorModalLabel" aria-hidden="true">
             <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fornecedorModalLabel">Novo Fornecedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <div class="modal-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="fornecedorModalLabel">Novo Fornecedor</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ form_fornecedor.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" name="submit_fornecedor">Salvar</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-body">
-                    {{ form_fornecedor.as_p }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" name="submit_fornecedor" >Salvar</button>
-                </div>
-                </form>
-            </div>
             </div>
         </div>
-    </div>
-        <!-- Modal -->
+
+        <!-- Modal Entrada Fornecedor -->
         <div class="modal fade" id="entradafornecedorModal" tabindex="-1" aria-labelledby="entradafornecedorModalLabel" aria-hidden="true">
             <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fornecedorModalLabel">Nova Entrada de Fornecedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <div class="modal-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="fornecedorModalLabel">Nova Entrada de Fornecedor</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ form_entrada.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" name="submit_entrada">Salvar</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-body">
-                    {{ form_entrada.as_p }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" name="submit_entrada">Salvar</button>
-                </div>
-                </form>
-            </div>
             </div>
         </div>
-    </div>
-    <div class="main-content" style="margin-left: 25vw; padding: 20px;">
-        <div>
-        <h2>Fornecedores</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>CNPJ</th>
-                        <th>Nome</th>
-                        <th>Data de Integração</th>
-                        <th>Data de Validade</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for fornecedor in fornecedores %}
-                    <tr>
-                        <td>{{ fornecedor.cnpj }}</td>
-                        <td>{{ fornecedor.nome }}</td>
-                        <td>{{ fornecedor.data_integracao|date:"d/m/Y" }}</td>
-                        <td>{{ fornecedor.data_validade|date:"d/m/Y" }}</td>
-                        <td>{{ fornecedor.status }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5">Nenhum Fornecedor registrado</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div>
-            <h2>Entrada de Fornecedores</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Entrada</th>
-                        <th>Saída</th> 
-                        <th>Base</th>
-                        <th>Fornecedor</th>
-                        <th>Visitantes</th>
-                        <th>Responsável</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for entrada in entradas %}
-                    <tr>
-                        <td>{{entrada.data|date:"d/m/Y "}}</td>
-                        <td>{{entrada.horario_entrada|time:"H:i"  }}</td>
-                        <td>
-                            {% if entrada.status == "Saiu" %}
-                                {{ entrada.horario_saida|time:"H:i" }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>{{entrada.base}}</td>
-                        <td>{{entrada.fornecedor}}</td>
-                        <td>{{entrada.visitantes}}</td>
-                        <td>{{entrada.responsavel}}</td>
-                        <td>{{entrada.status}}</td>
-                        <td>
-                            {% if entrada.status != "Saiu" %}
-                                <!-- Botão que aciona o modal -->
-                                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmarSaidaModal{{ entrada.id }}">
-                                    Registrar Saída
-                                </button>
 
-                                <!-- Modal de confirmação -->
-                                <div class="modal fade" id="confirmarSaidaModal{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabel{{ entrada.id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="post" action="{% url 'status_fornecedor' entrada.id %}">
-                                                {% csrf_token %}
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="modalLabel{{ entrada.id }}">Confirmar Saída</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        <!-- Tabela Fornecedores -->
+        <section class="mt-5">
+            <h2>Fornecedores Cadastrados</h2>
+                <div>
+                    <table class="table-cadastro">
+                        <thead>
+                            <tr>
+                                <th>Cpf</th>
+                                <th>Nome</th>
+                                <th>Data de Integração</th>
+                                <th>Data de Validade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fornecedor in fornecedores %}
+                            <tr>
+                                <td>{{ fornecedor.cpf }}</td>
+                                <td>{{ fornecedor.nome }}</td>
+                                <td>{{ fornecedor.data_integracao|date:"d/m/Y" }}</td>
+                                <td>{{ fornecedor.data_validade|date:"d/m/Y" }}</td>
+                                <td>{{ fornecedor.status }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5">Nenhum Fornecedor registrado</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        </section>
+
+        <!-- Tabela Entrada de Fornecedores -->
+        <section class="mt-5">
+            <h2>Entrada de Fornecedores Cadastrados</h2>
+                <div>
+                    <table class="table-cadastro">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Entrada</th>
+                                <th>Saída</th>
+                                <th>Base</th>
+                                <th>Fornecedor</th>
+                                <th>Visitantes</th>
+                                <th>Responsável</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrada in entradas %}
+                            <tr>
+                                <td>{{entrada.data|date:"d/m/Y"}}</td>
+                                <td>{{entrada.horario_entrada|time:"H:i"}}</td>
+                                <td>{% if entrada.status == "Saiu" %}{{ entrada.horario_saida|time:"H:i" }}{% else %}-{% endif %}</td>
+                                <td>{{entrada.base}}</td>
+                                <td>{{entrada.fornecedor}}</td>
+                                <td>{{entrada.visitantes}}</td>
+                                <td>{{entrada.responsavel}}</td>
+                                <td>{{entrada.status}}</td>
+                                <td>
+                                    {% if entrada.status != "Saiu" %}
+                                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmarSaidaModal{{ entrada.id }}">
+                                            Registrar Saída
+                                        </button>
+                                        <div class="modal fade" id="confirmarSaidaModal{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabel{{ entrada.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="post" action="{% url 'status_fornecedor' entrada.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="modalLabel{{ entrada.id }}">Confirmar Saída</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Tem certeza que deseja registrar a saída do fornecedor <strong>{{ entrada.fornecedor }}</strong>?
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                            <button type="submit" class="btn btn-danger">Confirmar</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
-                                                <div class="modal-body">
-                                                    Tem certeza que deseja registrar a saída do fornecedor <strong>{{ entrada.fornecedor }}</strong>?
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                    <button type="submit" class="btn btn-danger">Confirmar</button>
-                                                </div>
-                                            </form>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span>✅</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="9">Nenhuma entrada registrada</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        </section>
+
+        <!-- Tabela Entrada de Fornecedores Avulsos -->
+        <section class="mt-5">
+            <h2>Entrada de Fornecedores Avulsos</h2>
+            <div>
+                <table class="table-avulsos">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Entrada</th>
+                            <th>Saída</th>
+                            <th>Base</th>
+                            <th>Fornecedor / Nome</th>
+                            <th>Visitantes</th>
+                            <th>Responsável</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entrada in entradas_avulsas %}
+                        <tr>
+                            <td>{{ entrada.data|date:"d/m/Y" }}</td>
+                            <td>{{ entrada.horario_entrada|time:"H:i" }}</td>
+                            <td>{% if entrada.status == "Saiu" %}{{ entrada.horario_saida|time:"H:i" }}{% else %}-{% endif %}</td>
+                            <td>{{ entrada.base }}</td>
+                            <td>{{ entrada.fornecedor_nome }}</td>
+                            <td>{{ entrada.visitantes }}</td>
+                            <td>{{ entrada.responsavel }}</td>
+                            <td>{{ entrada.status }}</td>
+                            <td>
+                                {% if entrada.status != "Saiu" %}
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmarSaidaModalAvulso{{ entrada.id }}">
+                                        Registrar Saída
+                                    </button>
+                                    <div class="modal fade" id="confirmarSaidaModalAvulso{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabelAvulso{{ entrada.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="post" action="{% url 'status_avulso' entrada.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="modalLabelAvulso{{ entrada.id }}">Confirmar Saída</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Deseja registrar a saída do fornecedor avulso <strong>{{ entrada.fornecedor_nome }}</strong>?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-danger">Confirmar</button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            {% else %}
-                                <span> ✅ </span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6">Nenhum Fornecedor registrado</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                                {% else %}
+                                    <span>✅</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9">Nenhuma entrada de fornecedor avulso registrada</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
+    <!-- Scripts -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('reduzida');
+        });
+    </script>
+
+
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
 </body>
 </html>

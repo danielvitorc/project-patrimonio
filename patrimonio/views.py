@@ -4,9 +4,11 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 import pandas as pd
-from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm
-from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor
+from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm, EntradaFornecedorAvulsoForm
+from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor, EntradaFornecedorAvulso
 from datetime import date
+from django.utils import timezone
+
 
 # ===== Tela de Login ===== 
 def login_usuario(request):
@@ -152,19 +154,29 @@ def controle_visitantes(request):
             entrada.status = 'Em andamento'  # status default
             entrada.save()
             return redirect('controle_visitantes')
-
+    elif request.method == 'POST':
+        form_avulso = EntradaFornecedorAvulsoForm(request.POST)
+        if form_avulso.is_valid():
+            entrada = form_avulso.save(commit=False)
+            entrada.status = 'Em andamento'  # ou "Saiu", se necessário
+            entrada.save()
+            return redirect('controle_visitantes')  # certifique-se que essa URL esteja no seu urls.py
     else:
         form_fornecedor = FornecedorForm()
         form_entrada = EntradaFornecedorForm()
+        form_avulso = EntradaFornecedorAvulsoForm()
 
     fornecedores = Fornecedor.objects.all()
     entradas = EntradaFornecedor.objects.all().order_by('-data', '-horario_entrada')
+    entradas_avulsas = EntradaFornecedorAvulso.objects.all().order_by('-data', '-horario_entrada')
 
     return render(request, 'patrimonio/entrada_saida_visitantes.html', {
         'form_fornecedor': form_fornecedor, 
         'form_entrada': form_entrada,
         'fornecedores': fornecedores,
         'entradas': entradas,
+        'form_avulso': form_avulso,
+        'entradas_avulsas': entradas_avulsas,
         })
 
 
@@ -173,4 +185,12 @@ def status_fornecedor(request, pk):
     entrada = get_object_or_404(EntradaFornecedor, pk=pk)
     entrada.status = "Saiu"
     entrada.save()
+    return redirect('controle_visitantes')
+
+@login_required
+def status_avulso(request, pk):
+    entrada = get_object_or_404(EntradaFornecedorAvulso, pk=pk)
+    entrada.status = "Saiu"
+    entrada.horario_saida = timezone.now().time()
+    entrada.save(update_fields=["status", "horario_saida"])
     return redirect('controle_visitantes')

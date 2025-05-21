@@ -1,5 +1,5 @@
 from django import forms
-from .models import ControleChaves, Ocorrencia, Colaborador, Fornecedor, EntradaFornecedor
+from .models import ControleChaves, Ocorrencia, Colaborador, Fornecedor, EntradaFornecedor, EntradaFornecedorAvulso
 from django.core.exceptions import ValidationError
 
 class UploadFileForm(forms.Form):
@@ -49,9 +49,9 @@ class OcorrenciaForm(forms.ModelForm):
 class FornecedorForm(forms.ModelForm):
     class Meta:
         model = Fornecedor
-        fields = ['cnpj', 'nome', 'validade_meses']
+        fields = ['cpf', 'nome', 'validade_meses']
         widgets = {
-            'cnpj': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control'}),
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'validade_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
@@ -90,3 +90,36 @@ class EntradaFornecedorForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filtra fornecedores apenas com status "Integrado"
         self.fields['fornecedor'].queryset = Fornecedor.objects.filter(status='Integrado')
+
+class EntradaFornecedorAvulsoForm(forms.ModelForm):
+
+    base = forms.ChoiceField(
+        choices=BASE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = EntradaFornecedorAvulso
+        fields = [
+            'base',
+            'fornecedor_nome',
+            'cpf_ou_cnpj',
+            'quantidade',
+            'visitantes',
+            'tipo_documento',
+            'documento',
+            'setor',
+            'responsavel',
+            'assinatura_portaria',
+        ]
+        widgets = {
+            'fornecedor_nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf_ou_cnpj': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'visitantes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'tipo_documento': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'documento': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'setor': forms.TextInput(attrs={'class': 'form-control'}),
+            'responsavel': forms.TextInput(attrs={'class': 'form-control'}),
+            'assinatura_portaria': forms.TextInput(attrs={'class': 'form-control'}),
+        }

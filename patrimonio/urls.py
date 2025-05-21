@@ -11,4 +11,5 @@ urlpatterns = [
     path('devolver_chave/<int:pk>/', views.devolver_chave, name='devolver_chave'),
     path('controle_visitantes/', views.controle_visitantes, name='controle_visitantes'),
     path('status_fornecedor/<int:pk>/', views.status_fornecedor, name='status_fornecedor'),
+    path('saida_avulso/<int:pk>/', views.status_avulso, name='status_avulso'),
 ]

@@ -1,0 +1,218 @@
+:root {
+--azulEscuro-nort: #021B33;
+--azul-nort: #0d71a7;
+--branco-nort: #F7F7F7;
+--dourado-nort: #FFD700;
+}
+
+body {
+    background-color: var(--branco-nort);
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--azulEscuro-nort);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 240px;
+  padding: 20px 10px;
+  background: linear-gradient(136deg, var(--azulEscuro-nort), var(--azul-nort));
+  color: var(--branco-nort);
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+  transition: width 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar.reduzida {
+  width: 70px;
+}
+
+.sidebar-title {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar.reduzida .sidebar-title {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--branco-nort);
+  padding: 12px;
+  width: 100%;
+  text-decoration: none;
+  margin: 10px 0;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+  justify-content: flex-start;
+}
+
+.sidebar.reduzida a {
+  justify-content: center;
+}
+
+.sidebar a i {
+  font-size: 18px;
+}
+
+.link-text {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar.reduzida .link-text {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-btn-inside {
+  background-color: var(--dourado-nort);
+  color: var(--azulEscuro-nort);
+  border: none;
+  padding: 7px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-bottom: 0px;
+}
+.sidebar h4 {
+  margin-bottom: 20px;
+  color: var(--dourado-nort);
+  text-align: center;
+  font-weight: bold;
+}
+.sidebar a.active {
+  background-color: var(--dourado-nort);
+  color: var(--azulEscuro-nort);
+  font-weight: bold;
+}
+
+.sidebar a {
+  display: block;
+  color: var(--branco-nort);
+  padding: 10px;
+  text-decoration: none;
+  margin: 6px 0;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar a:hover {
+  background-color: var(--azulEscuro-nort);
+  color: var(--dourado-nort);
+}
+.main-content {
+  margin-left: 240px; /* largura da sidebar cheia */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.reduzida ~ .main-content {
+  margin-left: 70px; /* mesma largura da sidebar reduzida */
+}
+
+
+
+h2 {
+            color: var(--azulEscuro-nort);
+            border-bottom: 2px solid var(--dourado-nort);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+}
+button.btn-primary {
+            background-color: #021B33;
+            border: none;
+}
+
+button.btn-primary:hover {
+            background-color: var(--azulEscuro-nort);
+}
+
+button.btn-warning {
+            background-color: var(--dourado-nort);
+            color: var(--azulEscuro-nort);
+            border: none;
+}
+
+button.btn-warning:hover {
+            background-color: #e6c200;
+}
+.btn-close {
+            filter: brightness(0.5);
+}
+
+.modal-content {
+            border-radius: 10px;
+}
+
+.modal-header {
+            background-color: var(--azul-nort);
+            color: var(--branco-nort);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+}
+
+.modal-footer {
+            background-color: var(--branco-nort);
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+}
+/* Estilização específica para a tabela de avulsos */
+.table-chaves {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.table-chaves thead {
+  background: linear-gradient(135deg, var(--azulEscuro-nort), var(--azul-nort));
+  color: var(--branco-nort);
+  text-align: left;
+}
+
+.table-chaves th,
+.table-chaves td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eaeaea;
+  font-size: 14px;
+}
+
+.table-chaves tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.table-chaves tbody tr:hover {
+  background-color: #f1f5ff;
+  transition: background-color 0.2s ease;
+}
+
+.table-chaves td span {
+  font-size: 18px;
+}
+
+.table-chaves .btn-warning {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.table-chaves .btn-danger {
+  background-color: #d9534f;
+  border: none;
+}
+
+.table-chaves .btn-danger:hover {
+  background-color: #c9302c;
+}
+
