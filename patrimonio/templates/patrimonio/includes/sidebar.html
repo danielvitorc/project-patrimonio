@@ -1,32 +1,35 @@
-<div class="sidebar" id="sidebar">
-    <button id="toggleSidebarBtn" class="toggle-btn-inside"><i class="fas fa-bolt"></i></button>
+<div class="sidebar {% if request.resolver_match.url_name == 'home' %}reduzida{% endif %}" id="sidebar">
+  
+  <!-- Botão com ícone de raio sempre visível -->
+  <button id="toggleSidebarBtn" class="toggle-btn-inside">
+    <i class="fas fa-bolt"></i>
+  </button>
 
+  <h4 class="text-center sidebar-title">Norte Tech</h4>
 
-    <h4 class="text-center sidebar-title">Norte Tech</h4>
+  <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+      <i class="fa fa-home"></i>
+      <span class="link-text">HOME</span>
+  </a>
 
-    <a href="{% url 'home' %}" class="{% if request.path == '/home/' %}active{% endif %}">
-        <i class="fa fa-home"></i>
-        <span class="link-text">HOME</span>
-    </a>
+  <a href="{% url 'livro_de_ocorrencia' %}" class="{% if request.resolver_match.url_name == 'livro_de_ocorrencia' %}active{% endif %}">
+      <i class="fas fa-users"></i>
+      <span class="link-text">LIVRO DE OCORRÊNCIAS</span>
+  </a>
 
-    <a href="{% url 'livro_de_ocorrencia' %}" class="{% if request.path == '/livro_de_ocorrencia/' %}active{% endif %}">
-        <i class="fas fa-users"></i>
-        <span class="link-text">LIVRO DE OCORRÊNCIAS</span>
-    </a>
+  <a href="{% url 'entrega_de_chave' %}" class="{% if request.resolver_match.url_name == 'entrega_de_chave' %}active{% endif %}">
+      <i class="fas fa-key"></i>
+      <span class="link-text">CONTROLE DE CHAVES</span>
+  </a>
 
-    <a href="{% url 'entrega_de_chave' %}" class="{% if request.path == '/entrega_de_chave/' %}active{% endif %}">
-        <i class="fas fa-key"></i>
-        <span class="link-text">CONTROLE DE CHAVES</span>
-    </a>
+  <a href="{% url 'controle_visitantes' %}" class="{% if request.resolver_match.url_name == 'controle_visitantes' %}active{% endif %}">
+      <i class="fas fa-door-open"></i>
+      <span class="link-text">VISITANTES</span>
+  </a>
 
-
-    <a href="{% url 'controle_visitantes' %}" class="{% if request.path == '/controle_visitantes/' %}active{% endif %}">
-        <i class="fas fa-door-open"></i>
-        <span class="link-text">VISITANTES</span>
-    </a>
-
-    <a href="{% url 'logout' %}">
-        <i class="fas fa-sign-out-alt"></i>
-        <span class="link-text">LOGOUT</span>
-    </a>
+  <a href="{% url 'logout' %}">
+      <i class="fas fa-sign-out-alt"></i>
+      <span class="link-text">LOGOUT</span>
+  </a>
 </div>
+ 

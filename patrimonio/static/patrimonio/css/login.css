@@ -1,0 +1,131 @@
+:root {
+    --azulEscuro-nort: #021B33;
+    --azul-nort: #0d71a7;
+    --branco-nort: #F7F7F7;
+    --dourado-nort: #FFD700;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* Nova logo no topo do card */
+.login-logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+/* Texto abaixo da imagem da logo */
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--branco-nort);
+}
+
+.logo-text span {
+    color: var(--azul-nort);
+}
+
+
+body, html {
+    height: 100%;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Container com imagem de fundo */
+.login-wrapper {
+    background: url("/static/patrimonio/img/login-bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 5%;
+}
+
+/* Caixa do formulário transparente */
+.login-box {
+    background-color: rgba(2, 27, 51, 0.85);
+    padding: 140px 40px;
+    border-radius: 10px;
+    width: 100%;
+    height: 600px;
+    max-width: 400px;
+    color: var(--branco-nort);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Logo */
+.logo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+.logo span {
+    color: var(--azul-nort);
+}
+
+/* Campos com ícones */
+.input-icon {
+    position: relative;
+}
+
+.input-icon i {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: var(--azul-nort);
+}
+
+.form-control {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--branco-nort);
+    border-radius: 0;
+    color: var(--branco-nort);
+    padding-right: 30px;
+}
+
+.form-control::placeholder {
+    color: var(--branco-nort);
+    opacity: 0.8;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: var(--dourado-nort);
+    outline: none;
+}
+
+.btn-login {
+    background-color: var(--branco-nort) !important;
+    color: var(--azulEscuro-nort); /* Cor do texto visível no fundo branco */
+    font-weight: bold;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 25px;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    background-color: var(--dourado-nort) !important;
+    color: var(--azulEscuro-nort); /* Contraste com o fundo dourado */
+}
+
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .login-wrapper {
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-box {
+        width: 100%;
+    }
+}
