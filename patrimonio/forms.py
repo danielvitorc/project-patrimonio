@@ -1,5 +1,5 @@
 from django import forms
-from .models import ControleChaves, Ocorrencia, Colaborador, Fornecedor, EntradaFornecedor, EntradaFornecedorAvulso
+from .models import ControleChaves, Chave, Ocorrencia, Colaborador, Fornecedor, EntradaFornecedor, EntradaFornecedorAvulso
 from django.core.exceptions import ValidationError
 
 class UploadFileForm(forms.Form):
@@ -13,12 +13,20 @@ BASE_CHOICES = [
     ('BASE CIDADE NOVA', 'BASE CIDADE NOVA')
 ]
 
-class ControleChavesForm(forms.ModelForm):
-    base = forms.ChoiceField(choices=BASE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
 
+class ControleChavesForm(forms.ModelForm):
+    base = forms.ChoiceField(
+    choices=BASE_CHOICES,
+    widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    chave = forms.ModelChoiceField(
+    queryset=Chave.objects.all(),
+    widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
     class Meta:
         model = ControleChaves
-        fields = ['base', 'matricula', 'colaborador', 'departamento']
+        fields = ['base', 'matricula', 'colaborador', 'departamento', 'chave']
         widgets = {
             'matricula': forms.TextInput(attrs={'class': 'form-control'}),
             'colaborador': forms.TextInput(attrs={'class': 'form-control'}),
@@ -30,9 +38,16 @@ class ControleChavesForm(forms.ModelForm):
         matricula = cleaned_data.get("matricula")
         colaborador = cleaned_data.get("colaborador")
         departamento = cleaned_data.get("departamento")
+        chave = cleaned_data.get("chave")
 
         if matricula and (not colaborador or not departamento):
             raise ValidationError("Matrícula inválida. Os dados do colaborador não foram preenchidos.")
+
+        # Verificar se a chave já está em uso (com situação = RETIRADO)
+        if chave:
+            chave_em_uso = ControleChaves.objects.filter(chave=chave, situacao="RETIRADO").exists()
+            if chave_em_uso:
+                raise ValidationError(f"A chave '{chave.nome}' está atualmente indisponível.")
 
 
 class OcorrenciaForm(forms.ModelForm):

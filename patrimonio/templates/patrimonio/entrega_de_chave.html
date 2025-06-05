@@ -36,7 +36,16 @@
                     <td>{{ chave.matricula }}</td>
                     <td>{{ chave.colaborador }}</td>
                     <td>{{ chave.departamento }}</td>
-                    <td>{{ chave.situacao }}</td>
+                    <td>
+                        {% if chave.situacao == "DEVOLVIDO" %}
+                            <span class="text-success">{{ chave.situacao }}</span>
+                        {% elif chave.situacao == "RETIRADO" %}
+                            <span class="text-warning">{{ chave.situacao }}</span>
+                        {% else %}
+                            {{ chave.situacao }}
+                        {% endif %}
+                    </td>
+
                     <td>
                         {% if chave.situacao != "DEVOLVIDO" %}
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmardevolucaoModal{{ chave.id }}">
@@ -104,15 +113,39 @@
             </div>
         </div>
         </div>
-        <script>
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('toggleSidebarBtn');
-
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('reduzida');
+        <!-- Toast container fixado -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+        {% for message in messages %}
+        {% if message.level_tag == "error" %}
+        <div class="toast align-items-center text-bg-warning border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+            <div class="toast-body">
+                {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function(toastEl) {
+                return new bootstrap.Toast(toastEl, { delay: 5000 });
             });
-        </script>
-
+            toastList.forEach(toast => toast.show());
+        });
+    </script>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('reduzida');
+            });
+        }
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const matriculaInput = document.getElementById("id_matricula");

@@ -10,6 +10,16 @@ body {
     font-family: 'Segoe UI', sans-serif;
     color: var(--azulEscuro-nort);
 }
+.texto-verde {
+    color: green;
+    font-weight: bold;
+}
+
+.texto-amarelo {
+    color: goldenrod;
+    font-weight: bold;
+}
+
 
 .sidebar {
   position: fixed;

@@ -23,6 +23,8 @@ def login_usuario(request):
             messages.error(request, 'Usuário ou senha inválidos.')
     return render(request, 'patrimonio/login.html')
 
+
+
 # ==== Função para deslogar do sistema =====
 def logout_usuario(request):
     logout(request)
@@ -92,20 +94,23 @@ def livro_de_ocorrencia(request):
 
 @login_required
 def entrega_de_chave(request):
-
     chaves = ControleChaves.objects.all().order_by('-id')
 
     if request.method == 'POST':
         form_chave = ControleChavesForm(request.POST)
         if form_chave.is_valid():
-            chave = form_chave.save(commit=False)
-            chave.save()
+            form_chave.save()
+            messages.success(request, "Chave salva com sucesso!")
             return redirect('entrega_de_chave')
+        else:
+            # Adiciona mensagens de erro para exibir via toast
+            for erro in form_chave.non_field_errors():
+                messages.error(request, erro)
     else:
         form_chave = ControleChavesForm()
 
     return render(request, 'patrimonio/entrega_de_chave.html', {
-        'form_chave' : form_chave,
+        'form_chave': form_chave,
         'chaves': chaves,
     })
 
