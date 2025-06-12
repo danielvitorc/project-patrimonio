@@ -66,6 +66,39 @@
                             <button type="submit" class="btn btn-primary" name="submit_fornecedor">Salvar</button>
                         </div>
                     </form>
+                        <h5 class="mt-3">Lista de Fornecedores</h5>
+                        <table class="table-custom mt-2">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>CPF</th>
+                                    <th>NOME</th>
+                                    <th>STATUS</th>
+                                    <th>AÇÕES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fornecedor in fornecedores %}
+                                <tr>
+                                    <td>{{ fornecedor.cpf }}</td>
+                                    <td>{{ fornecedor.nome }}</td>
+                                    <td>{{ fornecedor.status }}</td> <!-- Mostra o status -->
+                                    <td>
+                                        <!-- Link para exclusão -->
+                                        <a href="{% url 'excluir_fornecedor' fornecedor.id %}" 
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Tem certeza que deseja excluir este fornecedor?');">
+                                            Excluir
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhum fornecedor cadastrado.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
                 </div>
             </div>
         </div>

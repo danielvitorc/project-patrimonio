@@ -13,4 +13,6 @@ urlpatterns = [
     path('controle_visitantes/', views.controle_visitantes, name='controle_visitantes'),
     path('status_fornecedor/<int:pk>/', views.status_fornecedor, name='status_fornecedor'),
     path('saida_avulso/<int:pk>/', views.status_avulso, name='status_avulso'),
+    path('fornecedor/excluir/<int:id>/', views.excluir_fornecedor, name='excluir_fornecedor'),
+
 ]

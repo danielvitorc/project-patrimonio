@@ -143,10 +143,16 @@ def excluir_chave(request, id):
         messages.error(request, f"Ocorreu um erro ao tentar excluir movimentação de chave: {e}")
     return redirect('entrega_de_chave')  # Redirecionando para a view unificada
 
+def excluir_fornecedor(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id)
+    fornecedor.delete()
+    return redirect('patrimonio/entrada_saida_visitantes.htmla')  # ajuste conforme sua lógica
+
 @login_required
 def controle_visitantes(request):
     
     hoje = date.today()
+
 
     fornecedores_vencidos = Fornecedor.objects.filter(data_validade__lte =hoje, status='Integrado')
     for fornecedor in fornecedores_vencidos:
