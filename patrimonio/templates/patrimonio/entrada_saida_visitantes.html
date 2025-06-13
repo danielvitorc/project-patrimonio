@@ -21,31 +21,6 @@
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entradafornecedorModal">
                 Nova Entrada de Fornecedor 
             </button>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entradaAvulsoModal">
-                Nova Entrada de Fornecedor Avulso
-            </button>
-        </div>
-
-        <!-- Modal Fornecedor Avulso -->
-        <div class="modal fade" id="entradaAvulsoModal" tabindex="-1" aria-labelledby="entradaAvulsoModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="entradaAvulsoModalLabel">Entrada de Fornecedor Avulso</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                        </div>
-                        <div class="modal-body">
-                            {{ form_avulso.as_p }}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" name="submit_avulso">Salvar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </div>
 
         <!-- Modal Novo Fornecedor -->
@@ -189,73 +164,6 @@
                         </tbody>
                     </table>
                 </div>
-        </section>
-
-        <!-- Tabela Entrada de Fornecedores Avulsos -->
-        <section class="mt-5">
-            <h2>Entrada de Fornecedores Avulsos</h2>
-            <div>
-                <table class="table-avulsos">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Entrada</th>
-                            <th>Saída</th>
-                            <th>Base</th>
-                            <th>Fornecedor / Nome</th>
-                            <th>Visitantes</th>
-                            <th>Responsável</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entrada in entradas_avulsas %}
-                        <tr>
-                            <td>{{ entrada.data|date:"d/m/Y" }}</td>
-                            <td>{{ entrada.horario_entrada|time:"H:i" }}</td>
-                            <td>{% if entrada.status == "Saiu" %}{{ entrada.horario_saida|time:"H:i" }}{% else %}-{% endif %}</td>
-                            <td>{{ entrada.base }}</td>
-                            <td>{{ entrada.fornecedor_nome }}</td>
-                            <td>{{ entrada.visitantes }}</td>
-                            <td>{{ entrada.responsavel }}</td>
-                            <td>{{ entrada.status }}</td>
-                            <td>
-                                {% if entrada.status != "Saiu" %}
-                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmarSaidaModalAvulso{{ entrada.id }}">
-                                        Registrar Saída
-                                    </button>
-                                    <div class="modal fade" id="confirmarSaidaModalAvulso{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabelAvulso{{ entrada.id }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <form method="post" action="{% url 'status_avulso' entrada.id %}">
-                                                    {% csrf_token %}
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="modalLabelAvulso{{ entrada.id }}">Confirmar Saída</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        Deseja registrar a saída do fornecedor avulso <strong>{{ entrada.fornecedor_nome }}</strong>?
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-danger">Confirmar</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <span>✅</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="9">Nenhuma entrada de fornecedor avulso registrada</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
         </section>
     </div>
 
