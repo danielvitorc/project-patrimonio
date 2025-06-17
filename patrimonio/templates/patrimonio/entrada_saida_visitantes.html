@@ -7,12 +7,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'patrimonio/css/visitantes.css' %}">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS Bundle (inclui Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
     <title>{% block title %}Visitantes - PATRIMONIO{% endblock %}</title>
 </head>
 <body>
     {% include 'patrimonio/includes/sidebar.html' %}
     <div class="main-content" id="mainContent">
+        <h1>Tela Visitantes</h1>
+
         <!-- Botões de Ação -->
         <div class="mb-4 d-flex gap-2">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#fornecedorModal">
@@ -23,59 +30,40 @@
             </button>
         </div>
 
-        <!-- Modal Novo Fornecedor -->
         <div class="modal fade" id="fornecedorModal" tabindex="-1" aria-labelledby="fornecedorModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="fornecedorModalLabel">Novo Fornecedor</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                        </div>
-                        <div class="modal-body">
-                            {{ form_fornecedor.as_p }}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary" name="submit_fornecedor">Salvar</button>
-                        </div>
-                    </form>
-                        <h5 class="mt-3">Lista de Fornecedores</h5>
-                        <table class="table-custom mt-2">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>CPF</th>
-                                    <th>NOME</th>
-                                    <th>STATUS</th>
-                                    <th>AÇÕES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for fornecedor in fornecedores %}
-                                <tr>
-                                    <td>{{ fornecedor.cpf }}</td>
-                                    <td>{{ fornecedor.nome }}</td>
-                                    <td>{{ fornecedor.status }}</td> <!-- Mostra o status -->
-                                    <td>
-                                        <!-- Link para exclusão -->
-                                        <a href="{% url 'excluir_fornecedor' fornecedor.id %}" 
-                                        class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Tem certeza que deseja excluir este fornecedor?');">
-                                            Excluir
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Nenhum fornecedor cadastrado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title" id="fornecedorModalLabel">Novo Fornecedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
+                <div class="modal-body">
+                {{ form_fornecedor.as_p }}
+
+                <div id="visitanteFields" style="display:none;">
+                    <h6>Informações Visitante</h6>
+                    {{ form_visitante.as_p }}
+                </div>
+
+                <div id="fornecedorServicoFields" style="display:none;">
+                    <h6>Informações Fornecedor/Serviço</h6>
+                    {{ form_fornecedor_servico.as_p }}
+                </div>
+
+                <div id="entregaFields" style="display:none;">
+                    <h6>Informações Entrega</h6>
+                    {{ form_entrega.as_p }}
+                </div>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" name="submit_novo_fornecedor">Salvar</button>
+                </div>
+            </form>
             </div>
+        </div>
         </div>
 
         <!-- Modal Entrada Fornecedor -->
@@ -102,70 +90,295 @@
         <!-- Tabela Entrada de Fornecedores -->
         <section class="mt-5">
             <h2>Entrada de Fornecedores Cadastrados</h2>
+            <div class="mb-3 d-flex flex-wrap gap-3 align-items-end">
                 <div>
-                    <table class="table-cadastro">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Entrada</th>
-                                <th>Saída</th>
-                                <th>Base</th>
-                                <th>Fornecedor</th>
-                                <th>Visitantes</th>
-                                <th>Responsável</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entrada in entradas %}
-                            <tr>
-                                <td>{{entrada.data|date:"d/m/Y"}}</td>
-                                <td>{{entrada.horario_entrada|time:"H:i"}}</td>
-                                <td>{% if entrada.status == "Saiu" %}{{ entrada.horario_saida|time:"H:i" }}{% else %}-{% endif %}</td>
-                                <td>{{entrada.base}}</td>
-                                <td>{{entrada.fornecedor}}</td>
-                                <td>{{entrada.visitantes}}</td>
-                                <td>{{entrada.responsavel}}</td>
-                                <td>{{entrada.status}}</td>
-                                <td>
-                                    {% if entrada.status != "Saiu" %}
-                                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmarSaidaModal{{ entrada.id }}">
-                                            Registrar Saída
-                                        </button>
-                                        <div class="modal fade" id="confirmarSaidaModal{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabel{{ entrada.id }}" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <form method="post" action="{% url 'status_fornecedor' entrada.id %}">
-                                                        {% csrf_token %}
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="modalLabel{{ entrada.id }}">Confirmar Saída</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            Tem certeza que deseja registrar a saída do fornecedor <strong>{{ entrada.fornecedor }}</strong>?
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-danger">Confirmar</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
+                    <label for="filtro-data" class="form-label">Data:</label>
+                    <input type="date" id="filtro-data" class="form-control" />
+                </div>
+
+                <div>
+                    <label for="filtro-categoria" class="form-label">Categoria:</label>
+                    <select id="filtro-categoria" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="Visitante">Visitante</option>
+                    <option value="Fornecedores/Prestadores de Serviços">Fornecedores/Prestadores de Serviços</option>
+                    <option value="Entregas">Entregas</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filtro-fornecedor" class="form-label">Fornecedor:</label>
+                    <input type="text" id="filtro-fornecedor" class="form-control" placeholder="Nome fornecedor" />
+                </div>
+
+                <div>
+                    <label for="filtro-responsavel" class="form-label">Responsável:</label>
+                    <input type="text" id="filtro-responsavel" class="form-control" placeholder="Assinatura portaria" />
+                </div>
+
+                <div>
+                    <label for="filtro-status" class="form-label">Status:</label>
+                    <select id="filtro-status" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="Em andamento">Em andamento</option>
+                    <option value="Saiu">Saiu</option>
+                    </select>
+                </div>
+
+            </div>
+            <div>
+                <table class="table-cadastro" id="tabela-entradas">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Entrada</th>
+                            <th>Saída</th>
+                            <th>Base</th>
+                            <th>Categoria</th>
+                            <th>Fornecedor</th>
+                            <th>Responsável</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entrada in entradas %}
+                        <tr>
+                            <td>{{ entrada.data|date:"d/m/Y" }}</td>
+                            <td>{{ entrada.horario_entrada|time:"H:i" }}</td>
+                            <td>
+                                {% if entrada.status == "Saiu" %}
+                                    {{ entrada.horario_saida|time:"H:i" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ entrada.base }}</td>
+                            <td>{{ entrada.fornecedor.get_categoria_display }}</td>
+                            <td>{{ entrada.get_nome_fornecedor }}</td>
+                            <td>{{ entrada.assinatura_portaria }}</td>
+                            <td>{{ entrada.status }}</td>
+                            <td>
+                                {% if entrada.status != "Saiu" %}
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmarSaidaModal{{ entrada.id }}">
+                                        Registrar Saída
+                                    </button>
+                                    <div class="modal fade" id="confirmarSaidaModal{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabel{{ entrada.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="post" action="{% url 'status_fornecedor' entrada.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="modalLabel{{ entrada.id }}">Confirmar Saída</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Tem certeza que deseja registrar a saída do fornecedor <strong>{{ entrada.fornecedor }}</strong>?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-danger">Confirmar</button>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
-                                    {% else %}
-                                        <span>✅</span>
+                                    </div>
+                                {% else %}
+                                    <span>✅</span>
+                                {% endif %}
+
+                                <!-- Botão Ver Detalhes -->
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalDetalhes{{ entrada.id }}">
+                                    Ver Detalhes
+                                </button>
+
+                                <!-- Botão Excluir -->
+                                <form method="post" action="{% url 'excluir_entrada' entrada.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este registro?');">
+                                        Excluir
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <!-- Modal de detalhes -->
+                        <div class="modal fade" id="modalDetalhes{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabel{{ entrada.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalLabel{{ entrada.id }}">Detalhes da Entrada</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><strong>Data:</strong> {{ entrada.data|date:"d/m/Y" }}</li>
+                                    <li class="list-group-item"><strong>Entrada:</strong> {{ entrada.horario_entrada|time:"H:i" }}</li>
+                                    <li class="list-group-item"><strong>Saída:</strong> 
+                                        {% if entrada.horario_saida %}
+                                        {{ entrada.horario_saida|time:"H:i" }}
+                                        {% else %}
+                                        Não registrada
+                                        {% endif %}
+                                    </li>
+                                    <li class="list-group-item"><strong>Base:</strong> {{ entrada.base }}</li>
+                                    <li class="list-group-item"><strong>Status:</strong> {{ entrada.status }}</li>
+                                    <li class="list-group-item"><strong>Categoria:</strong> {{ entrada.fornecedor.get_categoria_display }}</li>
+
+                                    {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante %}
+                                        <li class="list-group-item"><strong>Nome do Visitante:</strong> {{ entrada.fornecedor.visitante.nome }}</li>
+                                        <li class="list-group-item"><strong>Documento:</strong> {{ entrada.fornecedor.visitante.documento }}</li>
+                                        <li class="list-group-item"><strong>Motivo da Visita:</strong> {{ entrada.fornecedor.visitante.motivo_visita }}</li>
+                                        <li class="list-group-item"><strong>Setor Destino:</strong> {{ entrada.fornecedor.visitante.setor_destino }}</li>
+                                        <li class="list-group-item"><strong>Responsável:</strong> {{ entrada.fornecedor.visitante.responsavel_autorizante }}</li>
+                                        <li class="list-group-item"><strong>Veículo:</strong> {{ entrada.fornecedor.visitante.modelo_veiculo }} - {{ entrada.fornecedor.visitante.placa_veiculo }}</li>
+
+                                    {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico %}
+                                        <li class="list-group-item"><strong>Empresa:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_empresa }}</li>
+                                        <li class="list-group-item"><strong>Representante:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_representante }}</li>
+                                        <li class="list-group-item"><strong>Documento:</strong> {{ entrada.fornecedor.fornecedor_servico.documento }}</li>
+                                        <li class="list-group-item"><strong>Atividade/Serviço:</strong> {{ entrada.fornecedor.fornecedor_servico.atividade_servico }}</li>
+                                        <li class="list-group-item"><strong>Setor Destino:</strong> {{ entrada.fornecedor.fornecedor_servico.setor_destino }}</li>
+                                        <li class="list-group-item"><strong>Responsável:</strong> {{ entrada.fornecedor.fornecedor_servico.responsavel_autorizante }}</li>
+                                        <li class="list-group-item"><strong>Veículo:</strong> {{ entrada.fornecedor.fornecedor_servico.modelo_veiculo }} - {{ entrada.fornecedor.fornecedor_servico.placa_veiculo }}</li>
+
+                                    {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega %}
+                                        <li class="list-group-item"><strong>Entregador:</strong> {{ entrada.fornecedor.entrega.nome_entregador }}</li>
+                                        <li class="list-group-item"><strong>Transportadora:</strong> {{ entrada.fornecedor.entrega.nome_transportadora }}</li>
+                                        <li class="list-group-item"><strong>Tipo de Entrega:</strong> {{ entrada.fornecedor.entrega.tipo_entrega }}</li>
+                                        <li class="list-group-item"><strong>Descrição do Item:</strong> {{ entrada.fornecedor.entrega.descricao_item }}</li>
+                                        <li class="list-group-item"><strong>Quantidade:</strong> {{ entrada.fornecedor.entrega.quantidade_recebida }}</li>
+                                        <li class="list-group-item"><strong>Setor Destino:</strong> {{ entrada.fornecedor.entrega.setor_destino }}</li>
+                                        <li class="list-group-item"><strong>Documentos:</strong> {{ entrada.fornecedor.entrega.documentos_entregador }}</li>
+                                        <li class="list-group-item"><strong>Veículo:</strong> {{ entrada.fornecedor.entrega.placa_veiculo }}</li>
+                                        <li class="list-group-item"><strong>Recebimento:</strong> {{ entrada.fornecedor.entrega.data_hora_recebimento }}</li>
+                                        <li class="list-group-item"><strong>Entrega Material:</strong> {{ entrada.fornecedor.entrega.data_hora_entrega_material }}</li>
                                     {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="9">Nenhuma entrada registrada</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                    </ul>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        {% empty %}
+                        <tr><td colspan="8">Nenhuma entrada registrada</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </section>
+
     </div>
+    <script>
+        // Seleciona os inputs
+        const filtroData = document.getElementById('filtro-data');
+        const filtroCategoria = document.getElementById('filtro-categoria');
+        const filtroFornecedor = document.getElementById('filtro-fornecedor');
+        const filtroResponsavel = document.getElementById('filtro-responsavel');
+        const filtroStatus = document.getElementById('filtro-status');
+        const tabela = document.getElementById('tabela-entradas').getElementsByTagName('tbody')[0];
+
+        // Função para limpar espaços e padronizar texto para comparação
+        function normalizeString(str) {
+            return str.trim().toLowerCase();
+        }
+
+        // Função que realiza o filtro
+        function filtrarTabela() {
+            const valData = filtroData.value; // formato: yyyy-mm-dd
+            const valCategoria = normalizeString(filtroCategoria.value);
+            const valFornecedor = normalizeString(filtroFornecedor.value);
+            const valResponsavel = normalizeString(filtroResponsavel.value);
+            const valStatus = normalizeString(filtroStatus.value);
+
+            // Percorre todas as linhas da tabela (tbody)
+            for (let row of tabela.rows) {
+            const celData = row.cells[0].innerText; // "dd/mm/yyyy"
+            const celCategoria = normalizeString(row.cells[4].innerText);
+            const celFornecedor = normalizeString(row.cells[5].innerText);
+            const celResponsavel = normalizeString(row.cells[6].innerText);
+            const celStatus = normalizeString(row.cells[7].innerText);
+
+            // Converter data da célula para yyyy-mm-dd para comparar com o filtro
+            const parts = celData.split('/');
+            const dataFormatada = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : '';
+
+            // Verifica cada filtro (se preenchido)
+            const passaData = !valData || dataFormatada === valData;
+            const passaCategoria = !valCategoria || celCategoria.includes(valCategoria);
+            const passaFornecedor = !valFornecedor || celFornecedor.includes(valFornecedor);
+            const passaResponsavel = !valResponsavel || celResponsavel.includes(valResponsavel);
+            const passaStatus = !valStatus || celStatus.includes(valStatus);
+
+            // Se passar todos, mostra a linha, senão esconde
+            if (passaData && passaCategoria && passaFornecedor && passaResponsavel && passaStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+            }
+        }
+
+        // Adiciona eventos para rodar o filtro quando algo mudar
+        filtroData.addEventListener('change', filtrarTabela);
+        filtroCategoria.addEventListener('change', filtrarTabela);
+        filtroFornecedor.addEventListener('input', filtrarTabela);
+        filtroResponsavel.addEventListener('input', filtrarTabela);
+        filtroStatus.addEventListener('change', filtrarTabela);
+        </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const categoriaSelect = document.querySelector('#id_categoria');
+        const visitanteFields = document.getElementById('visitanteFields');
+        const fornecedorServicoFields = document.getElementById('fornecedorServicoFields');
+        const entregaFields = document.getElementById('entregaFields');
+
+        // Função para mostrar/esconder e habilitar/desabilitar campos
+        function toggleFields() {
+            const categoria = categoriaSelect.value;
+
+            // Esconde e desabilita todos os campos
+            [visitanteFields, fornecedorServicoFields, entregaFields].forEach(fieldset => {
+                fieldset.style.display = 'none';
+                fieldset.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.disabled = true;
+                });
+            });
+
+            // Exibe e habilita somente os campos da categoria escolhida
+            if (categoria === 'VISITANTE') {
+                visitanteFields.style.display = 'block';
+                visitanteFields.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.disabled = false;
+                });
+            } else if (categoria === 'FORNECEDOR') {
+                fornecedorServicoFields.style.display = 'block';
+                fornecedorServicoFields.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.disabled = false;
+                });
+            } else if (categoria === 'ENTREGA') {
+                entregaFields.style.display = 'block';
+                entregaFields.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.disabled = false;
+                });
+            }
+        }
+
+        // Evento quando o usuário muda a categoria
+        categoriaSelect.addEventListener('change', toggleFields);
+
+        // Executa ao carregar a página
+        toggleFields();
+    });
+    </script>
+
 
     <!-- Scripts -->
     <script>

@@ -73,6 +73,29 @@ body {
   opacity: 0;
   pointer-events: none;
 }
+/* Barra de rolagem vertical e horizontal */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Trilha da barra (fundo) */
+::-webkit-scrollbar-track {
+  background: var(--branco-nort);
+  border-radius: 10px;
+}
+
+/* Parte que desliza */
+::-webkit-scrollbar-thumb {
+  background-color: var(--azul-nort);
+  border-radius: 10px;
+  border: 2px solid var(--branco-nort);
+}
+
+/* Quando o mouse passa por cima */
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--azulEscuro-nort);
+}
 
 .toggle-btn-inside {
   background-color: var(--dourado-nort);

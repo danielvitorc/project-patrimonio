@@ -17,6 +17,11 @@
       <span class="link-text">LIVRO DE OCORRÊNCIAS</span>
   </a>
 
+  <a href="{% url 'ocorrencia_cracha' %}" class="{% if request.resolver_match.url_name == 'ocorrencia_cracha' %}active{% endif %}">
+      <i class="fas fa-id-badge"></i>
+      <span class="link-text">CRACHA OCORRÊNCIAS </span>
+  </a>
+
   <a href="{% url 'entrega_de_chave' %}" class="{% if request.resolver_match.url_name == 'entrega_de_chave' %}active{% endif %}">
       <i class="fas fa-key"></i>
       <span class="link-text">CONTROLE DE CHAVES</span>
@@ -25,6 +30,11 @@
   <a href="{% url 'controle_visitantes' %}" class="{% if request.resolver_match.url_name == 'controle_visitantes' %}active{% endif %}">
       <i class="fas fa-door-open"></i>
       <span class="link-text">VISITANTES</span>
+  </a>
+
+  <a href="{% url 'fornecedores_cadastrados' %}" class="{% if request.resolver_match.url_name == 'fornecedores_cadastrados' %}active{% endif %}">
+      <i class="fas fa-door-open"></i>
+      <span class="link-text">REGISTROS VISITANTES</span>
   </a>
 
   <a href="{% url 'logout' %}">

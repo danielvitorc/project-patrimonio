@@ -53,7 +53,7 @@
             <thead>
                 <tr>
                     <th>Base</th>
-                    <th>Tipo</th>
+                    <th>Data</th>
                     <th>Ocorrência</th>
                     <th>Usuário</th>
                 </tr>
@@ -62,7 +62,7 @@
                 {% for ocorrencia in ocorrencias %}
                 <tr>
                     <td>{{ ocorrencia.base }}</td>
-                    <td>{{ ocorrencia.tipo }}</td>
+                    <td>{{ ocorrencia.data }}</td>
                     <td>{{ ocorrencia.ocorrencia }}</td>
                     <td>{{ ocorrencia.usuario.get_full_name|default:ocorrencia.usuario.username }}</td>
                 </tr>

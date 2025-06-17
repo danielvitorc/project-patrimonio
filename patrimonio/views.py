@@ -4,10 +4,12 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 import pandas as pd
-from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm, EntradaFornecedorAvulsoForm
-from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor, EntradaFornecedorAvulso
+from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm, CrachaForm, DevolucaoChaveForm, FornecedorServicoForm, Fornecedor, EntradaFornecedor, VisitanteForm, EntregaForm
+from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor, EsquecimentoCRACHA
 from datetime import date
 from django.utils import timezone
+from utils.email_alertas import enviar_alerta_vencimentos
+
 
 
 # ===== Tela de Login ===== 
@@ -74,6 +76,38 @@ def home(request):
     })
 
 @login_required
+def ocorrencia_cracha(request):
+    if request.method == 'POST':
+        form_cracha = CrachaForm(request.POST)
+        if form_cracha.is_valid():
+            form_cracha.save()
+            return redirect('ocorrencia_cracha')  # redireciona para a mesma view
+    else:
+        form_cracha = CrachaForm()
+
+    registros = EsquecimentoCRACHA.objects.all().order_by('-data')
+
+    return render(request, 'patrimonio/ocorrencia_cracha.html', {
+        'form_cracha': form_cracha,
+        'registros': registros
+    })
+def exportar_ocorrencias_excel(request):
+    registros = EsquecimentoCRACHA.objects.all().values(
+        'matricula', 'colaborador', 'departamento', 'data', 'motivo'
+    )
+
+    df = pd.DataFrame(list(registros))
+    df['data'] = pd.to_datetime(df['data']).dt.strftime('%d/%m/%Y')
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=ocorrencias_cracha.xlsx'
+
+    with pd.ExcelWriter(response, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Ocorrencias', index=False)
+
+    return response
+    
+@login_required
 def livro_de_ocorrencia(request):
 
     ocorrencias = Ocorrencia.objects.all().order_by('-id')
@@ -91,28 +125,61 @@ def livro_de_ocorrencia(request):
     return render(request, 'patrimonio/livro_de_ocorrencia.html', {
         'form_ocorrencia': form_ocorrencia, 
         'ocorrencias': ocorrencias,})
+    
+    
+@login_required
+def excluir_chave(request, chave_id):
+    chave = get_object_or_404(ControleChaves, id=chave_id)
+    if request.method == 'POST':
+        chave.delete()
+        messages.success(request, "Registro excluído com sucesso.")
+        return redirect('entrega_de_chave')
 
 @login_required
 def entrega_de_chave(request):
     chaves = ControleChaves.objects.all().order_by('-id')
+    form_chave = ControleChavesForm()
+    devolucao_forms = {}
 
-    if request.method == 'POST':
-        form_chave = ControleChavesForm(request.POST)
+    # Processar entrega de chave
+    if request.method == 'POST' and 'form_tipo' in request.POST and request.POST['form_tipo'] == 'entrega':
+        form_chave = ControleChavesForm(request.POST, request.FILES)
         if form_chave.is_valid():
-            form_chave.save()
-            messages.success(request, "Chave salva com sucesso!")
+            controle = form_chave.save(commit=False)
+            controle.situacao = "RETIRADO"
+            controle.save()
+            messages.success(request, "Entrega registrada com sucesso!")
             return redirect('entrega_de_chave')
         else:
-            # Adiciona mensagens de erro para exibir via toast
             for erro in form_chave.non_field_errors():
                 messages.error(request, erro)
-    else:
-        form_chave = ControleChavesForm()
+
+    # Processar devolução
+    elif request.method == 'POST' and 'form_tipo' in request.POST and request.POST['form_tipo'] == 'devolucao':
+        chave_id = request.POST.get('chave_id')
+        chave = get_object_or_404(ControleChaves, id=chave_id)
+        form_devolucao = DevolucaoChaveForm(request.POST, request.FILES, instance=chave)
+        if form_devolucao.is_valid():
+            devolucao = form_devolucao.save(commit=False)
+            devolucao.data_devolucao = timezone.now()
+            devolucao.situacao = "DEVOLVIDO"
+            devolucao.save()
+            messages.success(request, "Chave devolvida com sucesso!")
+            return redirect('entrega_de_chave')
+        else:
+            messages.error(request, "Erro ao registrar devolução.")
+
+    # Pré-preencher formulários de devolução por chave
+    for chave in chaves:
+        if chave.situacao == "RETIRADO":
+            devolucao_forms[chave.id] = DevolucaoChaveForm(instance=chave)
 
     return render(request, 'patrimonio/entrega_de_chave.html', {
         'form_chave': form_chave,
+        'devolucao_forms': devolucao_forms,
         'chaves': chaves,
     })
+
 
 def buscar_colaborador_por_matricula(request):
     matricula = request.GET.get('matricula')
@@ -148,59 +215,85 @@ def excluir_fornecedor(request, id):
     fornecedor.delete()
     return redirect('patrimonio/entrada_saida_visitantes.htmla')  # ajuste conforme sua lógica
 
+
 @login_required
 def controle_visitantes(request):
-    
-    hoje = date.today()
+    hoje = timezone.now().date()
 
+    # Atualiza status automaticamente
+    Fornecedor.objects.filter(data_validade__lte=hoje, status='Integrado').update(status='Pendente')
 
-    fornecedores_vencidos = Fornecedor.objects.filter(data_validade__lte =hoje, status='Integrado')
-    for fornecedor in fornecedores_vencidos:
-        fornecedor.status = 'Pendente'
-        fornecedor.save(update_fields=['status'])
+    # Envia alerta por e-mail
+    enviar_alerta_vencimentos()
 
-    # Processa formulário de Fornecedor
-    if request.method == 'POST' and 'submit_fornecedor' in request.POST:
-        form_fornecedor = FornecedorForm(request.POST)
-        form_entrada = EntradaFornecedorForm()
-        if form_fornecedor.is_valid():
-            form_fornecedor.save()
-            return redirect('controle_visitantes')
+    form_fornecedor = FornecedorForm()
+    form_visitante = VisitanteForm()
+    form_fornecedor_servico = FornecedorServicoForm()
+    form_entrega = EntregaForm()
+    form_entrada = EntradaFornecedorForm()
 
-    # Processa formulário de EntradaFornecedor
-    elif request.method == 'POST' and 'submit_entrada' in request.POST:
-        form_entrada = EntradaFornecedorForm(request.POST)
-        form_fornecedor = FornecedorForm()
-        if form_entrada.is_valid():
-            entrada = form_entrada.save(commit=False)
-            entrada.status = 'Em andamento'  # status default
+    if request.method == 'POST':
+        # Novo Fornecedor
+        if 'submit_novo_fornecedor' in request.POST:
+            form_fornecedor = FornecedorForm(request.POST)
+            categoria = request.POST.get('categoria')
+
+            form_visitante = VisitanteForm(request.POST, request.FILES) if categoria == 'VISITANTE' else VisitanteForm()
+            form_fornecedor_servico = FornecedorServicoForm(request.POST, request.FILES) if categoria == 'FORNECEDOR' else FornecedorServicoForm()
+            form_entrega = EntregaForm(request.POST, request.FILES) if categoria == 'ENTREGA' else EntregaForm()
+
+            if form_fornecedor.is_valid():
+                fornecedor = form_fornecedor.save(commit=False)
+                fornecedor.save()
+
+                if categoria == 'VISITANTE' and form_visitante.is_valid():
+                    visitante = form_visitante.save(commit=False)
+                    visitante.fornecedor = fornecedor
+                    visitante.save()
+
+                elif categoria == 'FORNECEDOR' and form_fornecedor_servico.is_valid():
+                    servico = form_fornecedor_servico.save(commit=False)
+                    servico.fornecedor = fornecedor
+                    servico.save()
+
+                elif categoria == 'ENTREGA' and form_entrega.is_valid():
+                    entrega = form_entrega.save(commit=False)
+                    entrega.fornecedor = fornecedor
+                    entrega.save()
+
+                return redirect('controle_visitantes')
+
+        # Entrada
+        elif 'submit_entrada' in request.POST:
+            form_entrada = EntradaFornecedorForm(request.POST)
+            if form_entrada.is_valid():
+                entrada = form_entrada.save(commit=False)
+                entrada.status = 'Em andamento'
+                entrada.usuario_registro = request.user
+                entrada.save()
+                return redirect('controle_visitantes')
+
+        # Marcar saída
+        elif 'submit_saida' in request.POST:
+            entrada_id = request.POST.get('entrada_id')
+            entrada = get_object_or_404(EntradaFornecedor, id=entrada_id)
+            entrada.status = 'Saiu'
             entrada.save()
             return redirect('controle_visitantes')
-    elif request.method == 'POST':
-        form_avulso = EntradaFornecedorAvulsoForm(request.POST)
-        if form_avulso.is_valid():
-            entrada = form_avulso.save(commit=False)
-            entrada.status = 'Em andamento'  # ou "Saiu", se necessário
-            entrada.save()
-            return redirect('controle_visitantes')  # certifique-se que essa URL esteja no seu urls.py
-    else:
-        form_fornecedor = FornecedorForm()
-        form_entrada = EntradaFornecedorForm()
-        form_avulso = EntradaFornecedorAvulsoForm()
 
     fornecedores = Fornecedor.objects.all()
     entradas = EntradaFornecedor.objects.all().order_by('-data', '-horario_entrada')
-    entradas_avulsas = EntradaFornecedorAvulso.objects.all().order_by('-data', '-horario_entrada')
 
-    return render(request, 'patrimonio/entrada_saida_visitantes.html', {
-        'form_fornecedor': form_fornecedor, 
+    context = {
+        'form_fornecedor': form_fornecedor,
+        'form_visitante': form_visitante,
+        'form_fornecedor_servico': form_fornecedor_servico,
+        'form_entrega': form_entrega,
         'form_entrada': form_entrada,
         'fornecedores': fornecedores,
         'entradas': entradas,
-        'form_avulso': form_avulso,
-        'entradas_avulsas': entradas_avulsas,
-        })
-
+    }
+    return render(request, 'patrimonio/entrada_saida_visitantes.html', context)
 
 @login_required
 def status_fornecedor(request, pk):
@@ -209,10 +302,20 @@ def status_fornecedor(request, pk):
     entrada.save()
     return redirect('controle_visitantes')
 
-@login_required
-def status_avulso(request, pk):
-    entrada = get_object_or_404(EntradaFornecedorAvulso, pk=pk)
-    entrada.status = "Saiu"
-    entrada.horario_saida = timezone.now().time()
-    entrada.save(update_fields=["status", "horario_saida"])
-    return redirect('controle_visitantes')
+
+
+def detalhes_entrada(request, entrada_id):
+    entrada = get_object_or_404(EntradaFornecedor, pk=entrada_id)
+    return render(request, 'patrimonio/detalhes_entrada.html', {'entrada': entrada})
+
+def excluir_entrada(request, pk):
+    entrada = get_object_or_404(EntradaFornecedor, pk=pk)
+    if request.method == "POST":
+        entrada.delete()
+        return redirect('controle_visitantes')  # redirecione para onde achar adequado
+    return render(request, '/confirmar_exclusao.html', {'entrada': entrada})
+
+
+def fornecedores_cadastrados_view(request):
+    fornecedores = Fornecedor.objects.all().order_by('-data_integracao')
+    return render(request, 'patrimonio/fornecedores_cadastrados.html', {'fornecedores': fornecedores})

@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'patrimonio/css/ocorrencia.css' %}">
+    <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
+    <title>{% block title %}Crachá - PATRIMONIO{% endblock %}</title>
+
+</head>
+<body>
+
+    {% include 'patrimonio/includes/sidebar.html' %}
+    <div class="main-content">
+        <h1>Tela de Esquecimento de Crachá</h1>
+
+        <div class="d-flex mb-3">
+            <button id="abrirModalBtn" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalOcorrencia">
+                Nova Ocorrência
+            </button>
+            <a href="{% url 'exportar_ocorrencias_excel' %}" class="btn btn-success ms-2">
+                <i class="fas fa-file-excel"></i> Baixar Excel
+            </a>
+        </div>
+
+
+        
+        <!-- Modal -->
+        <!-- Modal Ocorrência -->
+        <div class="modal fade" id="modalOcorrencia" tabindex="-1" aria-labelledby="modalOcorrenciaLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalOcorrenciaLabel">Novo chamado</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ form_cracha.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <h2>Registros Recentes</h2>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="filtroColaborador" placeholder="Filtrar por colaborador" class="form-control" style="width: 250px; display: inline-block; margin-right: 10px;" />
+            <input type="date" id="filtroData" placeholder="dd/mm/aaaa" class="form-control" style="width: 200px; display: inline-block;" />
+        </div>
+        <table class="table-ocorrencia">
+            <thead>
+                <tr>
+                    <th>Matricula</th>
+                    <th>Colaborador</th>
+                    <th>Departamento</th>
+                    <th>Data</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaRegistros">
+                {% for registros in registros %}
+                <tr>
+                    <td>{{ registros.matricula }}</td>
+                    <td>{{ registros.colaborador }}</td>
+                    <td>{{ registros.departamento }}</td>
+                    <td>{{ registros.data|date:"d/m/Y" }}</td>
+                    <td>{{ registros.motivo }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">Nenhuma ocorrência registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+    const filtroColaborador = document.getElementById("filtroColaborador");
+    const filtroData = document.getElementById("filtroData");
+    const linhasTabela = document.querySelectorAll("#tabelaRegistros tr");
+
+    filtroColaborador.addEventListener("input", aplicarFiltro);
+    filtroData.addEventListener("input", aplicarFiltro);
+
+    function aplicarFiltro() {
+        const termoColaborador = filtroColaborador.value.toLowerCase();
+        const dataSelecionada = filtroData.value;
+
+        // Converte de yyyy-mm-dd para dd/mm/yyyy
+        let termoData = "";
+        if (dataSelecionada) {
+            const partes = dataSelecionada.split("-");
+            termoData = `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        linhasTabela.forEach(linha => {
+            const colaborador = linha.children[1].textContent.toLowerCase();
+            const dataTexto = linha.children[3].textContent.trim(); // dd/mm/yyyy
+
+            const correspondeColaborador = colaborador.includes(termoColaborador);
+            const correspondeData = !termoData || dataTexto === termoData;
+
+            if (correspondeColaborador && correspondeData) {
+                linha.style.display = "";
+            } else {
+                linha.style.display = "none";
+            }
+        });
+    }
+
+    </script>
+
+
+    <script>           
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('reduzida');        
+    });
+    </script>
+
+    <!-- Remover este script completamente -->
+    <!-- Lógica para sidebar (mantém) -->
+    <script>           
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('reduzida');        
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const matriculaInput = document.getElementById("id_matricula");
+            const colaboradorInput = document.getElementById("id_colaborador");
+            const departamentoInput = document.getElementById("id_departamento");
+            const form = document.querySelector("#formCracha");
+    
+            // Função para limpar os campos colaborador e departamento
+            function limparCampos() {
+                colaboradorInput.value = "";
+                departamentoInput.value = "";
+            }
+    
+            // Ao sair do campo matrícula, faz a busca
+            matriculaInput.addEventListener("blur", function() {
+                const matricula = this.value.trim();
+    
+                if (matricula === "") {
+                    limparCampos();
+                    return;
+                }
+    
+                fetch(`/buscar_colaborador/?matricula=${encodeURIComponent(matricula)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            colaboradorInput.value = data.nome;
+                            departamentoInput.value = data.departamento;
+                        } else {
+                            alert(data.erro);
+                            limparCampos();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar colaborador:", error);
+                        limparCampos();
+                    });
+            });
+    
+            // Se o campo matrícula for apagado manualmente, limpar os outros campos
+            matriculaInput.addEventListener("input", function() {
+                if (this.value.trim() === "") {
+                    limparCampos();
+                }
+            });
+    
+            // Validação antes do envio do formulário
+            form.addEventListener("submit", function(event) {
+                const matricula = matriculaInput.value.trim();
+                const colaborador = colaboradorInput.value.trim();
+                const departamento = departamentoInput.value.trim();
+    
+                if (matricula === "" || colaborador === "" || departamento === "") {
+                    event.preventDefault();  // Impede o envio
+                    alert("Matrícula inválida. O colaborador e o departamento não foram preenchidos.");
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ Adicione isso ao final para o modal funcionar -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
