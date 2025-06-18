@@ -3,6 +3,10 @@ from django.utils import timezone
 from patrimonio.models import Fornecedor
 from django.conf import settings
 from datetime import timedelta
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 def enviar_alerta_vencimentos():
     hoje = timezone.now().date()
@@ -16,10 +20,20 @@ def enviar_alerta_vencimentos():
                 f"Validade: {f.data_validade.strftime('%d/%m/%Y')} | Status: {f.status}\n"
             )
 
+        # Busca usuários com e-mail válido
+        destinatarios = list(
+            User.objects.exclude(email__isnull=True).exclude(email__exact='').values_list('email', flat=True)
+        )
+
+        if not destinatarios:
+            print("⚠️ Nenhum destinatário válido encontrado.")
+            return
+
         send_mail(
             subject='[Alerta] Fornecedores com validade vencida ou próxima',
             message=mensagem,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=['sistema.agendamento.nortetech@email.com'],  # Troque aqui
+            recipient_list=destinatarios,
             fail_silently=False,
         )
+        print(f"✅ Alerta enviado para: {', '.join(destinatarios)}")
