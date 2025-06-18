@@ -17,7 +17,7 @@ urlpatterns = [
     path('devolver_chave/<int:pk>/', views.devolver_chave, name='devolver_chave'),
     path('chave/excluir/<int:id>/', views.excluir_chave, name='excluir_chave'),
     path('controle_visitantes/', views.controle_visitantes, name='controle_visitantes'),
-    path('fornecedores-cadastrados/', views.fornecedores_cadastrados_view, name='fornecedores_cadastrados'),
+    path('fornecedores-cadastrados/', views.fornecedores_cadastrados, name='fornecedores-cadastrados'),
     path('status_fornecedor/<int:pk>/', views.status_fornecedor, name='status_fornecedor'),
     path('entrada/<int:pk>/excluir/', views.excluir_entrada, name='excluir_entrada'),
 

@@ -21,41 +21,72 @@
       <h1 class="mb-4">Bem-vindo ao Sistema de Patrimônio</h1>
       <p class="lead">Gerencie com eficiência a portaria: controle de visitantes, chaves e ocorrências.</p>
 
-      <!-- Painel interativo -->
-      <div class="row text-center g-4">
-        <div class="col-md-4">
-          <div class="card shadow-sm h-100">
-            <div class="card-body">
-              <i class="fas fa-book fa-3x text-primary mb-3"></i>
-              <h5 class="card-title">Livro de Ocorrências</h5>
-              <p class="card-text">Registre e consulte todas as ocorrências com segurança e rapidez.</p>
-              <a href="{% url 'livro_de_ocorrencia' %}" class="btn btn-outline-primary">Acessar</a>
+      <div class="container mt-5">
+        <div class="row text-center g-4">
+          <!-- Livro de Ocorrências -->
+          <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-primary">
+              <div class="card-body">
+                <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                <h5 class="card-title fw-bold">Livro de Ocorrências</h5>
+                <p class="card-text">Registre e consulte todas as ocorrências com segurança e rapidez.</p>
+                <a href="{% url 'livro_de_ocorrencia' %}" class="btn btn-primary">Acessar</a>
+              </div>
+            </div>
+          </div>
 
+          <!-- Crachá Ocorrência -->
+          <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-warning">
+              <div class="card-body">
+                <i class="fas fa-id-badge fa-3x text-warning mb-3"></i>
+                <h5 class="card-title fw-bold">Crachá Ocorrência</h5>
+                <p class="card-text">Gerencie o uso de crachás com controle e histórico detalhado.</p>
+                <a href="{% url 'ocorrencia_cracha' %}" class="btn btn-warning text-white">Acessar</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controle de Chaves -->
+          <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-success">
+              <div class="card-body">
+                <i class="fas fa-key fa-3x text-success mb-3"></i>
+                <h5 class="card-title fw-bold">Controle de Chaves</h5>
+                <p class="card-text">Registre a entrega e devolução de chaves com segurança.</p>
+                <a href="{% url 'entrega_de_chave' %}" class="btn btn-success">Acessar</a>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card shadow-sm h-100">
-            <div class="card-body">
-              <i class="fas fa-key fa-3x text-warning mb-3"></i>
-              <h5 class="card-title">Controle de Chaves</h5>
-              <p class="card-text">Controle a entrada e saída de chaves com histórico detalhado.</p>
-              <a href="{% url 'entrega_de_chave' %}" class="btn btn-outline-warning">Acessar</a>
+
+        <!-- Segunda linha -->
+        <div class="row text-center g-4 mt-4">
+          <!-- Controle de Visitantes -->
+          <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-info">
+              <div class="card-body">
+                <i class="fas fa-user-shield fa-3x text-info mb-3"></i>
+                <h5 class="card-title fw-bold">Controle de Visitantes</h5>
+                <p class="card-text">Gerencie o acesso de visitantes com dados completos.</p>
+                <a href="{% url 'controle_visitantes' %}" class="btn btn-info text-white">Acessar</a>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card shadow-sm h-100">
-            <div class="card-body">
-              <i class="fas fa-user-check fa-3x text-success mb-3"></i>
-              <h5 class="card-title">Controle de Visitantes</h5>
-              <p class="card-text">Registre visitantes com dados, horários e responsável.</p>
-              <a href="{% url 'controle_visitantes' %}" class="btn btn-outline-success">Acessar</a>
+
+          <!-- Registro de Fornecedores -->
+          <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-dark">
+              <div class="card-body">
+                <i class="fas fa-truck-loading fa-3x text-dark mb-3"></i>
+                <h5 class="card-title fw-bold">Registro de Fornecedores</h5>
+                <p class="card-text">Cadastre prestadores, entregadores e visitantes com facilidade.</p>
+                <a href="{% url 'fornecedores-cadastrados' %}" class="btn btn-dark">Acessar</a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
       <!-- Área de cadastro (exemplo de formulário simples) -->
       <div class="mt-5">
         <h4>Cadastro de Colaborador</h4>

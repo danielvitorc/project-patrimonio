@@ -316,7 +316,7 @@ def excluir_entrada(request, pk):
     return render(request, '/confirmar_exclusao.html', {'entrada': entrada})
 
 
-def fornecedores_cadastrados_view(request):
+def fornecedores_cadastrados(request):
     fornecedores = Fornecedor.objects.all().order_by('-data_integracao')
     return render(request, 'patrimonio/fornecedores_cadastrados.html', {'fornecedores': fornecedores})
 
