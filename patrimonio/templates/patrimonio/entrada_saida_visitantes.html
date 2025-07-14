@@ -25,8 +25,19 @@
         button.btn-success {
             width: 100%;
         }
-    </style>
+        #galeria-foto-entrega {
+            max-width: 300px;
+            position: relative;
+        }
+        #galeria-foto-entrega .btn-close {
+            z-index: 10;
+        }
+        #galeria-foto-entrega img {
+            width: 100%;
+            border-radius: 5px;
+        }
 
+    </style>
 </head>
 <body>
     {% include 'patrimonio/includes/sidebar.html' %}
@@ -78,8 +89,13 @@
                         <video id="webcam" autoplay playsinline style="width: 100%; max-width: 320px; border: 1px solid #ccc;"></video>
                         <canvas id="canvas" style="display: none;"></canvas>
                         <input type="hidden" name="foto_visitante" id="id_foto_visitante">
-                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="abrirECapturarVisitante()">📸 Tirar Foto</button>
+                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFoto()">📸 Tirar Foto</button>
                         <div id="foto-confirmada" class="text-success fw-bold mt-2" style="display: none;">✅ Foto capturada com sucesso!</div>
+                        <div id="galeria-foto-visitante" style="display: none; margin-top: 1rem; position: relative;">
+                            <img id="imagem-preview-visitante" src="" style="max-width: 320px; border: 2px solid #28a745; border-radius: 5px;">
+                            <button type="button" onclick="removerFotoVisitante()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 0 0 0 5px; padding: 4px 8px; font-weight: bold;">X</button>
+                        </div>
+
                     </div>
                 </div>
                 <div id="fornecedorServicoFields" style="display:none;">
@@ -115,19 +131,75 @@
                         <canvas id="canvas-servico" style="display: none;"></canvas>
                         <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFotoServico()">📸 Tirar Foto</button>
                         <div id="foto-confirmada-servico" class="text-success fw-bold mt-2" style="display: none;">✅ Foto capturada com sucesso!</div>
+                        <div id="galeria-foto-servico" style="display: none; margin-top: 1rem; position: relative;">
+                            <img id="imagem-preview-servico" src="" style="max-width: 320px; border: 2px solid #28a745; border-radius: 5px;">
+                            <button type="button" onclick="removerFotoServico()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 0 0 0 5px; padding: 4px 8px; font-weight: bold;">X</button>
+                        </div>
+
                     </div>
                 </div>
 
                 <div id="entregaFields" style="display:none;">
                     <h6>Informações Entrega</h6>
-                    {{ form_entrega.as_p }}
+
+                    <div class="mb-2">
+                        <label for="id_tipo_entrega">Tipo de Entrega</label>
+                        {{ form_entrega.tipo_entrega }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_descricao_item">Descrição do Item</label>
+                        {{ form_entrega.descricao_item }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_nome_transportadora">Nome da Transportadora</label>
+                        {{ form_entrega.nome_transportadora }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_nome_entregador">Nome do Entregador</label>
+                        {{ form_entrega.nome_entregador }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_documentos_entregador">Documentos do Entregador</label>
+                        {{ form_entrega.documentos_entregador }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_data_hora_recebimento">Data e Hora do Recebimento</label>
+                        {{ form_entrega.data_hora_recebimento }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_nome_matricula_responsavel">Nome e Matrícula do Responsável</label>
+                        {{ form_entrega.nome_matricula_responsavel }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_assinatura_responsavel">Assinatura do Responsável</label>
+                        {{ form_entrega.assinatura_responsavel }}
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="id_data_hora_entrega_material">Data e Hora da Entrega do Material</label>
+                        {{ form_entrega.data_hora_entrega_material }}
+                    </div>
+
+                    {{ form_entrega.foto_webcam }}  <!-- campo hidden para armazenar foto capturada pela webcam -->
+
+                    <!-- Seção da webcam -->
                     <div id="webcam-entrega-container" style="display:none;">
                         <h6>Foto da Entrega (Caixa)</h6>
                         <video id="webcam-entrega" autoplay playsinline width="300"></video>
                         <canvas id="canvas-entrega" style="display:none;"></canvas>
                         <input type="hidden" id="id_foto_entrega" name="foto_webcam">
                         <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFotoEntrega()">Tirar Foto da Entrega</button>
-                        <p id="foto-confirmada-entrega" class="text-success mt-1" style="display: none;">Foto capturada com sucesso!</p>
+                        <div id="galeria-foto-entrega" class="position-relative mt-2" style="display: none;">
+                            <button type="button" onclick="removerFotoEntrega()" class="btn-close position-absolute top-0 end-0 m-1" aria-label="Fechar"></button>
+                            <img id="imagem-preview-entrega" src="" alt="Foto da Entrega" class="img-thumbnail" style="max-width: 100%; height: auto;">
+                        </div>
                     </div>
                 </div>
                 <script>
@@ -166,7 +238,8 @@
                         const video = document.getElementById('webcam');
                         const canvas = document.getElementById('canvas');
                         const input = document.getElementById('id_foto_visitante');
-                        const confirmacao = document.getElementById('foto-confirmada');
+                        const galeria = document.getElementById('galeria-foto-visitante');
+                        const imgPreview = document.getElementById('imagem-preview-visitante');
 
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
@@ -175,11 +248,12 @@
                         const imageData = canvas.toDataURL('image/jpeg');
                         input.value = imageData;
 
-                        confirmacao.style.display = 'block';
-                        pararWebcam();
+                        imgPreview.src = imageData;
+                        galeria.style.display = 'block';
 
-                        setTimeout(() => confirmacao.style.display = 'none', 3000);
+                        pararWebcam();
                     }
+
 
                     function startWebcamServico() {
                         if (webcamServicoStarted) return;
@@ -202,12 +276,12 @@
                             webcamServicoStarted = false;
                         }
                     }
-
                     function tirarFotoServico() {
                         const video = document.getElementById('webcam-servico');
                         const canvas = document.getElementById('canvas-servico');
                         const input = document.getElementById('id_foto_webcam');
-                        const confirmacao = document.getElementById('foto-confirmada-servico');
+                        const galeria = document.getElementById('galeria-foto-servico');
+                        const imgPreview = document.getElementById('imagem-preview-servico');
 
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
@@ -216,11 +290,12 @@
                         const imageData = canvas.toDataURL('image/jpeg');
                         input.value = imageData;
 
-                        confirmacao.style.display = 'block';
-                        pararWebcamServico();
+                        imgPreview.src = imageData;
+                        galeria.style.display = 'block';
 
-                        setTimeout(() => confirmacao.style.display = 'none', 3000);
+                        pararWebcamServico();
                     }
+
 
                     function startWebcamEntrega() {
                         if (webcamEntregaStarted) return;
@@ -248,7 +323,8 @@
                         const video = document.getElementById('webcam-entrega');
                         const canvas = document.getElementById('canvas-entrega');
                         const input = document.getElementById('id_foto_entrega');
-                        const confirmacao = document.getElementById('foto-confirmada-entrega');
+                        const galeria = document.getElementById('galeria-foto-entrega');
+                        const imgPreview = document.getElementById('imagem-preview-entrega');
 
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
@@ -257,11 +333,48 @@
                         const imageData = canvas.toDataURL('image/jpeg');
                         input.value = imageData;
 
-                        confirmacao.style.display = 'block';
-                        pararWebcamEntrega();
+                        imgPreview.src = imageData;
+                        galeria.style.display = 'block';
 
-                        setTimeout(() => confirmacao.style.display = 'none', 3000);
+                        pararWebcamEntrega();
                     }
+
+                    function removerFotoEntrega() {
+                        const input = document.getElementById('id_foto_entrega');
+                        const galeria = document.getElementById('galeria-foto-entrega');
+                        const imgPreview = document.getElementById('imagem-preview-entrega');
+
+                        input.value = '';
+                        imgPreview.src = '';
+                        galeria.style.display = 'none';
+
+                        startWebcamEntrega();  // reativa a câmera
+                    }
+                    function removerFotoVisitante() {
+                        const input = document.getElementById('id_foto_visitante');
+                        const galeria = document.getElementById('galeria-foto-visitante');
+                        const imgPreview = document.getElementById('imagem-preview-visitante');
+
+                        input.value = '';
+                        imgPreview.src = '';
+                        galeria.style.display = 'none';
+
+                        startWebcam();  // reativa a câmera
+                    }
+
+                    function removerFotoServico() {
+                        const input = document.getElementById('id_foto_webcam');
+                        const galeria = document.getElementById('galeria-foto-servico');
+                        const imgPreview = document.getElementById('imagem-preview-servico');
+
+                        input.value = '';
+                        imgPreview.src = '';
+                        galeria.style.display = 'none';
+
+                        startWebcamServico();  // reativa a câmera
+                    }
+
+
 
                     const fornecedorModal = document.getElementById('fornecedorModal');
 
@@ -366,7 +479,7 @@
                     <label for="filtro-categoria" class="form-label">Categoria:</label>
                     <select id="filtro-categoria" class="form-control">
                     <option value="">Todos</option>
-                    <option value="Visitante">Visitante</option>
+                    <option value="VISITANTE">Visitante</option>
                     <option value="Fornecedores/Prestadores de Serviços">Fornecedores/Prestadores de Serviços</option>
                     <option value="Entregas">Entregas</option>
                     </select>
@@ -396,6 +509,7 @@
                 <table class="table-cadastro" id="tabela-entradas">
                     <thead>
                         <tr>
+                            <th>Foto</th>
                             <th>Data</th>
                             <th>Entrada</th>
                             <th>Saída</th>
@@ -410,6 +524,32 @@
                     <tbody>
                         {% for entrada in entradas %}
                         <tr>
+                            <td>
+                            {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante and entrada.fornecedor.visitante.foto_visitante %}
+                                <img src="{{ entrada.fornecedor.visitante.foto_visitante.url }}" 
+                                    alt="Foto Visitante" 
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalFoto" 
+                                    data-foto="{{ entrada.fornecedor.visitante.foto_visitante.url }}">
+                            {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico and entrada.fornecedor.fornecedor_servico.foto_fornecedor %}
+                                <img src="{{ entrada.fornecedor.fornecedor_servico.foto_fornecedor.url }}" 
+                                    alt="Foto Fornecedor" 
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalFoto" 
+                                    data-foto="{{ entrada.fornecedor.fornecedor_servico.foto_fornecedor.url }}">
+                            {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega and entrada.fornecedor.entrega.foto_caixa_entrega %}
+                                <img src="{{ entrada.fornecedor.entrega.foto_caixa_entrega.url }}" 
+                                    alt="Foto Entrega" 
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalFoto" 
+                                    data-foto="{{ entrada.fornecedor.entrega.foto_caixa_entrega.url }}">
+                            {% else %}
+                                <span>—</span>
+                            {% endif %}
+                            </td>
                             <td>{{ entrada.data|date:"d/m/Y" }}</td>
                             <td>{{ entrada.horario_entrada|time:"H:i" }}</td>
                             <td>
@@ -467,71 +607,134 @@
                                 </form>
                             </td>
                         </tr>
-                        <!-- Modal de detalhes -->
-                        <div class="modal fade" id="modalDetalhes{{ entrada.id }}" tabindex="-1" aria-labelledby="modalLabel{{ entrada.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
+
+
+
+
+
+
+                        <!-- Modal de detalhes aprimorado -->
+                        <div class="modal fade" id="modalDetalhes{{ entrada.id }}" tabindex="-1" aria-labelledby="modalDetalhesLabel{{ entrada.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                                 <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title" id="modalDetalhesLabel{{ entrada.id }}">
+                                            <i class="fas fa-info-circle me-2"></i>Detalhes da Entrada: {{ entrada.fornecedor.get_categoria_display }}
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
 
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="modalLabel{{ entrada.id }}">Detalhes da Entrada</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                </div>
+                                    <div class="modal-body bg-light">
+                                        <div class="container-fluid">
+                                            <!-- Seção de Informações Gerais -->
+                                            <div class="card mb-4 shadow-sm">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Informações Gerais da Entrada</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <p><strong><i class="fas fa-calendar-alt text-primary me-2"></i>Data:</strong> {{ entrada.data|date:"d/m/Y" }}</p>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <p><strong><i class="fas fa-sign-in-alt text-success me-2"></i>Entrada:</strong> {{ entrada.horario_entrada|time:"H:i" }}</p>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <p><strong><i class="fas fa-sign-out-alt text-danger me-2"></i>Saída:</strong>
+                                                                {% if entrada.horario_saida %}
+                                                                    {{ entrada.horario_saida|time:"H:i" }}
+                                                                {% else %}
+                                                                    <span class="badge bg-warning text-dark">Não registrada</span>
+                                                                {% endif %}
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <p><strong><i class="fas fa-building text-primary me-2"></i>Base:</strong> {{ entrada.base }}</p>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <p><strong><i class="fas fa-traffic-light text-primary me-2"></i>Status:</strong>
+                                                                {% if entrada.status == 'Em andamento' %}
+                                                                    <span class="badge bg-success">{{ entrada.status }}</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-secondary">{{ entrada.status }}</span>
+                                                                {% endif %}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                <div class="modal-body">
-                                    <ul class="list-group list-group-flush">
-                                    <li class="list-group-item"><strong>Data:</strong> {{ entrada.data|date:"d/m/Y" }}</li>
-                                    <li class="list-group-item"><strong>Entrada:</strong> {{ entrada.horario_entrada|time:"H:i" }}</li>
-                                    <li class="list-group-item"><strong>Saída:</strong> 
-                                        {% if entrada.horario_saida %}
-                                        {{ entrada.horario_saida|time:"H:i" }}
-                                        {% else %}
-                                        Não registrada
-                                        {% endif %}
-                                    </li>
-                                    <li class="list-group-item"><strong>Base:</strong> {{ entrada.base }}</li>
-                                    <li class="list-group-item"><strong>Status:</strong> {{ entrada.status }}</li>
-                                    <li class="list-group-item"><strong>Categoria:</strong> {{ entrada.fornecedor.get_categoria_display }}</li>
+                                            <!-- Seção de Detalhes Específicos da Categoria -->
+                                            <div class="card shadow-sm">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">Detalhes do {{ entrada.fornecedor.get_categoria_display }}</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <!-- Coluna para a Foto -->
+                                                        <div class="col-md-4 text-center">
+                                                            {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante.foto_visitante %}
+                                                                <img src="{{ entrada.fornecedor.visitante.foto_visitante.url }}" class="img-fluid rounded shadow-lg mb-3" alt="Foto do Visitante" style="max-height: 250px;">
+                                                            {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico.foto_fornecedor %}
+                                                                <img src="{{ entrada.fornecedor.fornecedor_servico.foto_fornecedor.url }}" class="img-fluid rounded shadow-lg mb-3" alt="Foto do Fornecedor" style="max-height: 250px;">
+                                                            {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega.foto_caixa_entrega %}
+                                                                <img src="{{ entrada.fornecedor.entrega.foto_caixa_entrega.url }}" class="img-fluid rounded shadow-lg mb-3" alt="Foto da Entrega" style="max-height: 250px;">
+                                                            {% else %}
+                                                                <div class="d-flex align-items-center justify-content-center bg-secondary-subtle rounded text-muted mb-3" style="height: 250px;">
+                                                                    <i class="fas fa-camera fa-3x"></i>
+                                                                    <p class="ms-2 mb-0">Sem foto</p>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
 
-                                    {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante %}
-                                        <li class="list-group-item"><strong>Nome do Visitante:</strong> {{ entrada.fornecedor.visitante.nome }}</li>
-                                        <li class="list-group-item"><strong>Documento:</strong> {{ entrada.fornecedor.visitante.documento }}</li>
-                                        <li class="list-group-item"><strong>Motivo da Visita:</strong> {{ entrada.fornecedor.visitante.motivo_visita }}</li>
-                                        <li class="list-group-item"><strong>Setor Destino:</strong> {{ entrada.fornecedor.visitante.setor_destino }}</li>
-                                        <li class="list-group-item"><strong>Responsável:</strong> {{ entrada.fornecedor.visitante.responsavel_autorizante }}</li>
-                                        <li class="list-group-item"><strong>Veículo:</strong> {{ entrada.fornecedor.visitante.modelo_veiculo }} - {{ entrada.fornecedor.visitante.placa_veiculo }}</li>
+                                                        <!-- Coluna para os Dados -->
+                                                        <div class="col-md-8">
+                                                            {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante %}
+                                                                <p><strong>Nome:</strong> {{ entrada.fornecedor.visitante.nome }}</p>
+                                                                <p><strong>Documento:</strong> {{ entrada.fornecedor.visitante.documento }}</p>
+                                                                <p><strong>Motivo da Visita:</strong> {{ entrada.fornecedor.visitante.motivo_visita }}</p>
+                                                                <hr>
+                                                                <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
+                                                                <p><strong>Responsável Autorizante:</strong> {{ entrada.responsavel_autorizante }}</p>
+                                                                <p><strong>Veículo:</strong> {{ entrada.modelo_veiculo|default:"Não informado" }} - {{ entrada.placa_veiculo|default:"N/A" }}</p>
 
-                                    {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico %}
-                                        <li class="list-group-item"><strong>Empresa:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_empresa }}</li>
-                                        <li class="list-group-item"><strong>Representante:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_representante }}</li>
-                                        <li class="list-group-item"><strong>Documento:</strong> {{ entrada.fornecedor.fornecedor_servico.documento }}</li>
-                                        <li class="list-group-item"><strong>Atividade/Serviço:</strong> {{ entrada.fornecedor.fornecedor_servico.atividade_servico }}</li>
-                                        <li class="list-group-item"><strong>Setor Destino:</strong> {{ entrada.fornecedor.fornecedor_servico.setor_destino }}</li>
-                                        <li class="list-group-item"><strong>Responsável:</strong> {{ entrada.fornecedor.fornecedor_servico.responsavel_autorizante }}</li>
-                                        <li class="list-group-item"><strong>Veículo:</strong> {{ entrada.fornecedor.fornecedor_servico.modelo_veiculo }} - {{ entrada.fornecedor.fornecedor_servico.placa_veiculo }}</li>
+                                                            {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico %}
+                                                                <p><strong>Empresa:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_empresa }}</p>
+                                                                <p><strong>Representante:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_representante }}</p>
+                                                                <p><strong>Documento:</strong> {{ entrada.fornecedor.fornecedor_servico.documento }}</p>
+                                                                <p><strong>Atividade/Serviço:</strong> {{ entrada.fornecedor.fornecedor_servico.atividade_servico }}</p>
+                                                                <hr>
+                                                                <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
+                                                                <p><strong>Responsável Autorizante:</strong> {{ entrada.responsavel_autorizante }}</p>
+                                                                <p><strong>Veículo:</strong> {{ entrada.modelo_veiculo|default:"Não informado" }} - {{ entrada.placa_veiculo|default:"N/A" }}</p>
 
-                                    {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega %}
-                                        <li class="list-group-item"><strong>Entregador:</strong> {{ entrada.fornecedor.entrega.nome_entregador }}</li>
-                                        <li class="list-group-item"><strong>Transportadora:</strong> {{ entrada.fornecedor.entrega.nome_transportadora }}</li>
-                                        <li class="list-group-item"><strong>Tipo de Entrega:</strong> {{ entrada.fornecedor.entrega.tipo_entrega }}</li>
-                                        <li class="list-group-item"><strong>Descrição do Item:</strong> {{ entrada.fornecedor.entrega.descricao_item }}</li>
-                                        <li class="list-group-item"><strong>Quantidade:</strong> {{ entrada.fornecedor.entrega.quantidade_recebida }}</li>
-                                        <li class="list-group-item"><strong>Setor Destino:</strong> {{ entrada.fornecedor.entrega.setor_destino }}</li>
-                                        <li class="list-group-item"><strong>Documentos:</strong> {{ entrada.fornecedor.entrega.documentos_entregador }}</li>
-                                        <li class="list-group-item"><strong>Veículo:</strong> {{ entrada.fornecedor.entrega.placa_veiculo }}</li>
-                                        <li class="list-group-item"><strong>Recebimento:</strong> {{ entrada.fornecedor.entrega.data_hora_recebimento }}</li>
-                                        <li class="list-group-item"><strong>Entrega Material:</strong> {{ entrada.fornecedor.entrega.data_hora_entrega_material }}</li>
-                                    {% endif %}
-                                    </ul>
-                                </div>
+                                                            {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega %}
+                                                                <p><strong>Entregador:</strong> {{ entrada.fornecedor.entrega.nome_entregador }}</p>
+                                                                <p><strong>Transportadora:</strong> {{ entrada.fornecedor.entrega.nome_transportadora }}</p>
+                                                                <p><strong>Tipo de Entrega:</strong> {{ entrada.fornecedor.entrega.tipo_entrega }}</p>
+                                                                <p><strong>Descrição do Item:</strong> {{ entrada.fornecedor.entrega.descricao_item }}</p>
+                                                                <hr>
+                                                                <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
+                                                                <p><strong>Documentos:</strong> {{ entrada.fornecedor.entrega.documentos_entregador }}</p>
+                                                                <p><strong>Veículo (Placa):</strong> {{ entrada.placa_veiculo|default:"Não informado" }}</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                                </div>
-
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-2"></i>Fechar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        </div>
+
+                    </div>
                         {% empty %}
                         <tr><td colspan="8">Nenhuma entrada registrada</td></tr>
                         {% endfor %}
@@ -539,8 +742,31 @@
                 </table>
             </div>
         </section>
+        <div class="modal fade" id="modalFoto" tabindex="-1" aria-labelledby="modalFotoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg"> 
+            <div class="modal-content bg-transparent border-0">
+            <div class="modal-body p-0 text-center">
+                <img src="" id="fotoExpandida" style="width: 100%; max-height: 80vh; object-fit: contain; border-radius: 10px;">
+            </div>
+            <div class="modal-footer justify-content-center border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+            </div>
+        </div>
+        </div>
 
     </div>
+    <script>
+        const modalFoto = document.getElementById('modalFoto')
+        const fotoExpandida = document.getElementById('fotoExpandida')
+
+        modalFoto.addEventListener('show.bs.modal', event => {
+            const triggerElement = event.relatedTarget // elemento que acionou o modal (imagem clicada)
+            const urlFoto = triggerElement.getAttribute('data-foto')
+            fotoExpandida.src = urlFoto
+        })
+    </script>
+
     <script>
         // Seleciona os inputs
         const filtroData = document.getElementById('filtro-data');
@@ -565,29 +791,30 @@
 
             // Percorre todas as linhas da tabela (tbody)
             for (let row of tabela.rows) {
-            const celData = row.cells[0].innerText; // "dd/mm/yyyy"
-            const celCategoria = normalizeString(row.cells[4].innerText);
-            const celFornecedor = normalizeString(row.cells[5].innerText);
-            const celResponsavel = normalizeString(row.cells[6].innerText);
-            const celStatus = normalizeString(row.cells[7].innerText);
+                // Ajuste dos índices das células para corresponder ao HTML
+                const celData = row.cells[1].innerText; // "dd/mm/yyyy"
+                const celCategoria = normalizeString(row.cells[5].innerText);
+                const celFornecedor = normalizeString(row.cells[6].innerText);
+                const celResponsavel = normalizeString(row.cells[7].innerText);
+                const celStatus = normalizeString(row.cells[8].innerText);
 
-            // Converter data da célula para yyyy-mm-dd para comparar com o filtro
-            const parts = celData.split('/');
-            const dataFormatada = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : '';
+                // Converter data da célula para yyyy-mm-dd para comparar com o filtro
+                const parts = celData.split('/');
+                const dataFormatada = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : '';
 
-            // Verifica cada filtro (se preenchido)
-            const passaData = !valData || dataFormatada === valData;
-            const passaCategoria = !valCategoria || celCategoria.includes(valCategoria);
-            const passaFornecedor = !valFornecedor || celFornecedor.includes(valFornecedor);
-            const passaResponsavel = !valResponsavel || celResponsavel.includes(valResponsavel);
-            const passaStatus = !valStatus || celStatus.includes(valStatus);
+                // Verifica cada filtro (se preenchido)
+                const passaData = !valData || dataFormatada === valData;
+                const passaCategoria = !valCategoria || celCategoria.includes(valCategoria);
+                const passaFornecedor = !valFornecedor || celFornecedor.includes(valFornecedor);
+                const passaResponsavel = !valResponsavel || celResponsavel.includes(valResponsavel);
+                const passaStatus = !valStatus || celStatus.includes(valStatus);
 
-            // Se passar todos, mostra a linha, senão esconde
-            if (passaData && passaCategoria && passaFornecedor && passaResponsavel && passaStatus) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+                // Se passar todos, mostra a linha, senão esconde
+                if (passaData && passaCategoria && passaFornecedor && passaResponsavel && passaStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
             }
         }
 
@@ -597,7 +824,9 @@
         filtroFornecedor.addEventListener('input', filtrarTabela);
         filtroResponsavel.addEventListener('input', filtrarTabela);
         filtroStatus.addEventListener('change', filtrarTabela);
-        </script>
+
+
+    </script>
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {

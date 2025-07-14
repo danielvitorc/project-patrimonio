@@ -55,6 +55,7 @@
             <table class="table-cadastro">
                 <thead>
                 <tr>
+                    <th>FOTO</th>
                     <th>ID</th>
                     <th>Categoria</th>
                     <th>Fornecedor</th>
@@ -67,15 +68,43 @@
                 <tbody>
                 {% for fornecedor in fornecedores %}
                 <tr>
+                    <td>
+                        {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante and fornecedor.visitante.foto_visitante %}
+                            <img src="{{ fornecedor.visitante.foto_visitante.url }}" 
+                                    alt="Foto Visitante" 
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalFoto" 
+                                    data-foto="{{  fornecedor.visitante.foto_visitante.url }}">
+                        {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.fornecedor_servico and fornecedor.fornecedor_servico.foto_fornecedor %}
+                            <img src="{{ fornecedor.fornecedor_servico.foto_fornecedor.url }}"
+                                    alt="Foto Fornecedor" 
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalFoto" 
+                                    data-foto="{{ fornecedor.fornecedor_servico.foto_fornecedor.url }}">
+                        {% elif fornecedor.categoria == 'ENTREGA' and fornecedor.entrega and fornecedor.entrega.foto_caixa_entrega %}
+                            <img src="{{ fornecedor.entrega.foto_caixa_entrega.url }}" 
+
+
+                                    alt="Foto Entrega" 
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalFoto" 
+                                    data-foto="{{ fornecedor.entrega.foto_caixa_entrega.url }}">
+                        {% else %}
+                            <span>—</span>
+                        {% endif %}
+                    </td>
                     <td>{{ fornecedor.id }}</td>
                     <td>{{ fornecedor.get_categoria_display }}</td>
                     <td>
                         {% if fornecedor.categoria == "VISITANTE" and fornecedor.visitante %}
                             {{ fornecedor.visitante.nome }}
                         {% elif fornecedor.categoria == "FORNECEDOR" and fornecedor.fornecedor_servico %}
-                            {{ fornecedor.fornecedor_servico.nome_representante }}
+                            {{ fornecedor.fornecedor_servico.nome_empresa }}/{{ fornecedor.fornecedor_servico.nome_representante }}
                         {% elif fornecedor.categoria == "ENTREGA" and fornecedor.entrega %}
-                            {{ fornecedor.entrega.nome_entregador }}
+                            {{ fornecedor.entrega.nome_transportadora }}/{{ fornecedor.entrega.nome_entregador }}
                         {% else %}
                             -
                         {% endif %}
@@ -124,7 +153,80 @@
         </div>
     </div>
     </div>
+    <div class="modal fade" id="modalFoto" tabindex="-1" aria-labelledby="modalFotoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg"> 
+            <div class="modal-content bg-transparent border-0">
+            <div class="modal-body p-0 text-center">
+                <img src="" id="fotoExpandida" style="width: 100%; max-height: 80vh; object-fit: contain; border-radius: 10px;">
+            </div>
+            <div class="modal-footer justify-content-center border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+            </div>
+        </div>
+    </div>
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const filtroData = document.getElementById("filtro-data");
+            const filtroCategoria = document.getElementById("filtro-categoria");
+            const filtroFornecedor = document.getElementById("filtro-fornecedor");
+            const filtroStatus = document.getElementById("filtro-status");
+
+            const linhas = document.querySelectorAll("table tbody tr");
+
+            function aplicarFiltros() {
+                const dataValor = filtroData.value;
+                const categoriaValor = filtroCategoria.value.toLowerCase();
+                const fornecedorValor = filtroFornecedor.value.toLowerCase();
+                const statusValor = filtroStatus.value.toLowerCase();
+
+                linhas.forEach((linha) => {
+                    const tds = linha.querySelectorAll("td");
+                    // Índices corrigidos
+                    const data = tds[4]?.innerText || ""; // Data de Integração
+                    const categoria = tds[2]?.innerText.toLowerCase() || ""; // Categoria
+                    const fornecedor = tds[3]?.innerText.toLowerCase() || ""; // Fornecedor
+                    const status = tds[7]?.innerText.toLowerCase() || ""; // Status
+
+                    let mostrar = true;
+
+                    if (dataValor && !data.includes(dataValor.split("-").reverse().join("/"))) {
+                        mostrar = false;
+                    }
+
+                    if (categoriaValor && !categoria.includes(categoriaValor)) {
+                        mostrar = false;
+                    }
+
+                    if (fornecedorValor && !fornecedor.includes(fornecedorValor)) {
+                        mostrar = false;
+                    }
+
+                    if (statusValor && !status.includes(statusValor)) {
+                        mostrar = false;
+                    }
+
+                    linha.style.display = mostrar ? "" : "none";
+                });
+            }
+
+            filtroData.addEventListener("change", aplicarFiltros);
+            filtroCategoria.addEventListener("change", aplicarFiltros);
+            filtroFornecedor.addEventListener("keyup", aplicarFiltros);
+            filtroStatus.addEventListener("change", aplicarFiltros);
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const modalFoto = document.getElementById('modalFoto')
+        const fotoExpandida = document.getElementById('fotoExpandida')
+
+        modalFoto.addEventListener('show.bs.modal', event => {
+            const triggerElement = event.relatedTarget // elemento que acionou o modal (imagem clicada)
+            const urlFoto = triggerElement.getAttribute('data-foto')
+            fotoExpandida.src = urlFoto
+        })
+    </script>
     <script>
     $(function () {
         $('.btn-editar').on('click', function () {
@@ -208,56 +310,6 @@
             });
         });
     </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const filtroData = document.getElementById("filtro-data");
-            const filtroCategoria = document.getElementById("filtro-categoria");
-            const filtroFornecedor = document.getElementById("filtro-fornecedor");
-            const filtroStatus = document.getElementById("filtro-status");
-
-            const linhas = document.querySelectorAll("table tbody tr");
-
-            function aplicarFiltros() {
-                const dataValor = filtroData.value;
-                const categoriaValor = filtroCategoria.value.toLowerCase();
-                const fornecedorValor = filtroFornecedor.value.toLowerCase();
-                const statusValor = filtroStatus.value.toLowerCase();
-
-                linhas.forEach((linha) => {
-                    const tds = linha.querySelectorAll("td");
-                    const data = tds[3]?.innerText || "";
-                    const categoria = tds[1]?.innerText.toLowerCase() || "";
-                    const fornecedor = tds[2]?.innerText.toLowerCase() || "";
-                    const status = tds[6]?.innerText.toLowerCase() || "";
-
-                    let mostrar = true;
-
-                    if (dataValor && !data.includes(dataValor.split("-").reverse().join("/"))) {
-                        mostrar = false;
-                    }
-
-                    if (categoriaValor && !categoria.includes(categoriaValor)) {
-                        mostrar = false;
-                    }
-
-                    if (fornecedorValor && !fornecedor.includes(fornecedorValor)) {
-                        mostrar = false;
-                    }
-
-                    if (statusValor && !status.includes(statusValor)) {
-                        mostrar = false;
-                    }
-
-                    linha.style.display = mostrar ? "" : "none";
-                });
-            }
-
-            filtroData.addEventListener("change", aplicarFiltros);
-            filtroCategoria.addEventListener("change", aplicarFiltros);
-            filtroFornecedor.addEventListener("keyup", aplicarFiltros);
-            filtroStatus.addEventListener("change", aplicarFiltros);
-        });
-        </script>
     <script>           
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleSidebarBtn');

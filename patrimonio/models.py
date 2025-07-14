@@ -43,11 +43,11 @@ class Chave(models.Model):
         return self.nome
 
 
-# models.py
+
 class ControleChaves(models.Model):
     base = models.CharField(max_length=100)
-    matricula_entregou = models.CharField(max_length=50)
-    colaborador_entregou = models.CharField(max_length=100)
+    matricula_recebendo = models.CharField(max_length=50)
+    colaborador_recebendo = models.CharField(max_length=100)
     departamento = models.CharField(max_length=100)
     chave = models.ForeignKey(Chave, on_delete=models.CASCADE)
 
@@ -55,17 +55,32 @@ class ControleChaves(models.Model):
     data_saida = models.DateTimeField(auto_now_add=True)
 
     # Campos para devolução
-    matricula_recebeu = models.CharField(max_length=50, null=True, blank=True)
-    colaborador_recebeu = models.CharField(max_length=100, null=True, blank=True)
+    matricula_devolveu = models.CharField(max_length=50, null=True, blank=True)
+    colaborador_devolveu = models.CharField(max_length=100, null=True, blank=True)
     foto_devolucao = models.ImageField(upload_to='devolucoes/', null=True, blank=True)
     data_devolucao = models.DateTimeField(null=True, blank=True)
 
     situacao = models.CharField(max_length=100, default="RETIRADO")
 
     def __str__(self):
-        return f'{self.matricula_entregou} - {self.situacao} - {self.chave}'
+        return f'{self.matricula_recebendo} - {self.situacao} - {self.chave}'
 
+class Photo(models.Model, Base64ImageMixin):
+    title = models.CharField(max_length=200, blank=True, null=True)
+    image = models.ImageField(upload_to='photos/')
+    created_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return f"Foto {self.id} - {self.created_at.strftime('%d/%m/%Y %H:%M')}"
+
+    def save_base64_image(self, base64_string, filename):
+        """Salva a imagem base64 no campo image"""
+        self.save_base64_image(base64_string, filename, self.image)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Foto'
+        verbose_name_plural = 'Fotos'
 
 class Fornecedor(models.Model):
     CATEGORIAS = [
@@ -112,22 +127,7 @@ class Visitante(models.Model, Base64ImageMixin):
         return f"{self.nome} ({self.documento})"
 
 
-class Photo(models.Model, Base64ImageMixin):
-    title = models.CharField(max_length=200, blank=True, null=True)
-    image = models.ImageField(upload_to='photos/')
-    created_at = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return f"Foto {self.id} - {self.created_at.strftime('%d/%m/%Y %H:%M')}"
-
-    def save_base64_image(self, base64_string, filename):
-        """Salva a imagem base64 no campo image"""
-        self.save_base64_image(base64_string, filename, self.image)
-
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Foto'
-        verbose_name_plural = 'Fotos'
 
 
 

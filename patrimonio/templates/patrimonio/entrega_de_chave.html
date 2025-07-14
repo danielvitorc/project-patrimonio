@@ -68,13 +68,13 @@
         {% for chave in chaves %}
             <tr
                 data-departamento="{{ chave.departamento|lower }}"
-                data-matricula="{{ chave.matricula_entregou|lower }}"
+                data-matricula="{{ chave.matricula_recebendo|lower }}"
                 data-situacao="{{ chave.situacao|upper }}"
                 data-data-saida="{{ chave.data_saida|date:'Y-m-d' }}"
             >
                 <td>{{ chave.base }}</td>
-                <td>{{ chave.matricula_entregou }}</td>
-                <td>{{ chave.colaborador_entregou }}</td>
+                <td>{{ chave.matricula_recebendo }}</td>
+                <td>{{ chave.colaborador_recebendo }}</td>
                 <td>{{ chave.departamento }}</td>
                 <td>{{ chave.chave }}</td>
                 <td>{{ chave.situacao }}</td>
@@ -94,8 +94,8 @@
                                 </div>
                                 <div class="modal-body">
                                     <p><strong>Base:</strong> {{ chave.base }}</p>
-                                    <p><strong>Matrícula Entregou:</strong> {{ chave.matricula_entregou }}</p>
-                                    <p><strong>Colaborador Entregou:</strong> {{ chave.colaborador_entregou }}</p>
+                                    <p><strong>Matrícula Entregou:</strong> {{ chave.matricula_recebendo }}</p>
+                                    <p><strong>Colaborador Entregou:</strong> {{ chave.colaborador_recebendo }}</p>
                                     <p><strong>Departamento:</strong> {{ chave.departamento }}</p>
                                     <p><strong>Chave:</strong> {{ chave.chave.nome }}</p>
                                     <p><strong>Data Saída:</strong> {{ chave.data_saida|date:"d/m/Y H:i" }}</p>
@@ -103,8 +103,8 @@
                                         <p><strong>Foto Entrega:</strong><br><img src="{{ chave.foto_entrega.url }}" class="img-fluid rounded" style="max-width: 300px;"></p>
                                     {% endif %}
                                     <hr>
-                                    <p><strong>Matrícula Recebeu:</strong> {{ chave.matricula_recebeu }}</p>
-                                    <p><strong>Colaborador Recebeu:</strong> {{ chave.colaborador_recebeu }}</p>
+                                    <p><strong>Matrícula Devolveu:</strong> {{ chave.matricula_devolveu }}</p>
+                                    <p><strong>Colaborador Devolveu:</strong> {{ chave.colaborador_devolveu }}</p>
                                     <p><strong>Data Devolução:</strong> {{ chave.data_devolucao|date:"d/m/Y H:i" }}</p>
                                     {% if chave.foto_devolucao %}
                                         <p><strong>Foto Devolução:</strong><br><img src="{{ chave.foto_devolucao.url }}" class="img-fluid rounded" style="max-width: 300px;"></p>
@@ -139,12 +139,12 @@
                                         </div>
                                         <div class="modal-body">
                                             <div class="mb-3">
-                                                <label for="matricula_{{ chave.id }}">Matrícula de quem recebeu</label>
-                                                <input type="text" name="matricula_recebeu" class="form-control" id="matricula_{{ chave.id }}" required>
+                                                <label for="matricula_{{ chave.id }}">Matrícula de quem devolveu</label>
+                                                <input type="text" name="matricula_devolveu" class="form-control" id="matricula_{{ chave.id }}" required>
                                             </div>
                                             <div class="mb-3">
-                                                <label for="colaborador_{{ chave.id }}">Colaborador que recebeu</label>
-                                                <input type="text" name="colaborador_recebeu" class="form-control" id="colaborador_{{ chave.id }}" required>
+                                                <label for="colaborador_{{ chave.id }}">Colaborador que devolveu</label>
+                                                <input type="text" name="colaborador_devolveu" class="form-control" id="colaborador_{{ chave.id }}" required>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="foto_{{ chave.id }}">Foto da devolução</label>
@@ -237,6 +237,140 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+    // --- Configuração dos Toasts (sem alteração) ---
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function (toastEl) {
+        return new bootstrap.Toast(toastEl, { delay: 5000 });
+    });
+    toastList.forEach(toast => toast.show());
+
+    // --- Configuração do Sidebar (sem alteração) ---
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('reduzida');
+        });
+    }
+
+    /**
+     * Função reutilizável para buscar dados do colaborador.
+     * @param {string} matricula - A matrícula a ser buscada.
+     * @returns {Promise<object>} - Uma promessa que resolve com os dados do colaborador.
+     */
+    function fetchColaborador(matricula) {
+        return fetch(`/buscar_colaborador/?matricula=${encodeURIComponent(matricula)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('A resposta da rede não foi bem-sucedida.');
+                }
+                return response.json();
+            });
+    }
+
+    /**
+     * Função para configurar o autopreenchimento em um formulário.
+     * @param {Element} formContainer - O elemento que contém o formulário (ex: o modal).
+     * @param {string} matriculaName - O atributo 'name' do campo de matrícula.
+     * @param {string} colaboradorName - O atributo 'name' do campo de colaborador.
+     */
+    function setupAutofill(formContainer, matriculaName, colaboradorName) {
+        const matriculaInput = formContainer.querySelector(`[name='${matriculaName}']`);
+        const colaboradorInput = formContainer.querySelector(`[name='${colaboradorName}']`);
+
+        if (matriculaInput && colaboradorInput) {
+            matriculaInput.addEventListener("blur", function () {
+                const matricula = this.value.trim();
+                if (!matricula) {
+                    colaboradorInput.value = ""; // Limpa o campo do colaborador
+                    return;
+                }
+
+                fetchColaborador(matricula)
+                    .then(data => {
+                        if (data && !data.erro) {
+                            colaboradorInput.value = data.nome;
+                        } else {
+                            alert(data.erro || "Matrícula não encontrada.");
+                            colaboradorInput.value = "";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar colaborador:", error);
+                        alert("Ocorreu um erro ao buscar os dados. Verifique o console.");
+                        colaboradorInput.value = "";
+                    });
+            });
+
+            // Limpa o campo do colaborador se a matrícula for apagada
+            matriculaInput.addEventListener("input", function () {
+                if (this.value.trim() === "") {
+                    colaboradorInput.value = "";
+                }
+            });
+        }
+    }
+
+    // --- LÓGICA PARA O MODAL DE CADASTRO (ENTREGA) ---
+    const modalCadastro = document.getElementById('modalCadastroChave');
+    if (modalCadastro) {
+        const matriculaInput = modalCadastro.querySelector("[name='matricula_recebendo']");
+        const colaboradorInput = modalCadastro.querySelector("[name='colaborador_recebendo']");
+        const departamentoInput = modalCadastro.querySelector("[name='departamento']");
+        const form = modalCadastro.querySelector("form");
+
+        if (matriculaInput && colaboradorInput && departamentoInput && form) {
+            matriculaInput.addEventListener("blur", function () {
+                const matricula = this.value.trim();
+                if (!matricula) {
+                    colaboradorInput.value = "";
+                    departamentoInput.value = "";
+                    return;
+                }
+
+                fetchColaborador(matricula)
+                    .then(data => {
+                        if (data && !data.erro) {
+                            colaboradorInput.value = data.nome;
+                            departamentoInput.value = data.departamento;
+                        } else {
+                            alert(data.erro || "Matrícula não encontrada.");
+                            colaboradorInput.value = "";
+                            departamentoInput.value = "";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar colaborador:", error);
+                        alert("Ocorreu um erro ao buscar os dados. Verifique o console.");
+                        colaboradorInput.value = "";
+                        departamentoInput.value = "";
+                    });
+            });
+
+            matriculaInput.addEventListener("input", function () {
+                if (this.value.trim() === "") {
+                    colaboradorInput.value = "";
+                    departamentoInput.value = "";
+                }
+            });
+        }
+    }
+
+    // --- LÓGICA PARA OS MODAIS DE DEVOLUÇÃO ---
+    // 1. Encontra TODOS os modais de devolução
+    const devolucoesModals = document.querySelectorAll('[id^="confirmardevolucaoModal"]');
+    
+    // 2. Itera sobre cada modal encontrado
+    devolucoesModals.forEach(modal => {
+        // 3. Aplica a lógica de autopreenchimento para cada um
+        // Note que os nomes dos campos são 'matricula_devolveu' e 'colaborador_devolveu'
+        setupAutofill(modal, 'matricula_devolveu', 'colaborador_devolveu');
+    });
+});
+</script>
+
+<script>
 document.addEventListener('DOMContentLoaded', () => {
     const filterDepartamento = document.getElementById('filterDepartamento');
     const filterMatricula = document.getElementById('filterMatricula');
@@ -291,75 +425,97 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Toasts
-        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-        var toastList = toastElList.map(function (toastEl) {
-            return new bootstrap.Toast(toastEl, { delay: 5000 });
-        });
-        toastList.forEach(toast => toast.show());
-
-        // Sidebar toggle
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleSidebarBtn');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('reduzida');
-            });
-        }
-
-        // Autopreenchimento de colaborador e departamento
-        const matriculaInput = document.getElementById("id_matricula");
-        const colaboradorInput = document.getElementById("id_colaborador");
-        const departamentoInput = document.getElementById("id_departamento");
-        const form = document.querySelector("#ControleChavesForm");
-
-        function limparCampos() {
-            colaboradorInput.value = "";
-            departamentoInput.value = "";
-        }
-
-        matriculaInput.addEventListener("blur", function () {
-            const matricula = this.value.trim();
-            if (!matricula) {
-                limparCampos();
-                return;
-            }
-
-            fetch(`/buscar_colaborador/?matricula=${encodeURIComponent(matricula)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.erro) {
-                        colaboradorInput.value = data.nome;
-                        departamentoInput.value = data.departamento;
-                    } else {
-                        alert(data.erro);
-                        limparCampos();
-                    }
-                })
-                .catch(error => {
-                    console.error("Erro ao buscar colaborador:", error);
-                    limparCampos();
-                });
-        });
-
-        matriculaInput.addEventListener("input", function () {
-            if (this.value.trim() === "") {
-                limparCampos();
-            }
-        });
-
-        form.addEventListener("submit", function (event) {
-            const matricula = matriculaInput.value.trim();
-            const colaborador = colaboradorInput.value.trim();
-            const departamento = departamentoInput.value.trim();
-
-            if (!matricula || !colaborador || !departamento) {
-                event.preventDefault();
-                alert("Matrícula inválida. O colaborador e o departamento não foram preenchidos.");
-            }
-        });
+document.addEventListener("DOMContentLoaded", function () {
+    // --- Configuração dos Toasts (sem alteração) ---
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function (toastEl) {
+        return new bootstrap.Toast(toastEl, { delay: 5000 });
     });
+    toastList.forEach(toast => toast.show());
+
+    // --- Configuração do Sidebar (sem alteração) ---
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('reduzida');
+        });
+    }
+
+    // --- LÓGICA CORRIGIDA PARA AUTOPREENCHIMENTO ---
+
+    // 1. Seleciona o modal de cadastro específico
+    const modalCadastro = document.getElementById('modalCadastroChave');
+    if (modalCadastro) {
+        
+        // 2. Encontra os campos DENTRO do modal com os NOMES CORRETOS do forms.py
+        const matriculaInput = modalCadastro.querySelector("[name='matricula_recebendo']");
+        const colaboradorInput = modalCadastro.querySelector("[name='colaborador_recebendo']");
+        const departamentoInput = modalCadastro.querySelector("[name='departamento']");
+        const form = modalCadastro.querySelector("form");
+
+        // Verifica se todos os campos foram encontrados antes de adicionar os eventos
+        if (matriculaInput && colaboradorInput && departamentoInput && form) {
+
+            function limparCampos() {
+                colaboradorInput.value = "";
+                departamentoInput.value = "";
+            }
+
+            // 3. Adiciona o evento 'blur' (quando o usuário sai do campo)
+            matriculaInput.addEventListener("blur", function () {
+                const matricula = this.value.trim();
+                if (!matricula) {
+                    limparCampos();
+                    return;
+                }
+
+                // A URL da sua view que busca o colaborador
+                fetch(`/buscar_colaborador/?matricula=${encodeURIComponent(matricula)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('A resposta da rede não foi bem-sucedida.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && !data.erro) {
+                            colaboradorInput.value = data.nome;
+                            departamentoInput.value = data.departamento;
+                        } else {
+                            alert(data.erro || "Matrícula não encontrada.");
+                            limparCampos();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar colaborador:", error);
+                        alert("Ocorreu um erro ao tentar buscar os dados do colaborador. Verifique o console para mais detalhes.");
+                        limparCampos();
+                    });
+            });
+
+            // Limpa os campos se a matrícula for apagada
+            matriculaInput.addEventListener("input", function () {
+                if (this.value.trim() === "") {
+                    limparCampos();
+                }
+            });
+
+            // Validação no envio do formulário
+            form.addEventListener("submit", function (event) {
+                const colaborador = colaboradorInput.value.trim();
+                if (!colaborador) {
+                    event.preventDefault(); // Impede o envio do formulário
+                    alert("Matrícula inválida ou não encontrada. Por favor, verifique a matrícula e tente novamente.");
+                }
+            });
+        } else {
+            console.error("Não foi possível encontrar os campos do formulário de cadastro de chave. Verifique os atributos 'name' dos campos no seu forms.py. Nomes esperados: 'matricula_recebendo', 'colaborador_recebendo', 'departamento'.");
+        }
+    }
+});
 </script>
+
+
 </body>
 </html>
