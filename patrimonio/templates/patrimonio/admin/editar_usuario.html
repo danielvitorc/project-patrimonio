@@ -1,0 +1,223 @@
+{% extends 'patrimonio/admin/base_admin.html' %}
+
+{% block title %}Editar Usuário - Administração{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-user-edit me-2"></i>
+        Editar Usuário: {{ usuario.username }}
+    </h1>
+    <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Voltar
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Dados do Usuário
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2"></i>Nome de Usuário
+                            </label>
+                            <input type="text" class="form-control" value="{{ usuario.username }}" disabled>
+                            <div class="form-text">
+                                O nome de usuário não pode ser alterado.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>Nome
+                            </label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ usuario.first_name }}">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>Sobrenome
+                            </label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ usuario.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if usuario.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    <i class="fas fa-user-check me-2"></i>
+                                    <strong>Usuário Ativo</strong>
+                                </label>
+                                <div class="form-text">
+                                    Usuários inativos não podem fazer login no sistema.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {% if usuario != user %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_admin" name="is_admin" {% if usuario.profile.is_admin %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_admin">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        <strong>Administrador</strong>
+                                    </label>
+                                    <div class="form-text">
+                                        Concede privilégios administrativos ao usuário.
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" checked disabled>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        <strong>Administrador</strong>
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        Você não pode remover seus próprios privilégios de administrador.
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if usuario != user %}
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_blocked" name="is_blocked" {% if usuario.profile.is_blocked %}checked{% endif %}>
+                                <label class="form-check-label" for="is_blocked">
+                                    <i class="fas fa-lock me-2"></i>
+                                    <strong>Usuário Bloqueado</strong>
+                                </label>
+                                <div class="form-text">
+                                    Usuários bloqueados não podem acessar o sistema até serem desbloqueados.
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações do Usuário -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações do Usuário
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><strong>Data de Criação:</strong> {{ usuario.date_joined|date:"d/m/Y H:i" }}</li>
+                            <li><strong>Último Login:</strong> 
+                                {% if usuario.last_login %}
+                                    {{ usuario.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    <span class="text-muted">Nunca</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><strong>Status Atual:</strong> 
+                                {% if usuario.profile.is_blocked %}
+                                    <span class="badge bg-danger">Bloqueado</span>
+                                {% elif usuario.is_active %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inativo</span>
+                                {% endif %}
+                            </li>
+                            <li><strong>Tipo:</strong> 
+                                {% if usuario.profile.is_admin %}
+                                    <span class="badge bg-primary">Administrador</span>
+                                {% else %}
+                                    <span class="badge bg-info">Usuário</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Adicionais -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>
+                    Ações Adicionais
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{% url 'admin_trocar_senha' usuario.id %}" class="btn btn-warning">
+                        <i class="fas fa-key me-2"></i>
+                        Trocar Senha
+                    </a>
+                    {% if usuario != user %}
+                        <a href="{% url 'admin_bloquear_usuario' usuario.id %}" 
+                           class="btn btn-{% if usuario.profile.is_blocked %}success{% else %}danger{% endif %}"
+                           onclick="return confirm('Tem certeza que deseja {% if usuario.profile.is_blocked %}desbloquear{% else %}bloquear{% endif %} este usuário?')">
+                            <i class="fas fa-{% if usuario.profile.is_blocked %}unlock{% else %}lock{% endif %} me-2"></i>
+                            {% if usuario.profile.is_blocked %}Desbloquear{% else %}Bloquear{% endif %} Usuário
+                        </a>
+                        <a href="{% url 'admin_excluir_usuario' usuario.id %}" 
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')">
+                            <i class="fas fa-trash me-2"></i>
+                            Excluir Usuário
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

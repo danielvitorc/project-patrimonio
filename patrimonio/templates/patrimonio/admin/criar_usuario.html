@@ -1,0 +1,198 @@
+{% extends 'patrimonio/admin/base_admin.html' %}
+
+{% block title %}Criar Usuário - Administração{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-user-plus me-2"></i>
+        Criar Novo Usuário
+    </h1>
+    <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Voltar
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Dados do Novo Usuário
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-2"></i>Nome de Usuário
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.username.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Nome único para login no sistema. Apenas letras, números e @/./+/-/_ permitidos.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>Nome
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.first_name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>Sobrenome
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.last_name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Senha
+                            </label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.password1.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                A senha deve ter pelo menos 8 caracteres e não pode ser muito comum.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Confirmar Senha
+                            </label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.password2.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Digite a mesma senha novamente para confirmação.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_admin }}
+                            <label class="form-check-label" for="{{ form.is_admin.id_for_label }}">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                <strong>Conceder privilégios de administrador</strong>
+                            </label>
+                            <div class="form-text">
+                                Usuários administradores podem gerenciar outros usuários e acessar o painel administrativo.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Criar Usuário
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações de Segurança -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações Importantes
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>O nome de usuário deve ser único no sistema</li>
+                    <li>A senha deve ter pelo menos 8 caracteres</li>
+                    <li>Usuários administradores têm acesso total ao sistema</li>
+                    <li>O email será usado para recuperação de senha (se configurado)</li>
+                    <li>Novos usuários são criados como ativos por padrão</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Adicionar classes do Bootstrap aos campos do formulário
+    document.addEventListener('DOMContentLoaded', function() {
+        const formControls = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+        formControls.forEach(function(control) {
+            control.classList.add('form-control');
+        });
+        
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.classList.add('form-check-input');
+        });
+    });
+</script>
+{% endblock %}
+

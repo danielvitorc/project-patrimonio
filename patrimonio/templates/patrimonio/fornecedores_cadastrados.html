@@ -73,7 +73,7 @@
                         {% if fornecedor.categoria == "VISITANTE" and fornecedor.visitante %}
                             {{ fornecedor.visitante.nome }}
                         {% elif fornecedor.categoria == "FORNECEDOR" and fornecedor.fornecedor_servico %}
-                            {{ fornecedor.fornecedor_servico.nome_empresa }}
+                            {{ fornecedor.fornecedor_servico.nome_representante }}
                         {% elif fornecedor.categoria == "ENTREGA" and fornecedor.entrega %}
                             {{ fornecedor.entrega.nome_entregador }}
                         {% else %}
@@ -84,11 +84,15 @@
                     <td>{{ fornecedor.validade_meses }}</td>
                     <td>{{ fornecedor.data_validade|date:"d/m/Y" }}</td>
                     <td>
-                    {% if fornecedor.status == "Integrado" %}
-                        <span class="badge bg-success">Integrado</span>
-                    {% else %}
-                        <span class="badge bg-danger">Pendente</span>
-                    {% endif %}
+                        {% if fornecedor.status == "Integrado" %}
+                            <span class="badge bg-success">Integrado</span>
+                        {% else %}
+                            <span class="badge bg-danger">Pendente</span>
+                        {% endif %}
+                        <div class="mt-2 d-flex gap-1">
+                            <button class="btn btn-sm btn-primary ms-2 btn-editar" data-id="{{ fornecedor.id }}">Editar</button>
+                            <button class="btn btn-sm btn-danger btn-excluir" data-id="{{ fornecedor.id }}">Excluir</button>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
@@ -100,6 +104,110 @@
 
 
     </div>
+    <!-- Modal de Edição -->
+    <div class="modal fade" id="modalEditarFornecedor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="formEditarFornecedor" method="post" action="">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Fornecedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Campos do formulário vão ser carregados aqui -->
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Salvar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+            </form>
+        </div>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(function () {
+        $('.btn-editar').on('click', function () {
+            let id = $(this).data('id');
+            $.get(`/fornecedor/modal_editar/${id}/`, function (data) {
+                $('#modal-body-content').html(data.form_html);
+                $('#formEditarFornecedor').attr('action', `/fornecedor/modal_editar/${id}/`);
+                $('#modalEditarFornecedor').modal('show');
+            });
+        });
+
+
+        $('#formEditarFornecedor').on('submit', function (e) {
+            e.preventDefault();
+            let form = $(this);
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function (data) {
+                    if (data.success) {
+                        location.reload();  // recarrega para mostrar as alterações
+                    } else {
+                        $('#modal-body-content').html(data.form_html); // mostrar erros de validação
+                    }
+                }
+            });
+        });
+
+    });
+    </script>
+    <script>
+        // Função para pegar o CSRF token do cookie (padrão Django)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Configura o AJAX do jQuery para enviar o token automaticamente
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!(/^GET|HEAD|OPTIONS|TRACE$/.test(settings.type)) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        // Lógica para o botão Excluir funcionar via AJAX
+        $(document).on('click', '.btn-excluir', function () {
+            if (!confirm('Tem certeza que deseja excluir este fornecedor?')) {
+                return; // cancelou exclusão
+            }
+
+            let id = $(this).data('id');
+            $.ajax({
+                url: `/fornecedor/excluir/${id}/`,
+                type: 'POST',
+                success: function (data) {
+                    if (data.success) {
+                        alert('Fornecedor excluído com sucesso.');
+                        location.reload();
+                    } else {
+                        alert('Erro ao excluir fornecedor.');
+                    }
+                },
+                error: function () {
+                    alert('Erro ao tentar excluir fornecedor.');
+                }
+            });
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const filtroData = document.getElementById("filtro-data");

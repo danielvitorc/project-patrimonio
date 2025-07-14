@@ -100,6 +100,7 @@ class OcorrenciaForm(forms.ModelForm):
         }
 
 
+
 class FornecedorForm(forms.ModelForm):
     class Meta:
         model = Fornecedor
@@ -109,6 +110,7 @@ class FornecedorForm(forms.ModelForm):
             'validade_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
 
+
 class VisitanteForm(forms.ModelForm):
     class Meta:
         model = Visitante
@@ -117,15 +119,19 @@ class VisitanteForm(forms.ModelForm):
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'documento': forms.TextInput(attrs={'class': 'form-control'}),
             'motivo_visita': forms.TextInput(attrs={'class': 'form-control'}),
-            'setor_destino': forms.TextInput(attrs={'class': 'form-control'}),
-            'responsavel_autorizante': forms.TextInput(attrs={'class': 'form-control'}),
-            'modelo_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
-            'placa_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
-            'data_hora_entrada': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'data_hora_saida': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'foto_visitante': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
+
+
 class FornecedorServicoForm(forms.ModelForm):
+    # Campo para captura de foto via webcam
+    foto_webcam = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False,
+        help_text="Foto capturada via webcam"
+    )
+
     class Meta:
         model = FornecedorServico
         exclude = ['fornecedor']
@@ -133,41 +139,41 @@ class FornecedorServicoForm(forms.ModelForm):
             'nome_empresa': forms.TextInput(attrs={'class': 'form-control'}),
             'nome_representante': forms.TextInput(attrs={'class': 'form-control'}),
             'documento': forms.TextInput(attrs={'class': 'form-control'}),
-            'setor_destino': forms.TextInput(attrs={'class': 'form-control'}),
             'atividade_servico': forms.TextInput(attrs={'class': 'form-control'}),
-            'responsavel_autorizante': forms.TextInput(attrs={'class': 'form-control'}),
-            'modelo_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
-            'placa_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
-            'data_hora_entrada': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'data_hora_saida': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'foto_fornecedor': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
+
 class EntregaForm(forms.ModelForm):
+    foto_webcam = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False,
+        help_text="Foto capturada via webcam"
+    )
+
     class Meta:
         model = Entrega
         exclude = ['fornecedor']
         widgets = {
             'tipo_entrega': forms.TextInput(attrs={'class': 'form-control'}),
             'descricao_item': forms.Textarea(attrs={'class': 'form-control'}),
-            'quantidade_recebida': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'nome_transportadora': forms.TextInput(attrs={'class': 'form-control'}),
             'nome_entregador': forms.TextInput(attrs={'class': 'form-control'}),
             'documentos_entregador': forms.TextInput(attrs={'class': 'form-control'}),
-            'placa_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
             'data_hora_recebimento': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'setor_destino': forms.TextInput(attrs={'class': 'form-control'}),
             'nome_matricula_responsavel': forms.TextInput(attrs={'class': 'form-control'}),
             'assinatura_responsavel': forms.Textarea(attrs={'class': 'form-control'}),
             'data_hora_entrega_material': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'imagem_material': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'foto_caixa_entrega': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+
+
 
 class EntradaFornecedorForm(forms.ModelForm):
     base = forms.ChoiceField(
         choices=BASE_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -178,17 +184,19 @@ class EntradaFornecedorForm(forms.ModelForm):
         if hasattr(obj, 'visitante'):
             return f"Visitante: {obj.visitante.nome}"
         elif hasattr(obj, 'fornecedor_servico'):
-            return f"Fornecedor: {obj.fornecedor_servico.nome_empresa}"
+            return f"Fornecedor: {obj.fornecedor_servico.nome_representante}"
         elif hasattr(obj, 'entrega'):
             return f"Entrega: {obj.entrega.nome_entregador}"
         return f"Fornecedor ID {obj.id}"
 
     class Meta:
         model = EntradaFornecedor
-        fields = ['base', 'fornecedor', 'assinatura_portaria']
+        fields = ['base', 'fornecedor', 'assinatura_portaria', 'setor_destino', 'responsavel_autorizante', 'modelo_veiculo', 'placa_veiculo']
         widgets = {
             'fornecedor': forms.Select(attrs={'class': 'form-control'}),
             'assinatura_portaria': forms.TextInput(attrs={'class': 'form-control'}),
+            'setor_destino': forms.TextInput(attrs={'class': 'form-control'}),
+            'responsavel_autorizante': forms.TextInput(attrs={'class': 'form-control'}),
+            'modelo_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
+            'placa_veiculo': forms.TextInput(attrs={'class': 'form-control'}),
         }
-        
-        

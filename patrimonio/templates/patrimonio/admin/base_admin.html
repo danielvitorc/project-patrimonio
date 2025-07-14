@@ -1,0 +1,262 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
+    <title>{% block title %}Administração - PATRIMONIO{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --dark-color: #34495e;
+            --light-color: #ecf0f1;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar .nav-link {
+            color: #bdc3c7;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 5px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #58d68d);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #ec7063);
+            border: none;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #f7dc6f);
+            border: none;
+            color: white;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            border: none;
+            padding: 15px;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'admin_dashboard' %}">
+                <i class="fas fa-shield-alt me-2"></i>
+                Administração - PATRIMONIO
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar me-2">
+                            {{ user.first_name.0|default:user.username.0|upper }}
+                        </div>
+                        {{ user.first_name|default:user.username }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'home' %}"><i class="fas fa-home me-2"></i>Sistema Principal</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0">
+                <div class="sidebar">
+                    <div class="p-3">
+                        <h5 class="text-white mb-4">
+                            <i class="fas fa-users-cog me-2"></i>
+                            Painel Admin
+                        </h5>
+                        <nav class="nav flex-column">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'admin_usuarios' %}active{% endif %}" href="{% url 'admin_usuarios' %}">
+                                <i class="fas fa-users"></i>
+                                Gerenciar Usuários
+                            </a>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'admin_criar_usuario' %}active{% endif %}" href="{% url 'admin_criar_usuario' %}">
+                                <i class="fas fa-user-plus"></i>
+                                Criar Usuário
+                            </a>
+                            <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+                            <a class="nav-link" href="{% url 'home' %}">
+                                <i class="fas fa-arrow-left"></i>
+                                Voltar ao Sistema
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="main-content">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>
+

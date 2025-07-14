@@ -1,0 +1,146 @@
+{% extends 'patrimonio/admin/base_admin.html' %}
+
+{% block title %}Trocar Senha - Administração{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-key me-2"></i>
+        Trocar Senha: {{ usuario.username }}
+    </h1>
+    <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Voltar
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-key me-2"></i>
+                    Nova Senha para {{ usuario.get_full_name|default:usuario.username }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="nova_senha" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Nova Senha
+                        </label>
+                        <input type="password" class="form-control" id="nova_senha" name="nova_senha" required>
+                        <div class="form-text">
+                            A senha deve ter pelo menos 8 caracteres.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="confirmar_senha" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Confirmar Nova Senha
+                        </label>
+                        <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" required>
+                        <div class="form-text">
+                            Digite a mesma senha novamente para confirmação.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>
+                            Alterar Senha
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações de Segurança -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Aviso de Segurança
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>A senha será alterada imediatamente após a confirmação</li>
+                    <li>O usuário precisará usar a nova senha no próximo login</li>
+                    <li>Recomenda-se informar o usuário sobre a alteração</li>
+                    <li>Use senhas seguras com pelo menos 8 caracteres</li>
+                    <li>Combine letras maiúsculas, minúsculas, números e símbolos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações do Usuário -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Informações do Usuário
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li><strong>Nome de Usuário:</strong> {{ usuario.username }}</li>
+                    <li><strong>Nome Completo:</strong> {{ usuario.get_full_name|default:"Não informado" }}</li>
+                    <li><strong>Email:</strong> {{ usuario.email|default:"Não informado" }}</li>
+                    <li><strong>Último Login:</strong> 
+                        {% if usuario.last_login %}
+                            {{ usuario.last_login|date:"d/m/Y H:i" }}
+                        {% else %}
+                            <span class="text-muted">Nunca</span>
+                        {% endif %}
+                    </li>
+                    <li><strong>Status:</strong> 
+                        {% if usuario.profile.is_blocked %}
+                            <span class="badge bg-danger">Bloqueado</span>
+                        {% elif usuario.is_active %}
+                            <span class="badge bg-success">Ativo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inativo</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const novaSenha = document.getElementById('nova_senha');
+        const confirmarSenha = document.getElementById('confirmar_senha');
+        
+        function validarSenhas() {
+            if (novaSenha.value !== confirmarSenha.value) {
+                confirmarSenha.setCustomValidity('As senhas não coincidem');
+            } else {
+                confirmarSenha.setCustomValidity('');
+            }
+        }
+        
+        novaSenha.addEventListener('input', validarSenhas);
+        confirmarSenha.addEventListener('input', validarSenhas);
+    });
+</script>
+{% endblock %}
+

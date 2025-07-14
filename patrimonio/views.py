@@ -9,6 +9,10 @@ from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, Entrada
 from datetime import date
 from django.utils import timezone
 from utils.email_alertas import enviar_alerta_vencimentos
+from django.views.decorators.http import require_POST
+from django.template.loader import render_to_string
+import base64
+from django.core.files.base import ContentFile
 
 
 
@@ -19,8 +23,23 @@ def login_usuario(request):
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            # Verificar se o usuário tem perfil
+            if not hasattr(user, 'profile'):
+                from .models import UserProfile
+                UserProfile.objects.create(user=user)
+            
+            # Verificar se o usuário está bloqueado
+            if user.profile.is_blocked:
+                messages.error(request, 'Sua conta está bloqueada. Entre em contato com o administrador.')
+                return render(request, 'patrimonio/login.html')
+            
             login(request, user)
-            return redirect('home')  # Redirecionar para a página inicial pós-login
+            
+            # Redirecionar para tela de admin se for administrador
+            if user.profile.is_admin:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('home')  # Redirecionar para a página inicial pós-login
         else:
             messages.error(request, 'Usuário ou senha inválidos.')
     return render(request, 'patrimonio/login.html')
@@ -210,11 +229,37 @@ def excluir_chave(request, id):
         messages.error(request, f"Ocorreu um erro ao tentar excluir movimentação de chave: {e}")
     return redirect('entrega_de_chave')  # Redirecionando para a view unificada
 
+def process_webcam_photo(photo_data, field_name):
+    """
+    Processa a foto capturada via webcam e retorna um arquivo Django
+    """
+    if photo_data and photo_data.startswith('data:image'):
+        # Remove o prefixo data:image/jpeg;base64,
+        format, imgstr = photo_data.split(';base64,')
+        ext = format.split('/')[-1]
+        
+        # Decodifica o base64
+        img_data = base64.b64decode(imgstr)
+        
+        # Cria um arquivo Django
+        img_file = ContentFile(img_data, name=f'{field_name}.{ext}')
+        return img_file
+    return None
+
+
+
+def enviar_alerta_vencimentos():
+    """
+    Função para enviar alertas de vencimento (implementar conforme necessário)
+    """
+    # Implementar lógica de envio de e-mail aqui
+    pass
+
+
 def excluir_fornecedor(request, id):
     fornecedor = get_object_or_404(Fornecedor, id=id)
     fornecedor.delete()
-    return redirect('patrimonio/entrada_saida_visitantes.htmla')  # ajuste conforme sua lógica
-
+    return redirect('controle_visitantes')  # Corrigido o redirect
 
 @login_required
 def controle_visitantes(request):
@@ -249,16 +294,39 @@ def controle_visitantes(request):
                 if categoria == 'VISITANTE' and form_visitante.is_valid():
                     visitante = form_visitante.save(commit=False)
                     visitante.fornecedor = fornecedor
+                    
+                    foto_base64 = request.POST.get('foto_visitante')
+                    if foto_base64:
+                        img_file = process_webcam_photo(foto_base64, 'visitante')
+                        if img_file:
+                            visitante.foto_visitante = img_file
+                    
                     visitante.save()
-
+                    
                 elif categoria == 'FORNECEDOR' and form_fornecedor_servico.is_valid():
                     servico = form_fornecedor_servico.save(commit=False)
                     servico.fornecedor = fornecedor
+
+                    # Processa foto da webcam se disponível
+                    foto_base64 = request.POST.get('foto_webcam')  # Corrigido aqui
+                    if foto_base64:
+                        img_file = process_webcam_photo(foto_base64, 'fornecedor')
+                        if img_file:
+                            servico.foto_fornecedor = img_file
+
                     servico.save()
 
                 elif categoria == 'ENTREGA' and form_entrega.is_valid():
                     entrega = form_entrega.save(commit=False)
                     entrega.fornecedor = fornecedor
+                    
+                    # Processa foto da webcam se disponível
+                    foto_webcam = request.POST.get('foto_webcam')
+                    if foto_webcam:
+                        img_file = process_webcam_photo(foto_webcam, 'entrega')
+                        if img_file:
+                            entrega.foto_caixa_entrega = img_file
+                    
                     entrega.save()
 
                 return redirect('controle_visitantes')
@@ -303,7 +371,6 @@ def status_fornecedor(request, pk):
     return redirect('controle_visitantes')
 
 
-
 def detalhes_entrada(request, entrada_id):
     entrada = get_object_or_404(EntradaFornecedor, pk=entrada_id)
     return render(request, 'patrimonio/detalhes_entrada.html', {'entrada': entrada})
@@ -319,4 +386,222 @@ def excluir_entrada(request, pk):
 def fornecedores_cadastrados(request):
     fornecedores = Fornecedor.objects.all().order_by('-data_integracao')
     return render(request, 'patrimonio/fornecedores_cadastrados.html', {'fornecedores': fornecedores})
+
+def modal_editar_fornecedor(request, pk):
+    fornecedor = get_object_or_404(Fornecedor, pk=pk)
+
+    if request.method == 'POST':
+        form = FornecedorForm(request.POST, instance=fornecedor)
+
+        if fornecedor.categoria == 'VISITANTE':
+            form_sub = VisitanteForm(request.POST, request.FILES, instance=fornecedor.visitante)
+        elif fornecedor.categoria == 'FORNECEDOR':
+            form_sub = FornecedorServicoForm(request.POST, request.FILES, instance=fornecedor.fornecedor_servico)
+        elif fornecedor.categoria == 'ENTREGA':
+            form_sub = EntregaForm(request.POST, request.FILES, instance=fornecedor.entrega)
+        else:
+            form_sub = None
+
+        if form.is_valid() and (not form_sub or form_sub.is_valid()):
+            form.save()
+            if form_sub:
+                form_sub.save()
+            return JsonResponse({'success': True})
+
+        form_html = render_to_string('patrimonio/includes/form_editar_fornecedor.html', {
+            'form': form,
+            'form_sub': form_sub,
+            'fornecedor': fornecedor,
+        }, request=request)
+        return JsonResponse({'success': False, 'form_html': form_html})
+
+    else:
+        form = FornecedorForm(instance=fornecedor)
+        if fornecedor.categoria == 'VISITANTE':
+            form_sub = VisitanteForm(instance=fornecedor.visitante)
+        elif fornecedor.categoria == 'FORNECEDOR':
+            form_sub = FornecedorServicoForm(instance=fornecedor.fornecedor_servico)
+        elif fornecedor.categoria == 'ENTREGA':
+            form_sub = EntregaForm(instance=fornecedor.entrega)
+        else:
+            form_sub = None
+
+        form_html = render_to_string('patrimonio/includes/form_editar_fornecedor.html', {
+            'form': form,
+            'form_sub': form_sub,
+            'fornecedor': fornecedor,
+        }, request=request)
+
+        return JsonResponse({'form_html': form_html})
+    
+def excluir_fornecedor(request, pk):
+    if request.method == 'POST':
+        fornecedor = get_object_or_404(Fornecedor, pk=pk)
+        fornecedor.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+
+# ===== Views de Administração =====
+
+from django.contrib.auth.models import User
+from .models import UserProfile, ActivityLog
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
+
+def log_activity(user, action):
+    ActivityLog.objects.create(user=user, action=action)
+
+# Decorator para verificar se o usuário é admin
+def admin_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        if not hasattr(request.user, 'profile') or not request.user.profile.is_admin:
+            messages.error(request, 'Acesso negado. Você não tem permissão de administrador.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+@admin_required
+def admin_dashboard(request):
+    """Dashboard principal do administrador"""
+    total_usuarios = User.objects.count()
+    usuarios_bloqueados = UserProfile.objects.filter(is_blocked=True).count()
+    usuarios_admin = UserProfile.objects.filter(is_admin=True).count()
+    usuarios_ativos = User.objects.filter(is_active=True).count()
+    
+    # Resumo de Atividades
+    atividades_recentes = ActivityLog.objects.all().order_by("-timestamp")[:10] # Últimas 10 atividades
+    
+    context = {
+        'total_usuarios': total_usuarios,
+        'usuarios_bloqueados': usuarios_bloqueados,
+        'usuarios_admin': usuarios_admin,
+        'usuarios_ativos': usuarios_ativos,
+        'atividades_recentes': atividades_recentes,
+    }
+    return render(request, 'patrimonio/admin/dashboard.html', context)
+
+@admin_required
+def admin_usuarios(request):
+    """Lista todos os usuários para gerenciamento"""
+    usuarios = User.objects.all().order_by('username')
+    return render(request, 'patrimonio/admin/usuarios.html', {'usuarios': usuarios})
+
+class AdminUserCreationForm(UserCreationForm):
+    """Formulário customizado para criação de usuários pelo admin"""
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=30, required=True, label='Nome')
+    last_name = forms.CharField(max_length=30, required=True, label='Sobrenome')
+    is_admin = forms.BooleanField(required=False, label='É Administrador')
+    
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+
+@admin_required
+def admin_criar_usuario(request):
+    """Criar novo usuário"""
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Criar ou atualizar perfil
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            profile.is_admin = form.cleaned_data.get('is_admin', False)
+            profile.save()
+            
+            messages.success(request, f'Usuário {user.username} criado com sucesso!')
+            log_activity(request.user, f'Criou o usuário {user.username}')
+            return redirect('admin_usuarios')
+    else:
+        form = AdminUserCreationForm()
+    
+    return render(request, 'patrimonio/admin/criar_usuario.html', {'form': form})
+
+@admin_required
+def admin_editar_usuario(request, user_id):
+    """Editar usuário existente"""
+    usuario = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        # Atualizar dados básicos
+        usuario.first_name = request.POST.get('first_name', '')
+        usuario.last_name = request.POST.get('last_name', '')
+        usuario.email = request.POST.get('email', '')
+        usuario.is_active = 'is_active' in request.POST
+        usuario.save()
+        
+        # Atualizar perfil
+        profile, created = UserProfile.objects.get_or_create(user=usuario)
+        profile.is_admin = 'is_admin' in request.POST
+        profile.is_blocked = 'is_blocked' in request.POST
+        profile.save()
+        
+        messages.success(request, f'Usuário {usuario.username} atualizado com sucesso!')
+        log_activity(request.user, f'Atualizou o usuário {usuario.username}')
+        return redirect('admin_usuarios')
+    
+    return render(request, 'patrimonio/admin/editar_usuario.html', {'usuario': usuario})
+
+@admin_required
+def admin_trocar_senha(request, user_id):
+    """Trocar senha de um usuário"""
+    usuario = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        nova_senha = request.POST.get('nova_senha')
+        confirmar_senha = request.POST.get('confirmar_senha')
+        
+        if nova_senha and nova_senha == confirmar_senha:
+            if len(nova_senha) >= 8:
+                usuario.set_password(nova_senha)
+                usuario.save()
+                messages.success(request, f'Senha do usuário {usuario.username} alterada com sucesso!')
+                log_activity(request.user, f'Alterou a senha do usuário {usuario.username}')
+                return redirect('admin_usuarios')
+            else:
+                messages.error(request, 'A senha deve ter pelo menos 8 caracteres.')
+        else:
+            messages.error(request, 'As senhas não coincidem.')
+    
+    return render(request, 'patrimonio/admin/trocar_senha.html', {'usuario': usuario})
+
+@admin_required
+def admin_bloquear_usuario(request, user_id):
+    """Bloquear/desbloquear usuário"""
+    usuario = get_object_or_404(User, id=user_id)
+    profile, created = UserProfile.objects.get_or_create(user=usuario)
+    
+    # Não permitir que o admin se bloqueie
+    if usuario == request.user:
+        messages.error(request, 'Você não pode bloquear sua própria conta.')
+        return redirect('admin_usuarios')
+    
+    profile.is_blocked = not profile.is_blocked
+    profile.save()
+    
+    status = 'bloqueado' if profile.is_blocked else 'desbloqueado'
+    messages.success(request, f'Usuário {usuario.username} {status} com sucesso!')
+    log_activity(request.user, f'{status.capitalize()} o usuário {usuario.username}')
+    return redirect('admin_usuarios')
+
+@admin_required
+def admin_excluir_usuario(request, user_id):
+    """Excluir usuário"""
+    usuario = get_object_or_404(User, id=user_id)
+    
+    # Não permitir que o admin se exclua
+    if usuario == request.user:
+        messages.error(request, 'Você não pode excluir sua própria conta.')
+        return redirect('admin_usuarios')
+    
+    if request.method == 'POST':
+        username = usuario.username
+        usuario.delete()
+        messages.success(request, f'Usuário {username} excluído com sucesso!')
+        log_activity(request.user, f'Excluiu o usuário {username}')
+        return redirect('admin_usuarios')
+    
+    return render(request, 'patrimonio/admin/confirmar_exclusao.html', {'usuario': usuario})
 

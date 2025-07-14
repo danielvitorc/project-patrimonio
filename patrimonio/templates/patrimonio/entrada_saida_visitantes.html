@@ -14,6 +14,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
     <title>{% block title %}Visitantes - PATRIMONIO{% endblock %}</title>
+    <style>
+        video#webcam {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+        }
+
+        button.btn-success {
+            width: 100%;
+        }
+    </style>
+
 </head>
 <body>
     {% include 'patrimonio/includes/sidebar.html' %}
@@ -44,18 +57,251 @@
 
                 <div id="visitanteFields" style="display:none;">
                     <h6>Informações Visitante</h6>
-                    {{ form_visitante.as_p }}
-                </div>
 
+                    <div class="mb-3">
+                        <label for="{{ form_visitante.nome.id_for_label }}" class="form-label">Nome:</label>
+                        {{ form_visitante.nome }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form_visitante.documento.id_for_label }}" class="form-label">Documento:</label>
+                        {{ form_visitante.documento }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form_visitante.motivo_visita.id_for_label }}" class="form-label">Motivo da Visita:</label>
+                        {{ form_visitante.motivo_visita }}
+                    </div>
+                    <!-- Webcam -->
+                    <div id="webcam-container" style="margin-top: 1rem;">
+                        <h6>Captura de Foto</h6>
+                        <video id="webcam" autoplay playsinline style="width: 100%; max-width: 320px; border: 1px solid #ccc;"></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <input type="hidden" name="foto_visitante" id="id_foto_visitante">
+                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="abrirECapturarVisitante()">📸 Tirar Foto</button>
+                        <div id="foto-confirmada" class="text-success fw-bold mt-2" style="display: none;">✅ Foto capturada com sucesso!</div>
+                    </div>
+                </div>
                 <div id="fornecedorServicoFields" style="display:none;">
                     <h6>Informações Fornecedor/Serviço</h6>
-                    {{ form_fornecedor_servico.as_p }}
+
+                    <div class="mb-3">
+                        <label for="{{ form_fornecedor_servico.nome_empresa.id_for_label }}" class="form-label">Nome da Empresa:</label>
+                        {{ form_fornecedor_servico.nome_empresa }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form_fornecedor_servico.nome_representante.id_for_label }}" class="form-label">Nome do Representante:</label>
+                        {{ form_fornecedor_servico.nome_representante }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form_fornecedor_servico.documento.id_for_label }}" class="form-label">Documento:</label>
+                        {{ form_fornecedor_servico.documento }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form_fornecedor_servico.atividade_servico.id_for_label }}" class="form-label">Atividade do Serviço:</label>
+                        {{ form_fornecedor_servico.atividade_servico }}
+                    </div>
+
+                    <!-- Campo oculto para imagem base64 -->
+                    {{ form_fornecedor_servico.foto_webcam }}
+
+                    <!-- Captura por webcam -->
+                    <div id="webcam-container-servico" style="margin-top: 1rem;">
+                        <h6>Captura de Foto</h6>
+                        <video id="webcam-servico" autoplay playsinline style="width: 100%; max-width: 320px; border: 1px solid #ccc;"></video>
+                        <canvas id="canvas-servico" style="display: none;"></canvas>
+                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFotoServico()">📸 Tirar Foto</button>
+                        <div id="foto-confirmada-servico" class="text-success fw-bold mt-2" style="display: none;">✅ Foto capturada com sucesso!</div>
+                    </div>
                 </div>
 
                 <div id="entregaFields" style="display:none;">
                     <h6>Informações Entrega</h6>
                     {{ form_entrega.as_p }}
+                    <div id="webcam-entrega-container" style="display:none;">
+                        <h6>Foto da Entrega (Caixa)</h6>
+                        <video id="webcam-entrega" autoplay playsinline width="300"></video>
+                        <canvas id="canvas-entrega" style="display:none;"></canvas>
+                        <input type="hidden" id="id_foto_entrega" name="foto_webcam">
+                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFotoEntrega()">Tirar Foto da Entrega</button>
+                        <p id="foto-confirmada-entrega" class="text-success mt-1" style="display: none;">Foto capturada com sucesso!</p>
+                    </div>
                 </div>
+                <script>
+                    let webcamStarted = false;
+                    let webcamStream = null;
+
+                    let webcamServicoStarted = false;
+                    let webcamServicoStream = null;
+
+                    let webcamEntregaStarted = false;
+                    let webcamEntregaStream = null;
+
+                    function startWebcam() {
+                        if (webcamStarted) return;
+                        const video = document.getElementById('webcam');
+
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(stream => {
+                                video.srcObject = stream;
+                                webcamStream = stream;
+                                webcamStarted = true;
+                            })
+                            .catch(err => {
+                                console.error("Erro ao acessar webcam visitante:", err);
+                            });
+                    }
+
+                    function pararWebcam() {
+                        if (webcamStream) {
+                            webcamStream.getTracks().forEach(track => track.stop());
+                            webcamStarted = false;
+                        }
+                    }
+
+                    function tirarFoto() {
+                        const video = document.getElementById('webcam');
+                        const canvas = document.getElementById('canvas');
+                        const input = document.getElementById('id_foto_visitante');
+                        const confirmacao = document.getElementById('foto-confirmada');
+
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+
+                        const imageData = canvas.toDataURL('image/jpeg');
+                        input.value = imageData;
+
+                        confirmacao.style.display = 'block';
+                        pararWebcam();
+
+                        setTimeout(() => confirmacao.style.display = 'none', 3000);
+                    }
+
+                    function startWebcamServico() {
+                        if (webcamServicoStarted) return;
+                        const video = document.getElementById('webcam-servico');
+
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(stream => {
+                                video.srcObject = stream;
+                                webcamServicoStream = stream;
+                                webcamServicoStarted = true;
+                            })
+                            .catch(err => {
+                                console.error("Erro ao acessar webcam fornecedor:", err);
+                            });
+                    }
+
+                    function pararWebcamServico() {
+                        if (webcamServicoStream) {
+                            webcamServicoStream.getTracks().forEach(track => track.stop());
+                            webcamServicoStarted = false;
+                        }
+                    }
+
+                    function tirarFotoServico() {
+                        const video = document.getElementById('webcam-servico');
+                        const canvas = document.getElementById('canvas-servico');
+                        const input = document.getElementById('id_foto_webcam');
+                        const confirmacao = document.getElementById('foto-confirmada-servico');
+
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+
+                        const imageData = canvas.toDataURL('image/jpeg');
+                        input.value = imageData;
+
+                        confirmacao.style.display = 'block';
+                        pararWebcamServico();
+
+                        setTimeout(() => confirmacao.style.display = 'none', 3000);
+                    }
+
+                    function startWebcamEntrega() {
+                        if (webcamEntregaStarted) return;
+                        const video = document.getElementById('webcam-entrega');
+
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(stream => {
+                                video.srcObject = stream;
+                                webcamEntregaStream = stream;
+                                webcamEntregaStarted = true;
+                            })
+                            .catch(err => {
+                                console.error("Erro ao acessar webcam entrega:", err);
+                            });
+                    }
+
+                    function pararWebcamEntrega() {
+                        if (webcamEntregaStream) {
+                            webcamEntregaStream.getTracks().forEach(track => track.stop());
+                            webcamEntregaStarted = false;
+                        }
+                    }
+
+                    function tirarFotoEntrega() {
+                        const video = document.getElementById('webcam-entrega');
+                        const canvas = document.getElementById('canvas-entrega');
+                        const input = document.getElementById('id_foto_entrega');
+                        const confirmacao = document.getElementById('foto-confirmada-entrega');
+
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+
+                        const imageData = canvas.toDataURL('image/jpeg');
+                        input.value = imageData;
+
+                        confirmacao.style.display = 'block';
+                        pararWebcamEntrega();
+
+                        setTimeout(() => confirmacao.style.display = 'none', 3000);
+                    }
+
+                    const fornecedorModal = document.getElementById('fornecedorModal');
+
+                    fornecedorModal.addEventListener('show.bs.modal', () => {
+                        const categoria = document.getElementById('id_categoria')?.value;
+
+                        document.getElementById('visitanteFields').style.display = 'none';
+                        document.getElementById('fornecedorServicoFields').style.display = 'none';
+                        document.getElementById('entregaFields').style.display = 'none';
+                        document.getElementById('webcam-entrega-container').style.display = 'none';
+
+                        if (categoria === 'VISITANTE') {
+                            document.getElementById('visitanteFields').style.display = 'block';
+                            startWebcam();
+                        } else if (categoria === 'FORNECEDOR') {
+                            document.getElementById('fornecedorServicoFields').style.display = 'block';
+                            startWebcamServico();
+                        } else if (categoria === 'ENTREGA') {
+                            document.getElementById('entregaFields').style.display = 'block';
+                            document.getElementById('webcam-entrega-container').style.display = 'block';
+                            startWebcamEntrega();
+                        }
+                    });
+
+                    fornecedorModal.addEventListener('hide.bs.modal', () => {
+                        pararWebcam();
+                        pararWebcamServico();
+                        pararWebcamEntrega();
+
+                        document.getElementById('id_foto_visitante').value = '';
+                        document.getElementById('id_foto_webcam').value = '';
+                        document.getElementById('id_foto_entrega').value = '';
+                    });
+
+                    // Atualiza webcams se mudar a categoria manualmente
+                    document.getElementById('id_categoria')?.addEventListener('change', () => {
+                        fornecedorModal.dispatchEvent(new Event('show.bs.modal'));
+                    });
+                </script>
+
                 </div>
                 <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -65,6 +311,26 @@
             </div>
         </div>
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const categoriaSelect = document.getElementById('id_categoria');
+                const visitanteFields = document.getElementById('visitanteFields');
+                const webcamContainer = document.getElementById('webcam-container');
+                
+                function toggleFields() {
+                    const selected = categoriaSelect.value;
+                    visitanteFields.style.display = selected === 'VISITANTE' ? 'block' : 'none';
+                    webcamContainer.style.display = selected === 'VISITANTE' ? 'block' : 'none';
+
+                    if (selected === 'VISITANTE') {
+                        startWebcam();
+                    }
+                }
+
+                categoriaSelect.addEventListener('change', toggleFields);
+                toggleFields();  // Executar no carregamento
+            });
+        </script>
 
         <!-- Modal Entrada Fornecedor -->
         <div class="modal fade" id="entradafornecedorModal" tabindex="-1" aria-labelledby="entradafornecedorModalLabel" aria-hidden="true">

@@ -1,0 +1,159 @@
+{% extends 'patrimonio/admin/base_admin.html' %}
+
+{% block title %}Confirmar Exclusão - Administração{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+        Confirmar Exclusão
+    </h1>
+    <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Voltar
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-trash me-2"></i>
+                    Excluir Usuário
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                </div>
+                
+                <p class="lead">
+                    Você está prestes a excluir permanentemente o usuário:
+                </p>
+                
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Nome de Usuário:</strong> {{ usuario.username }}</li>
+                                    <li><strong>Nome Completo:</strong> {{ usuario.get_full_name|default:"Não informado" }}</li>
+                                    <li><strong>Email:</strong> {{ usuario.email|default:"Não informado" }}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Data de Criação:</strong> {{ usuario.date_joined|date:"d/m/Y H:i" }}</li>
+                                    <li><strong>Último Login:</strong> 
+                                        {% if usuario.last_login %}
+                                            {{ usuario.last_login|date:"d/m/Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Nunca</span>
+                                        {% endif %}
+                                    </li>
+                                    <li><strong>Tipo:</strong> 
+                                        {% if usuario.profile.is_admin %}
+                                            <span class="badge bg-primary">Administrador</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Usuário</span>
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6 class="text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        O que será excluído:
+                    </h6>
+                    <ul class="text-danger">
+                        <li>Conta do usuário e todas as informações pessoais</li>
+                        <li>Histórico de login e atividades</li>
+                        <li>Permissões e configurações associadas</li>
+                        <li>Todos os dados relacionados ao usuário no sistema</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-4">
+                    <h6 class="text-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Importante:
+                    </h6>
+                    <ul class="text-warning">
+                        <li>Esta ação é irreversível</li>
+                        <li>O usuário não poderá mais acessar o sistema</li>
+                        <li>Dados relacionados em outras tabelas podem ser afetados</li>
+                        <li>Considere bloquear o usuário ao invés de excluir</li>
+                    </ul>
+                </div>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'admin_usuarios' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <a href="{% url 'admin_bloquear_usuario' usuario.id %}" class="btn btn-warning me-md-2">
+                            <i class="fas fa-lock me-2"></i>
+                            Bloquear ao invés de Excluir
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>
+                            Confirmar Exclusão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alternativas -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Alternativas Recomendadas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">
+                            <i class="fas fa-lock me-2"></i>
+                            Bloquear Usuário
+                        </h6>
+                        <p class="small">
+                            Impede o acesso sem perder os dados. O usuário pode ser desbloqueado posteriormente.
+                        </p>
+                        <a href="{% url 'admin_bloquear_usuario' usuario.id %}" class="btn btn-sm btn-outline-primary">
+                            Bloquear Usuário
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-secondary">
+                            <i class="fas fa-user-times me-2"></i>
+                            Desativar Usuário
+                        </h6>
+                        <p class="small">
+                            Torna a conta inativa mantendo todos os dados para auditoria.
+                        </p>
+                        <a href="{% url 'admin_editar_usuario' usuario.id %}" class="btn btn-sm btn-outline-secondary">
+                            Editar Usuário
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
