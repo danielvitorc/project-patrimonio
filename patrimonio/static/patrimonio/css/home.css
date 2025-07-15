@@ -118,3 +118,131 @@ body {
 .sidebar.reduzida ~ .main-content {
   margin-left: 70px; /* mesma largura da sidebar reduzida */
 }
+
+/* Media Queries para Responsividade */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-radius: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sidebar.reduzida {
+    width: 100%;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+  
+  .sidebar.reduzida ~ .main-content {
+    margin-left: 0;
+  }
+  
+  .container .row .col-md-4 {
+    margin-bottom: 20px;
+  }
+  
+  .card {
+    margin-bottom: 15px;
+  }
+  
+  .card-body {
+    padding: 20px 15px;
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+  
+  .lead {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    padding: 15px 10px;
+  }
+  
+  .sidebar h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+  }
+  
+  .sidebar a {
+    padding: 10px 8px;
+    margin: 5px 0;
+    font-size: 0.9rem;
+  }
+  
+  .main-content {
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 0 10px;
+  }
+  
+  .card-body {
+    padding: 15px 10px;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+  }
+  
+  .card-text {
+    font-size: 0.85rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .lead {
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  
+  .btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+  
+  .fas {
+    font-size: 2rem !important;
+  }
+}
+
+/* Melhorias para tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .main-content {
+    margin-left: 200px;
+  }
+  
+  .sidebar.reduzida {
+    width: 60px;
+  }
+  
+  .sidebar.reduzida ~ .main-content {
+    margin-left: 60px;
+  }
+}
