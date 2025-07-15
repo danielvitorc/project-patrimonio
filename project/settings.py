@@ -25,13 +25,8 @@ SECRET_KEY = 'django-insecure-9xk10&&n1-9c2+!u13e%q(yj9#$48o(b$(2k*72@@s(q2sfksd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['portaria.nortesistech.com', '54.156.216.155', '127.0.0.1', 'localhost']
 
-# CSRF Configuration
-CSRF_TRUSTED_ORIGINS = [
-    'https://8000-icm5ggsvdiq27pp9x183d-6fca0c3c.manusvm.computer',
-    'https://*.manusvm.computer',
-]
 
 
 # Application definition
@@ -58,6 +53,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'project.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -81,8 +77,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'patrimonio',
+        'USER': 'postgres',
+        'PASSWORD': 'Ntech@_Ardl#n0Rt3',
+        'HOST': '172.31.0.19',
+        'PORT': '5432'
     }
 }
 
@@ -121,7 +121,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'  # Adicione a barra no final
+STATICFILES_DIRS = [
+#    BASE_DIR / 'patrimonio' / 'static',
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'    # Pasta onde collectstatic vai copiar tudo
+
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -138,3 +145,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sistema.agendamento.nortetech@gmail.com'  # seu email
 EMAIL_HOST_PASSWORD = 'Norte2025'  # app password (recomendado)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# HTTPS: informa ao Django que o proxy (NGINX) está usando SSL
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Domínios confiáveis para CSRF
+CSRF_TRUSTED_ORIGINS = ['https://portaria.nortesistech.com']
+
