@@ -53,6 +53,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'project.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -74,17 +75,18 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'patrimonio',
-	'USER': 'postgres',
-	'PASSWORD': 'Ntech@_Ardl#n0Rt3',
-	'HOST': '172.31.0.19',
-	'PORT': '5432'
+        'USER': 'postgres',
+        'PASSWORD': 'Ntech@_Ardl#n0Rt3',
+        'HOST': '172.31.0.19',
+        'PORT': '5432'
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

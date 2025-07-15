@@ -86,7 +86,6 @@ class Fornecedor(models.Model):
     CATEGORIAS = [
         ('VISITANTE', 'Visitante'),
         ('FORNECEDOR', 'Fornecedores/Prestadores de Serviços'),
-        ('ENTREGA', 'Entregas'),
     ]
     STATUS_CHOICES = [
         ('Integrado', 'Integrado'),
