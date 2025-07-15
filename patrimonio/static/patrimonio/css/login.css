@@ -123,9 +123,75 @@ body, html {
     .login-wrapper {
         justify-content: center;
         padding: 20px;
+        background-position: center;
     }
 
     .login-box {
         width: 100%;
+        max-width: 350px;
+        padding: 80px 30px;
+        height: auto;
+        min-height: 500px;
+    }
+    
+    .login-logo {
+        width: 120px;
+    }
+    
+    .logo-text {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-wrapper {
+        padding: 10px;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 300px;
+        padding: 60px 20px;
+        min-height: 450px;
+    }
+    
+    .login-logo {
+        width: 100px;
+        margin-bottom: 15px;
+    }
+    
+    .logo-text {
+        font-size: 1.3rem;
+    }
+    
+    .form-control {
+        font-size: 14px;
+        padding: 8px 30px 8px 0;
+    }
+    
+    .input-icon i {
+        font-size: 14px;
+    }
+    
+    .btn-login {
+        font-size: 14px;
+        padding: 12px;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-box {
+        max-width: 280px;
+        padding: 50px 15px;
+        min-height: 400px;
+    }
+    
+    .login-logo {
+        width: 80px;
+    }
+    
+    .logo-text {
+        font-size: 1.2rem;
     }
 }

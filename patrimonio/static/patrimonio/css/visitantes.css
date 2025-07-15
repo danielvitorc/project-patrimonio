@@ -317,3 +317,205 @@ button.btn-warning:hover {
   background-color: #e6c200;
   color: white;
 }
+
+/* Media Queries para Responsividade */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-radius: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sidebar.reduzida {
+    width: 100%;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+  
+  .sidebar.reduzida ~ .main-content {
+    margin-left: 0;
+  }
+  
+  /* Tabelas responsivas */
+  .table-avulsos,
+  .table-cadastro,
+  .table-custom {
+    font-size: 12px;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+  }
+  
+  .table-avulsos thead,
+  .table-avulsos tbody,
+  .table-avulsos th,
+  .table-avulsos td,
+  .table-avulsos tr,
+  .table-cadastro thead,
+  .table-cadastro tbody,
+  .table-cadastro th,
+  .table-cadastro td,
+  .table-cadastro tr,
+  .table-custom thead,
+  .table-custom tbody,
+  .table-custom th,
+  .table-custom td,
+  .table-custom tr {
+    display: block;
+  }
+  
+  .table-avulsos thead tr,
+  .table-cadastro thead tr,
+  .table-custom thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .table-avulsos tr,
+  .table-cadastro tr,
+  .table-custom tr {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #fff;
+  }
+  
+  .table-avulsos td,
+  .table-cadastro td,
+  .table-custom td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  
+  .table-avulsos td:before,
+  .table-cadastro td:before,
+  .table-custom td:before {
+    content: attr(data-label) ": ";
+    position: absolute;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: bold;
+    color: var(--azulEscuro-nort);
+  }
+  
+  .modal-dialog {
+    margin: 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+  
+  h1, h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    padding: 15px 10px;
+  }
+  
+  .sidebar h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+  }
+  
+  .sidebar a {
+    padding: 10px 8px;
+    margin: 5px 0;
+    font-size: 0.9rem;
+  }
+  
+  .main-content {
+    padding: 10px;
+  }
+  
+  .table-avulsos,
+  .table-cadastro,
+  .table-custom {
+    font-size: 11px;
+  }
+  
+  .table-avulsos td,
+  .table-cadastro td,
+  .table-custom td {
+    padding-left: 45%;
+    font-size: 11px;
+  }
+  
+  .table-avulsos td:before,
+  .table-cadastro td:before,
+  .table-custom td:before {
+    font-size: 11px;
+    width: 40%;
+  }
+  
+  .btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .modal-dialog {
+    margin: 5px;
+    max-width: calc(100% - 10px);
+  }
+  
+  h1, h2 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Melhorias para tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .main-content {
+    margin-left: 200px;
+  }
+  
+  .sidebar.reduzida {
+    width: 60px;
+  }
+  
+  .sidebar.reduzida ~ .main-content {
+    margin-left: 60px;
+  }
+  
+  .table-avulsos,
+  .table-cadastro,
+  .table-custom {
+    font-size: 13px;
+  }
+  
+  .table-avulsos th,
+  .table-avulsos td,
+  .table-cadastro th,
+  .table-cadastro td,
+  .table-custom th,
+  .table-custom td {
+    padding: 12px 14px;
+  }
+}
+
