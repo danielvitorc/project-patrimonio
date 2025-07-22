@@ -16,15 +16,43 @@
 
 <div class="card">
     <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-list me-2"></i>
-            Lista de Usuários
-        </h5>
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Lista de Usuários
+            </h5>
+            <!-- Campo de pesquisa -->
+            <div class="search-container" style="width: 300px;">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" 
+                           id="searchInput" 
+                           class="form-control" 
+                           placeholder="Pesquisar usuários..."
+                           autocomplete="off">
+                    <button class="btn btn-outline-secondary" 
+                            type="button" 
+                            id="clearSearch"
+                            title="Limpar pesquisa">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="card-body">
         {% if usuarios %}
+            <!-- Contador de resultados -->
+            <div class="mb-3">
+                <small class="text-muted">
+                    <span id="resultCount">{{ usuarios|length }}</span> usuário(s) encontrado(s)
+                </small>
+            </div>
+            
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover" id="usuariosTable">
                     <thead>
                         <tr>
                             <th>Usuário</th>
@@ -38,7 +66,7 @@
                     </thead>
                     <tbody>
                         {% for usuario in usuarios %}
-                        <tr>
+                        <tr class="user-row">
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="user-avatar me-3">
@@ -119,6 +147,13 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Mensagem quando não há resultados na pesquisa -->
+            <div id="noResults" class="text-center py-5" style="display: none;">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Nenhum usuário encontrado</h5>
+                <p class="text-muted">Tente ajustar os termos da pesquisa.</p>
+            </div>
         {% else %}
             <div class="text-center py-5">
                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
@@ -157,6 +192,77 @@
         document.getElementById('confirmButton').href = url;
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
     }
+
+    // Funcionalidade de pesquisa
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const clearButton = document.getElementById('clearSearch');
+        const table = document.getElementById('usuariosTable');
+        const resultCount = document.getElementById('resultCount');
+        const noResults = document.getElementById('noResults');
+        const userRows = document.querySelectorAll('.user-row');
+        const totalUsers = userRows.length;
+
+        // Função para filtrar a tabela
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            userRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let rowText = '';
+                
+                // Concatena o texto de todas as células (exceto a última que contém os botões)
+                for (let i = 0; i < cells.length - 1; i++) {
+                    rowText += cells[i].textContent.toLowerCase() + ' ';
+                }
+
+                if (searchTerm === '' || rowText.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Atualiza contador de resultados
+            resultCount.textContent = visibleCount;
+            
+            // Mostra/esconde mensagem de "nenhum resultado"
+            if (visibleCount === 0 && searchTerm !== '') {
+                table.style.display = 'none';
+                noResults.style.display = 'block';
+            } else {
+                table.style.display = '';
+                noResults.style.display = 'none';
+            }
+
+            // Mostra/esconde botão de limpar
+            clearButton.style.display = searchTerm ? 'block' : 'none';
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filterTable);
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Escape') {
+                clearSearch();
+            }
+        });
+
+        clearButton.addEventListener('click', function() {
+            clearSearch();
+        });
+
+        // Função para limpar pesquisa
+        function clearSearch() {
+            searchInput.value = '';
+            filterTable();
+            searchInput.focus();
+        }
+
+        // Inicializa o estado
+        filterTable();
+    });
 </script>
 {% endblock %}
 
