@@ -23,13 +23,17 @@
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
         .sidebar {
             background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
-            min-height: 100vh;
+            height: calc(100vh - 70px); /* ocupa o resto da tela abaixo da navbar */
+            width: 250px;
+            position: fixed;
+            top: 70px;  /* altura da navbar */
+            left: 0;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 1000;
         }
-
         .sidebar .nav-link {
             color: #bdc3c7;
             padding: 15px 20px;
@@ -49,11 +53,10 @@
             margin-right: 10px;
             width: 20px;
         }
-
         .main-content {
             padding: 30px;
+            padding-top: 90px;   /* para empurrar o conteúdo abaixo da navbar */
         }
-
         .card {
             border: none;
             border-radius: 15px;
