@@ -22,6 +22,9 @@ urlpatterns = [
     path('entrada/<int:pk>/excluir/', views.excluir_entrada, name='excluir_entrada'),
     path('fornecedor/modal_editar/<int:pk>/', views.modal_editar_fornecedor, name='modal_editar_fornecedor'),
     path('fornecedor/excluir/<int:pk>/', views.excluir_fornecedor, name='excluir_fornecedor'),
+    path('exportar-fornecedores-excel/', views.exportar_fornecedores_excel, name='exportar_fornecedores_excel'),
+    path('exportar-fornecedores-servico-excel/', views.exportar_fornecedores_servico_excel, name='exportar_fornecedores_servico_excel'),
+    path('exportar-visitantes-excel/', views.exportar_visitantes_excel, name='exportar_visitantes_excel'),
     
     # URLs de Administração
     path("dashboard/", views.admin_dashboard, name="admin_dashboard"),
