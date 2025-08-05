@@ -1,8 +1,11 @@
+/* ===================================================================
+   1. VARIÁVEIS E ESTILOS GLOBAIS
+   =================================================================*/
 :root {
---azulEscuro-nort: #021B33;
---azul-nort: #0d71a7;
---branco-nort: #F7F7F7;
---dourado-nort: #FFD700;
+    --azulEscuro-nort: #021B33;
+    --azul-nort: #0d71a7;
+    --branco-nort: #F7F7F7;
+    --dourado-nort: #FFD700;
 }
 
 body {
@@ -11,6 +14,9 @@ body {
     color: var(--azulEscuro-nort);
 }
 
+/* ===================================================================
+   2. SIDEBAR ORIGINAL RESTAURADA
+   =================================================================*/
 .sidebar {
   position: fixed;
   top: 0;
@@ -83,91 +89,261 @@ body {
   cursor: pointer;
   margin-bottom: 0px;
 }
+
 .sidebar h4 {
   margin-bottom: 20px;
   color: var(--dourado-nort);
   text-align: center;
   font-weight: bold;
 }
+
 .sidebar a.active {
   background-color: var(--dourado-nort);
   color: var(--azulEscuro-nort);
   font-weight: bold;
 }
 
-.sidebar a {
-  display: block;
-  color: var(--branco-nort);
-  padding: 10px;
-  text-decoration: none;
-  margin: 6px 0;
-  border-radius: 10px;
-  transition: background-color 0.2s ease;
-}
-
 .sidebar a:hover {
   background-color: var(--azulEscuro-nort);
   color: var(--dourado-nort);
 }
+
 .main-content {
-  margin-left: 240px; /* largura da sidebar cheia */
+  margin-left: 240px;
   padding: 20px;
   transition: margin-left 0.3s ease;
 }
 
 .sidebar.reduzida ~ .main-content {
-  margin-left: 70px; /* mesma largura da sidebar reduzida */
+  margin-left: 70px;
 }
 
+/* ===================================================================
+   3. COMPONENTES (FILTRO RECOLHÍVEL)
+   =================================================================*/
+.collapsible-header {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    background: linear-gradient(135deg, var(--azulEscuro-nort), var(--azul-nort)) !important;
+    color: var(--branco-nort);
+}
 
+.collapsible-header::after {
+    content: '\F282';
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease-in-out;
+    font-weight: bold;
+    color: var(--azul-nort);
+}
 
+.collapsible-header.collapsed::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* ===================================================================
+   4. ESTILOS GERAIS DE BOTÕES E FORMULÁRIOS
+   =================================================================*/
 h2 {
-            color: var(--azulEscuro-nort);
-            border-bottom: 2px solid var(--dourado-nort);
-            padding-bottom: 5px;
-            margin-bottom: 20px;
+    color: var(--azulEscuro-nort);
+    border-bottom: 2px solid var(--dourado-nort);
+    padding-bottom: 5px;
+    margin-bottom: 20px;
 }
+
 button.btn-primary {
-            background-color: #021B33;
-            border: none;
+    background-color: var(--azul-nort);
+    border-color: var(--azul-nort);
 }
 
 button.btn-primary:hover {
-            background-color: var(--azulEscuro-nort);
+    background-color: var(--azulEscuro-nort);
+    border-color: var(--azulEscuro-nort);
 }
 
 button.btn-warning {
-            background-color: var(--dourado-nort);
-            color: var(--azulEscuro-nort);
-            border: none;
+    background-color: var(--dourado-nort);
+    color: var(--azulEscuro-nort);
+    border: none;
 }
 
 button.btn-warning:hover {
-            background-color: #e6c200;
+    background-color: #e6c200;
 }
 
 .btn-close {
-            filter: brightness(0.5);
+    filter: brightness(0.5);
 }
 
 .modal-content {
-            border-radius: 10px;
+    border-radius: 10px;
 }
 
 .modal-header {
-            background-color: var(--azul-nort);
-            color: var(--branco-nort);
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+    background-color: var(--azul-nort);
+    color: var(--branco-nort);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 .modal-footer {
-            background-color: var(--branco-nort);
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
+    background-color: var(--branco-nort);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
-/* Estilização específica para a tabela de avulsos */
+.form-control:focus, .form-select:focus {
+    border-color: var(--azul-nort);
+    box-shadow: 0 0 0 0.25rem rgba(13, 113, 167, 0.25);
+}
+
+/* ===================================================================
+   5. TABELA PRINCIPAL MELHORADA
+   =================================================================*/
+.table-cadastro {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.table-cadastro thead {
+  background: linear-gradient(135deg, var(--azulEscuro-nort), var(--azul-nort));
+  color: var(--branco-nort);
+  text-align: left;
+}
+
+.table-cadastro th,
+.table-cadastro td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eaeaea;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.table-cadastro tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.table-cadastro tbody tr:hover {
+  background-color: #f1f5ff;
+  transition: background-color 0.2s ease;
+}
+
+/* ===================================================================
+   6. ELEMENTOS ESPECÍFICOS DA TABELA MELHORADA
+   =================================================================*/
+
+/* Foto da tabela */
+.foto-tabela {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--azul-nort);
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.foto-tabela:hover {
+    transform: scale(1.1);
+    border-color: var(--dourado-nort);
+}
+
+.foto-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 20px;
+}
+
+/* Badges de categoria */
+.categoria-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.categoria-visitante {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.categoria-fornecedor {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.categoria-entrega {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+/* Informações de nome */
+.nome-info strong {
+    font-size: 14px;
+    color: var(--azulEscuro-nort);
+}
+
+.nome-info small {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+/* Informações de validade */
+.validade-info strong {
+    font-size: 13px;
+    color: var(--azulEscuro-nort);
+}
+
+.validade-info small {
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+/* Dropdown de ações */
+.dropdown-toggle::after {
+    display: none;
+}
+
+.dropdown-menu {
+    font-size: 13px;
+    min-width: 150px;
+}
+
+.dropdown-item {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item.text-danger:hover {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* ===================================================================
+   7. TABELAS AUXILIARES (mantidas do original)
+   =================================================================*/
 .table-avulsos {
   width: 100%;
   border-collapse: collapse;
@@ -197,77 +373,6 @@ button.btn-warning:hover {
 .table-avulsos tbody tr:hover {
   background-color: #f1f5ff;
   transition: background-color 0.2s ease;
-}
-
-.table-avulsos td span {
-  font-size: 18px;
-}
-
-.table-avulsos .btn-warning {
-  font-size: 13px;
-  padding: 6px 10px;
-  border-radius: 6px;
-}
-
-.table-avulsos .btn-danger {
-  background-color: #d9534f;
-  border: none;
-}
-
-.table-avulsos .btn-danger:hover {
-  background-color: #c9302c;
-}
-
-
-/* Estilização específica para a tabela de avulsos */
-.table-cadastro {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #ffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.table-cadastro thead {
-  background: linear-gradient(135deg, var(--azulEscuro-nort), var(--azul-nort));
-  color: var(--branco-nort);
-  text-align: left;
-}
-
-.table-cadastro th,
-.table-cadastro td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #eaeaea;
-  font-size: 14px;
-}
-
-.table-cadastro tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.table-cadastro tbody tr:hover {
-  background-color: #f1f5ff;
-  transition: background-color 0.2s ease;
-}
-
-.table-cadastro td span {
-  font-size: 18px;
-}
-
-.table-cadastro .btn-warning {
-  font-size: 13px;
-  padding: 6px 10px;
-  border-radius: 6px;
-}
-
-.table-cadastro .btn-danger {
-  background-color: #d9534f;
-  border: none;
-}
-
-.table-cadastro .btn-danger:hover {
-  background-color: #c9302c;
 }
 
 .table-custom {
@@ -301,24 +406,9 @@ button.btn-warning:hover {
   transition: 0.3s;
 }
 
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 14px;
-  border-radius: 4px;
-}
-
-.btn-danger {
-  background-color: var(--dourado-nort);
-  color: var(--azulEscuro-nort);
-  border: none;
-}
-
-.btn-danger:hover {
-  background-color: #e6c200;
-  color: white;
-}
-
-/* Media Queries para Responsividade */
+/* ===================================================================
+   8. RESPONSIVIDADE ORIGINAL
+   =================================================================*/
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
