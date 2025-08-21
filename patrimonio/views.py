@@ -298,9 +298,56 @@ def controle_visitantes(request):
     if request.method == 'POST':
         # Novo Fornecedor (esta parte não precisa mudar)
         if 'submit_novo_fornecedor' in request.POST:
-            # ... seu código de criação de fornecedor ...
-            # (não precisa de alteração aqui)
-            return redirect('controle_visitantes')
+                    form_fornecedor = FornecedorForm(request.POST)
+                    categoria = request.POST.get('categoria')
+
+                    form_visitante = VisitanteForm(request.POST, request.FILES) if categoria == 'VISITANTE' else VisitanteForm()
+                    form_fornecedor_servico = FornecedorServicoForm(request.POST, request.FILES) if categoria == 'FORNECEDOR' else FornecedorServicoForm()
+                    form_entrega = EntregaForm(request.POST, request.FILES) if categoria == 'ENTREGA' else EntregaForm()
+
+                    if form_fornecedor.is_valid():
+                        fornecedor = form_fornecedor.save(commit=False)
+                        fornecedor.save()
+
+                        if categoria == 'VISITANTE' and form_visitante.is_valid():
+                            visitante = form_visitante.save(commit=False)
+                            visitante.fornecedor = fornecedor
+                            
+                            foto_base64 = request.POST.get('foto_visitante')
+                            if foto_base64:
+                                img_file = process_webcam_photo(foto_base64, 'visitante')
+                                if img_file:
+                                    visitante.foto_visitante = img_file
+                            
+                            visitante.save()
+                            
+                        elif categoria == 'FORNECEDOR' and form_fornecedor_servico.is_valid():
+                            servico = form_fornecedor_servico.save(commit=False)
+                            servico.fornecedor = fornecedor
+
+                            # Processa foto da webcam se disponível
+                            foto_base64 = request.POST.get('foto_webcam')  # Corrigido aqui
+                            if foto_base64:
+                                img_file = process_webcam_photo(foto_base64, 'fornecedor')
+                                if img_file:
+                                    servico.foto_fornecedor = img_file
+
+                            servico.save()
+
+                        elif categoria == 'ENTREGA' and form_entrega.is_valid():
+                            entrega = form_entrega.save(commit=False)
+                            entrega.fornecedor = fornecedor
+                            
+                            # Processa foto da webcam se disponível
+                            foto_webcam = request.POST.get('foto_webcam')
+                            if foto_webcam:
+                                img_file = process_webcam_photo(foto_webcam, 'entrega')
+                                if img_file:
+                                    entrega.foto_caixa_entrega = img_file
+                            
+                            entrega.save()
+
+                        return redirect('controle_visitantes')
 
         # Entrada
         elif 'submit_entrada' in request.POST:
@@ -317,7 +364,10 @@ def controle_visitantes(request):
 
         # Marcar saída (esta parte não precisa mudar)
         elif 'submit_saida' in request.POST:
-            # ... seu código de saída ...
+            entrada_id = request.POST.get('entrada_id')
+            entrada = get_object_or_404(EntradaFornecedor, id=entrada_id)
+            entrada.status = 'Saiu'
+            entrada.save()
             return redirect('controle_visitantes')
 
     fornecedores = Fornecedor.objects.all()
