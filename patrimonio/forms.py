@@ -1,5 +1,5 @@
 from django import forms
-from .models import ControleChaves, Chave, Ocorrencia, Colaborador, Fornecedor, Visitante, FornecedorServico, Entrega, EntradaFornecedor, EsquecimentoCRACHA
+from patrimonio.models import ControleChaves, Chave, Ocorrencia, Colaborador, Fornecedor, Visitante, FornecedorServico, Entrega, EntradaFornecedor, EsquecimentoCRACHA
 from django.core.exceptions import ValidationError
 from django_select2.forms import Select2Widget # 1. IMPORTE O WIDGET
 

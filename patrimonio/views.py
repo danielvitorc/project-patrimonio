@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 import pandas as pd
 from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm, CrachaForm, DevolucaoChaveForm, FornecedorServicoForm, Fornecedor, EntradaFornecedor, VisitanteForm, EntregaForm
-from .models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor, EsquecimentoCRACHA
+from patrimonio.models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor, EsquecimentoCRACHA
 from datetime import date
 from django.utils import timezone
 from utils.email_alertas import enviar_alerta_vencimentos
