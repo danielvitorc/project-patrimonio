@@ -1,8 +1,7 @@
 from django.contrib.auth.models import User 
 from django.db import models
 from django.utils import timezone
-from ..utils import Base64ImageMixin
-
+from patrimonio.utils import Base64ImageMixin
 class Fornecedor(models.Model):
     CATEGORIAS = [
         ('VISITANTE', 'Visitante'),
