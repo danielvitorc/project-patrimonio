@@ -1,5 +1,6 @@
-import base64
 from django.core.files.base import ContentFile
+import base64
+import uuid
 
 class Base64ImageMixin:
     def save_base64_image(self, base64_string, filename, image_field):
@@ -8,9 +9,7 @@ class Base64ImageMixin:
         ext = format.split('/')[-1]
         data = ContentFile(base64.b64decode(imgstr), name=f"{filename}.{ext}")
         image_field.save(f"{filename}.{ext}", data, save=False)
-import base64
-import uuid
-from django.core.files.base import ContentFile
+
 
 def process_webcam_photo(base64_data, prefix='foto'):
     if base64_data.startswith('data:image'):

@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.core.files.base import ContentFile
 from django.db.models import Value
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
@@ -8,31 +7,7 @@ from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from patrimonio.forms import FornecedorForm, VisitanteForm, FornecedorServicoForm, EntregaForm, EntradaFornecedorForm
 from patrimonio.models import Fornecedor, EntradaFornecedor
-import base64
-
-def process_webcam_photo(photo_data, field_name):
-    """
-    Processa a foto capturada via webcam e retorna um arquivo Django
-    """
-    if photo_data and photo_data.startswith('data:image'):
-        # Remove o prefixo data:image/jpeg;base64,
-        format, imgstr = photo_data.split(';base64,')
-        ext = format.split('/')[-1]
-        
-        # Decodifica o base64
-        img_data = base64.b64decode(imgstr)
-        
-        # Cria um arquivo Django
-        img_file = ContentFile(img_data, name=f'{field_name}.{ext}')
-        return img_file
-    return None
-
-def enviar_alerta_vencimentos():
-    """
-    Função para enviar alertas de vencimento (implementar conforme necessário)
-    """
-    # Implementar lógica de envio de e-mail aqui
-    pass
+from patrimonio.utils import process_webcam_photo, enviar_alerta_vencimentos
 
 @login_required
 def controle_visitantes(request):
