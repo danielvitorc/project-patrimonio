@@ -21,6 +21,8 @@ def ocorrencia_cracha(request):
         'form_cracha': form_cracha,
         'registros': registros
     })
+
+@login_required
 def exportar_ocorrencias_excel(request):
     registros = EsquecimentoCRACHA.objects.all().values(
         'matricula', 'colaborador', 'departamento', 'data', 'motivo'
