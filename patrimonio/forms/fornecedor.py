@@ -11,6 +11,14 @@ class FornecedorForm(forms.ModelForm):
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'validade_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # restringe choices só para Visitante
+        self.fields['categoria'].choices = [('VISITANTE', 'Visitante')]
+        self.fields['categoria'].initial = 'VISITANTE'
+        # seta validade padrão como 12 meses
+        self.fields['validade_meses'].initial = 12
+
 
 class VisitanteForm(forms.ModelForm):
     class Meta:

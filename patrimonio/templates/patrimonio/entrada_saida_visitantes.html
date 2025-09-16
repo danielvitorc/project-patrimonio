@@ -103,47 +103,6 @@
 
                     </div>
                 </div>
-                <div id="fornecedorServicoFields" style="display:none;">
-                    <h6>Informações Fornecedor/Serviço</h6>
-
-                    <div class="mb-3">
-                        <label for="{{ form_fornecedor_servico.nome_empresa.id_for_label }}" class="form-label">Nome da Empresa:</label>
-                        {{ form_fornecedor_servico.nome_empresa }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form_fornecedor_servico.nome_representante.id_for_label }}" class="form-label">Nome do Representante:</label>
-                        {{ form_fornecedor_servico.nome_representante }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form_fornecedor_servico.documento.id_for_label }}" class="form-label">Documento:</label>
-                        {{ form_fornecedor_servico.documento }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form_fornecedor_servico.atividade_servico.id_for_label }}" class="form-label">Atividade do Serviço:</label>
-                        {{ form_fornecedor_servico.atividade_servico }}
-                    </div>
-
-                    <!-- Campo oculto para imagem base64 -->
-                    {{ form_fornecedor_servico.foto_webcam }}
-
-                    <!-- Captura por webcam -->
-                    <div id="webcam-container-servico" style="margin-top: 1rem;">
-                        <h6>Captura de Foto</h6>
-                        <video id="webcam-servico" autoplay playsinline style="width: 100%; max-width: 320px; border: 1px solid #ccc;"></video>
-                        <canvas id="canvas-servico" style="display: none;"></canvas>
-                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFotoServico()">📸 Tirar Foto</button>
-                        <div id="foto-confirmada-servico" class="text-success fw-bold mt-2" style="display: none;">✅ Foto capturada com sucesso!</div>
-                        <div id="galeria-foto-servico" style="display: none; margin-top: 1rem; position: relative;">
-                            <img id="imagem-preview-servico" src="" style="max-width: 320px; border: 2px solid #28a745; border-radius: 5px;">
-                            <button type="button" onclick="removerFotoServico()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 0 0 0 5px; padding: 4px 8px; font-weight: bold;">X</button>
-                        </div>
-
-                    </div>
-                </div>
-
                 <div id="entregaFields" style="display:none;">
                     <h6>Informações Entrega</h6>
 
@@ -207,12 +166,9 @@
                         </div>
                     </div>
                 </div>
-                <script>
+                    <script>
                     let webcamStarted = false;
                     let webcamStream = null;
-
-                    let webcamServicoStarted = false;
-                    let webcamServicoStream = null;
 
                     let webcamEntregaStarted = false;
                     let webcamEntregaStream = null;
@@ -259,47 +215,6 @@
                         pararWebcam();
                     }
 
-
-                    function startWebcamServico() {
-                        if (webcamServicoStarted) return;
-                        const video = document.getElementById('webcam-servico');
-
-                        navigator.mediaDevices.getUserMedia({ video: true })
-                            .then(stream => {
-                                video.srcObject = stream;
-                                webcamServicoStream = stream;
-                                webcamServicoStarted = true;
-                            })
-                            .catch(err => {
-                                console.error("Erro ao acessar webcam fornecedor:", err);
-                            });
-                    }
-
-                    function pararWebcamServico() {
-                        if (webcamServicoStream) {
-                            webcamServicoStream.getTracks().forEach(track => track.stop());
-                            webcamServicoStarted = false;
-                        }
-                    }
-                    function tirarFotoServico() {
-                        const video = document.getElementById('webcam-servico');
-                        const canvas = document.getElementById('canvas-servico');
-                        const input = document.getElementById('id_foto_webcam');
-                        const galeria = document.getElementById('galeria-foto-servico');
-                        const imgPreview = document.getElementById('imagem-preview-servico');
-
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        canvas.getContext('2d').drawImage(video, 0, 0);
-
-                        const imageData = canvas.toDataURL('image/jpeg');
-                        input.value = imageData;
-
-                        imgPreview.src = imageData;
-                        galeria.style.display = 'block';
-
-                        pararWebcamServico();
-                    }
 
 
                     function startWebcamEntrega() {
@@ -367,17 +282,6 @@
                         startWebcam();  // reativa a câmera
                     }
 
-                    function removerFotoServico() {
-                        const input = document.getElementById('id_foto_webcam');
-                        const galeria = document.getElementById('galeria-foto-servico');
-                        const imgPreview = document.getElementById('imagem-preview-servico');
-
-                        input.value = '';
-                        imgPreview.src = '';
-                        galeria.style.display = 'none';
-
-                        startWebcamServico();  // reativa a câmera
-                    }
 
 
 
