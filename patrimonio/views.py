@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 import pandas as pd
-from .forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm, CrachaForm, DevolucaoChaveForm, FornecedorServicoForm, Fornecedor, EntradaFornecedor, VisitanteForm, EntregaForm
+from patrimonio.forms import OcorrenciaForm,ControleChavesForm, UploadFileForm, FornecedorForm, EntradaFornecedorForm, CrachaForm, DevolucaoChaveForm, FornecedorServicoForm, VisitanteForm, EntregaForm
 from patrimonio.models import Ocorrencia, ControleChaves, Colaborador, Fornecedor, EntradaFornecedor, EsquecimentoCRACHA
 from datetime import date
 from django.utils import timezone
