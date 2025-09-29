@@ -1,0 +1,312 @@
+<form method="post" enctype="multipart/form-data" id="formEditarFornecedor">
+    {% csrf_token %}
+    <div class="container-fluid">
+        <!-- Informações Básicas do Fornecedor -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informações Básicas</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="categoria_edicao" class="form-label fw-bold">Categoria:</label>
+                            <select id="categoria_edicao" name="categoria" class="form-select" disabled>
+                                <option value="VISITANTE">Visitante</option>
+                                <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="subcategoria_container_edicao" style="display: none;">
+                        <div class="mb-3">
+                            <label for="subcategoria_edicao" class="form-label fw-bold">Subcategoria:</label>
+                            <select id="subcategoria_edicao" name="subcategoria" class="form-select" disabled>
+                                <option value="">Selecione...</option>
+                                <option value="CLT">Trabalhador CLT</option>
+                                <option value="PJ">Pessoa Jurídica (PJ)</option>
+                                <option value="MEI">Microempreendedor Individual (MEI)</option>
+                                <option value="AUTONOMO">Autônomo</option>
+                                <option value="ASSOCIADO">Associado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="validade_meses_edicao" class="form-label fw-bold">Validade (meses):</label>
+                            <input type="number" id="validade_meses_edicao" name="validade_meses" class="form-control" min="1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="status_edicao" class="form-label fw-bold">Status:</label>
+                            <select id="status_edicao" name="status" class="form-select">
+                                <option value="Integrado">Integrado</option>
+                                <option value="Pendente">Pendente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campos Específicos para Visitante -->
+        <div id="campos_visitante_edicao" class="card mb-4" style="display: none;">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person me-2"></i>Informações do Visitante</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="nome_visitante_edicao" class="form-label fw-bold">Nome:</label>
+                            <input type="text" id="nome_visitante_edicao" name="nome" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="documento_visitante_edicao" class="form-label fw-bold">Documento:</label>
+                            <input type="text" id="documento_visitante_edicao" name="documento" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="motivo_visita_edicao" class="form-label fw-bold">Motivo da Visita:</label>
+                    <input type="text" id="motivo_visita_edicao" name="motivo_visita" class="form-control">
+                </div>
+                
+                <!-- Foto do Visitante -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Foto do Visitante:</label>
+                    <div id="webcam-container-visitante-edicao">
+                        <video id="webcam-visitante-edicao" autoplay playsinline style="display: none;"></video>
+                        <canvas id="canvas-visitante-edicao" style="display: none;"></canvas>
+                        <input type="hidden" name="foto_visitante_base64" id="foto_visitante_base64_edicao">
+                        
+                        <div class="d-flex gap-2 mb-3">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="iniciarWebcamVisitante()">
+                                <i class="bi bi-camera me-1"></i>Abrir Câmera
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="capturarFotoVisitante()" id="btn-capturar-visitante" style="display: none;">
+                                <i class="bi bi-camera-fill me-1"></i>Capturar Foto
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="pararWebcamVisitante()" id="btn-parar-visitante" style="display: none;">
+                                <i class="bi bi-stop-circle me-1"></i>Parar Câmera
+                            </button>
+                        </div>
+                        
+                        <div id="preview-foto-visitante-edicao" style="display: none;">
+                            <img id="img-preview-visitante-edicao" src="" class="img-thumbnail" style="max-width: 200px;">
+                            <button type="button" class="btn btn-danger btn-sm ms-2" onclick="removerFotoVisitante()">
+                                <i class="bi bi-trash me-1"></i>Remover
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campos do Representante (para todas as subcategorias de fornecedor) -->
+        <div id="campos_representante_edicao" class="card mb-4" style="display: none;">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Informações do Representante</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="nome_representante_edicao" class="form-label fw-bold">Nome do Representante:</label>
+                    <input type="text" id="nome_representante_edicao" name="nome_representante" class="form-control">
+                </div>
+                
+                <!-- Foto do Representante -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Foto do Representante:</label>
+                    <div id="webcam-container-representante-edicao">
+                        <video id="webcam-representante-edicao" autoplay playsinline style="display: none;"></video>
+                        <canvas id="canvas-representante-edicao" style="display: none;"></canvas>
+                        <input type="hidden" name="foto_representante_base64" id="foto_representante_base64_edicao">
+                        
+                        <div class="d-flex gap-2 mb-3">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="iniciarWebcamRepresentante()">
+                                <i class="bi bi-camera me-1"></i>Abrir Câmera
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="capturarFotoRepresentante()" id="btn-capturar-representante" style="display: none;">
+                                <i class="bi bi-camera-fill me-1"></i>Capturar Foto
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="pararWebcamRepresentante()" id="btn-parar-representante" style="display: none;">
+                                <i class="bi bi-stop-circle me-1"></i>Parar Câmera
+                            </button>
+                        </div>
+                        
+                        <div id="preview-foto-representante-edicao" style="display: none;">
+                            <img id="img-preview-representante-edicao" src="" class="img-thumbnail" style="max-width: 200px;">
+                            <button type="button" class="btn btn-danger btn-sm ms-2" onclick="removerFotoRepresentante()">
+                                <i class="bi bi-trash me-1"></i>Remover
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                                <!-- Campos específicos por subcategoria -->
+                                
+                                <!-- Campos CLT -->
+                                <div id="campos_clt_edicao" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="descricao_cargo_edicao" class="form-label fw-bold">Descrição do Cargo:</label>
+                                        <input type="text" id="descricao_cargo_edicao" name="descricao_cargo" class="form-control">
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="documento_identificacao_clt_edicao" class="form-label fw-bold">Documento de Identificação:</label>
+                                                <input type="file" id="documento_identificacao_clt_edicao" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="carteira_orgao_profissional_edicao" class="form-label fw-bold">Carteira Órgão Profissional:</label>
+                                                <input type="file" id="carteira_orgao_profissional_edicao" name="carteira_orgao_profissional" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="aso_edicao" class="form-label fw-bold">ASO:</label>
+                                                <input type="file" id="aso_edicao" name="aso" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="ordem_servico_edicao" class="form-label fw-bold">Ordem de Serviço:</label>
+                                                <input type="file" id="ordem_servico_edicao" name="ordem_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="pgr_edicao" class="form-label fw-bold">PGR:</label>
+                                                <input type="file" id="pgr_edicao" name="pgr" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="pcmso_edicao" class="form-label fw-bold">PCMSO:</label>
+                                                <input type="file" id="pcmso_edicao" name="pcmso" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="certificados_treinamentos_edicao" class="form-label fw-bold">Certificados e Treinamentos:</label>
+                                        <input type="file" id="certificados_treinamentos_edicao" name="certificados_treinamentos" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="cautela_epi_epc_edicao" class="form-label fw-bold">Cautela EPI/EPC:</label>
+                                        <input type="file" id="cautela_epi_epc_edicao" name="cautela_epi_epc" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="apr_pt_edicao" class="form-label fw-bold">APR/PT:</label>
+                                        <input type="file" id="apr_pt_edicao" name="apr_pt" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+
+                                </div>
+
+
+                                <div id="campos_pj_edicao" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="documento_identificacao_pj_edicao" class="form-label fw-bold">Documento de Identificação:</label>
+                                                <input type="file" id="documento_identificacao_pj_edicao" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="cnpj_edicao" class="form-label fw-bold">CNPJ:</label>
+                                                <input type="file" id="cnpj_edicao" name="cnpj" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contrato_prestacao_servico_pj_edicao" class="form-label fw-bold">Contrato de Prestação de Serviço:</label>
+                                        <input type="file" id="contrato_prestacao_servico_pj_edicao" name="contrato_prestacao_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                </div>
+
+
+                                <!-- Campos MEI -->
+                                <div id="campos_mei_edicao" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="documento_identificacao_mei_edicao" class="form-label fw-bold">Documento de Identificação:</label>
+                                                <input type="file" id="documento_identificacao_mei_edicao" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="certificado_mei_edicao" class="form-label fw-bold">Certificado MEI:</label>
+                                                <input type="file" id="certificado_mei_edicao" name="certificado_mei" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contrato_prestacao_servico_mei_edicao" class="form-label fw-bold">Contrato de Prestação de Serviço:</label>
+                                        <input type="file" id="contrato_prestacao_servico_mei_edicao" name="contrato_prestacao_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                </div>
+
+
+                                <!-- Campos Autônomo -->
+                                <div id="campos_autonomo_edicao" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="documento_identificacao_autonomo_edicao" class="form-label fw-bold">Documento de Identificação:</label>
+                                                <input type="file" id="documento_identificacao_autonomo_edicao" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="declaracao_autonomo_edicao" class="form-label fw-bold">Declaração de Autônomo:</label>
+                                                <input type="file" id="declaracao_autonomo_edicao" name="declaracao_autonomo" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contrato_prestacao_servico_autonomo_edicao" class="form-label fw-bold">Contrato de Prestação de Serviço:</label>
+                                        <input type="file" id="contrato_prestacao_servico_autonomo_edicao" name="contrato_prestacao_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                </div>
+
+
+                                <!-- Campos Associado -->
+                                <div id="campos_associado_edicao" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="documento_identificacao_associado_edicao" class="form-label fw-bold">Documento de Identificação:</label>
+                                                <input type="file" id="documento_identificacao_associado_edicao" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="contrato_associacao_edicao" class="form-label fw-bold">Contrato de Associação:</label>
+                                                <input type="file" id="contrato_associacao_edicao" name="contrato_associacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>

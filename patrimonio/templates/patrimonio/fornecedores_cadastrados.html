@@ -28,8 +28,14 @@
     <div class="main-content" id="mainContent">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Fornecedores Cadastrados</h1>
+
             <!-- Botão de Ações com Dropdown -->
             <div class="dropdown">
+                <!-- Botão para abrir modal -->
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalDeCadastroUnico">
+                    Novo Fornecedor
+                </button>
+
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownAcoes" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-cog me-2"></i>Ações
                 </button>
@@ -87,7 +93,6 @@
                                 <option value="Visitante">Visitante</option>
                                 <option value="Fornecedores/Prestadores de Serviços">Fornecedores/Prestadores de
                                     Serviços</option>
-                                <option value="Entregas">Entregas</option>
                             </select>
                         </div>
                         <!-- Campo Fornecedor -->
@@ -146,7 +151,7 @@
                     <tr>
                         <th width="80">Foto</th>
                         <th width="140">Categoria</th>
-                        <th>Nome/Empresa</th>
+                        <th width="190">Nome</th>
                         <th width="120">Integração</th>
                         <th width="100">Validade</th>
                         <th width="100">Status</th>
@@ -161,14 +166,10 @@
                                 <img src="{{ fornecedor.visitante.foto_visitante.url }}" alt="Foto" class="foto-tabela"
                                     data-bs-toggle="modal" data-bs-target="#modalFoto"
                                     data-foto="{{ fornecedor.visitante.foto_visitante.url }}">
-                            {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.fornecedor_servico and fornecedor.fornecedor_servico.foto_fornecedor %}
-                                <img src="{{ fornecedor.fornecedor_servico.foto_fornecedor.url }}" alt="Foto" class="foto-tabela"
+                            {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.trabalhador_relacionado and fornecedor.trabalhador_relacionado.foto_representante %}
+                                <img src="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}" alt="Foto" class="foto-tabela"
                                     data-bs-toggle="modal" data-bs-target="#modalFoto"
-                                    data-foto="{{ fornecedor.fornecedor_servico.foto_fornecedor.url }}">
-                            {% elif fornecedor.categoria == 'ENTREGA' and fornecedor.entrega and fornecedor.entrega.foto_caixa_entrega %}
-                                <img src="{{ fornecedor.entrega.foto_caixa_entrega.url }}" alt="Foto" class="foto-tabela"
-                                    data-bs-toggle="modal" data-bs-target="#modalFoto"
-                                    data-foto="{{ fornecedor.entrega.foto_caixa_entrega.url }}">
+                                    data-foto="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}">
                             {% else %}
                                 <div class="foto-placeholder">
                                     <i class="bi bi-person"></i>
@@ -181,8 +182,6 @@
                                 <i class="bi bi-person-check me-1"></i>Visitante
                                 {% elif fornecedor.categoria == 'FORNECEDOR' %}
                                 <i class="bi bi-building me-1"></i>Fornecedor
-                                {% else %}
-                                <i class="bi bi-box-seam me-1"></i>Entrega
                                 {% endif %}
                             </span>
                         </td>
@@ -190,12 +189,17 @@
                             <div class="nome-info">
                                 {% if fornecedor.categoria == "VISITANTE" and fornecedor.visitante %}
                                 <strong>{{ fornecedor.visitante.nome }}</strong>
-                                {% elif fornecedor.categoria == "FORNECEDOR" and fornecedor.fornecedor_servico %}
-                                <strong>{{ fornecedor.fornecedor_servico.nome_empresa }}</strong>
-                                <br><small class="text-muted">{{ fornecedor.fornecedor_servico.nome_representante }}</small>
-                                {% elif fornecedor.categoria == "ENTREGA" and fornecedor.entrega %}
-                                <strong>{{ fornecedor.entrega.nome_transportadora }}</strong>
-                                <br><small class="text-muted">{{ fornecedor.entrega.nome_entregador }}</small>
+                                {% elif fornecedor.categoria == "FORNECEDOR" %}
+                                    {% if fornecedor.fornecedor_servico %}
+                                        <strong>{{ fornecedor.fornecedor_servico.nome_empresa }}</strong>
+                                        {% if fornecedor.trabalhador_relacionado %}
+                                            <br><small class="text-muted">{{ fornecedor.trabalhador_relacionado.nome_representante }}</small>
+                                        {% endif %}
+                                    {% elif fornecedor.trabalhador_relacionado %}
+                                        <strong>{{ fornecedor.trabalhador_relacionado.nome_representante }}</strong>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}
@@ -221,49 +225,43 @@
                         </td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots"></i>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
-                                            data-bs-target="#modalDetalhes{{ fornecedor.id }}">
-                                            <i class="bi bi-eye me-2"></i>Ver Detalhes
-                                        </a></li>
-                                    <li><a class="dropdown-item btn-editar" href="#" data-id="{{ fornecedor.id }}">
-                                            <i class="bi bi-pencil me-2"></i>Editar
-                                        </a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalDetalhes{{ fornecedor.id }}">
+                                        <i class="bi bi-eye me-2"></i>Ver Detalhes
+                                    </a></li>
+                                    <li><a class="dropdown-item btn-editar" href="#" data-id="{{ fornecedor.id }}" data-bs-toggle="modal" data-bs-target="#modalEditarFornecedor">
+                                        <i class="bi bi-pencil me-2"></i>Editar
+                                    </a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <li><a class="dropdown-item text-danger btn-excluir" href="#"
-                                            data-id="{{ fornecedor.id }}">
-                                            <i class="bi bi-trash me-2"></i>Excluir
-                                        </a></li>
+                                    <li><a class="dropdown-item text-danger btn-excluir" href="#" data-id="{{ fornecedor.id }}">
+                                        <i class="bi bi-trash me-2"></i>Excluir
+                                    </a></li>
                                 </ul>
                             </div>
                         </td>
                     </tr>
 
                     <!-- ================================================================== -->
-                    <!-- INÍCIO DO MODAL DE DETALHES CORRIGIDO E FUNCIONAL                 -->
+                    <!-- MODAL DE DETALHES - VERSÃO FINAL E CORRETA -->
                     <!-- ================================================================== -->
-                    <div class="modal fade" id="modalDetalhes{{ fornecedor.id }}" tabindex="-1"
-                        aria-labelledby="modalDetalhesLabel{{ fornecedor.id }}" aria-hidden="true">
+                    <div class="modal fade" id="modalDetalhes{{ fornecedor.id }}" tabindex="-1" aria-labelledby="modalDetalhesLabel{{ fornecedor.id }}" aria-hidden="true">
                         <div class="modal-dialog modal-xl modal-dialog-scrollable">
                             <div class="modal-content">
                                 <div class="modal-header bg-primary text-white">
                                     <h5 class="modal-title" id="modalDetalhesLabel{{ fornecedor.id }}">
-                                        <i class="fas fa-info-circle me-2"></i>Detalhes de: {{
-                                        fornecedor.get_categoria_display }}
+                                        <i class="fas fa-info-circle me-2"></i>Detalhes de: {{ fornecedor.get_categoria_display }}
                                     </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                        aria-label="Fechar"></button>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
                                 </div>
-
+                    
                                 <div class="modal-body bg-light">
                                     <div class="container-fluid">
-                                        <!-- Seção de Informações Gerais do Cadastro -->
+                                        <!-- 1. Seção de Informações Gerais do Cadastro -->
                                         <div class="card mb-4 shadow-sm">
                                             <div class="card-header">
                                                 <h6 class="mb-0">Informações do Cadastro</h6>
@@ -291,48 +289,117 @@
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <!-- Seção de Detalhes Específicos da Categoria -->
-                                        <div class="card shadow-sm">
+                    
+                                        <!-- 2. Seção de Detalhes Específicos (Lógica Unificada) -->
+                                        <div class="card shadow-sm mb-4">
                                             <div class="card-header">
-                                                <h6 class="mb-0">Detalhes Específicos do {{
-                                                    fornecedor.get_categoria_display }}</h6>
+                                                <h6 class="mb-0">Detalhes Específicos do {{ fornecedor.get_categoria_display }}</h6>
                                             </div>
                                             <div class="card-body">
                                                 <div class="row">
                                                     <!-- Coluna para a Foto -->
                                                     <div class="col-md-4 text-center">
-                                                        {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante.foto_visitante %}
-                                                        <img src="{{ fornecedor.visitante.foto_visitante.url }}"
-                                                            class="img-fluid rounded shadow-lg mb-3"
-                                                            alt="Foto do Visitante" style="max-height: 250px;">
-                                                        {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.fornecedor_servico.foto_fornecedor %}
-                                                        <img src="{{ fornecedor.fornecedor_servico.foto_fornecedor.url }}"
-                                                            class="img-fluid rounded shadow-lg mb-3"
-                                                            alt="Foto do Fornecedor" style="max-height: 250px;">
-                                                        {% else %}
-                                                        <div class="d-flex align-items-center justify-content-center bg-secondary-subtle rounded text-muted mb-3"
-                                                            style="height: 250px;">
-                                                            <i class="fas fa-camera fa-3x"></i>
-                                                            <p class="ms-2 mb-0">Sem foto</p>
-                                                        </div>
-                                                        {% endif %}
+                                                        {% with trabalhador=fornecedor.trabalhador_relacionado %}
+                                                            {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante.foto_visitante %}
+                                                                <img src="{{ fornecedor.visitante.foto_visitante.url }}" class="img-fluid rounded shadow-lg mb-3" alt="Foto do Visitante" style="max-height: 250px;">
+                                                            {% elif trabalhador and trabalhador.foto_representante %}
+                                                                <img src="{{ trabalhador.foto_representante.url }}" class="img-fluid rounded shadow-lg mb-3" alt="Foto do Representante" style="max-height: 250px;">
+                                                            {% else %}
+                                                                <div class="d-flex align-items-center justify-content-center bg-secondary-subtle rounded text-muted mb-3" style="height: 250px;">
+                                                                    <i class="fas fa-camera fa-3x"></i>
+                                                                    <p class="ms-2 mb-0">Sem foto</p>
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endwith %}
                                                     </div>
-
+                    
                                                     <!-- Coluna para os Dados -->
                                                     <div class="col-md-8">
                                                         {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante %}
-                                                        <p><strong><i class="fas fa-user me-2"></i>Nome:</strong> {{fornecedor.visitante.nome }}</p>
-                                                        <p><strong><i class="fas fa-id-badge me-2"></i>Documento:</strong> {{ fornecedor.visitante.documento }}</p>
-                                                        <p><strong><i class="fas fa-question-circle me-2"></i>Motivo da Visita:</strong> {{fornecedor.visitante.motivo_visita }}</p>
-                                                        {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.fornecedor_servico %}
-                                                        <p><strong><i class="fas fa-building me-2"></i>Empresa:</strong> {{ fornecedor.fornecedor_servico.nome_empresa }}</p>
-                                                        <p><strong><i class="fas fa-user-tie me-2"></i>Representante:</strong> {{ fornecedor.fornecedor_servico.nome_representante }}</p>
-                                                        <p><strong><i class="fas fa-id-badge me-2"></i>Documento:</strong> {{ fornecedor.fornecedor_servico.documento }}</p>
-                                                        <p><strong><i class="fas fa-tools me-2"></i>Atividade/Serviço:</strong> {{ fornecedor.fornecedor_servico.atividade_servico }}</p>
+                                                            <p><strong><i class="fas fa-user me-2"></i>Nome:</strong> {{ fornecedor.visitante.nome }}</p>
+                                                            <p><strong><i class="fas fa-id-badge me-2"></i>Documento:</strong> {{ fornecedor.visitante.documento }}</p>
+                                                            <p><strong><i class="fas fa-question-circle me-2"></i>Motivo da Visita:</strong> {{ fornecedor.visitante.motivo_visita }}</p>
+                                                        
+                                                        {% elif fornecedor.categoria == 'FORNECEDOR' %}
+                                                            <p><strong><i class="fas fa-layer-group me-2"></i>Subcategoria:</strong> 
+                                                                <span class="badge bg-info">{{ fornecedor.get_subcategoria_display }}</span>
+                                                            </p>
+                                                            
+                                                            {% if fornecedor.fornecedor_servico %}
+                                                                <p><strong><i class="fas fa-building me-2"></i>Nome da Empresa:</strong> {{ fornecedor.fornecedor_servico.nome_empresa }}</p>
+                                                                <p><strong><i class="fas fa-briefcase me-2"></i>Atividade/Serviço:</strong> {{ fornecedor.fornecedor_servico.atividade_servico }}</p>
+                                                            {% endif %}
+
+                                                            {% with trabalhador=fornecedor.trabalhador_relacionado %}
+                                                                {% if trabalhador %}
+                                                                    <p><strong><i class="fas fa-user-tie me-2"></i>Representante:</strong> {{ trabalhador.nome_representante }}</p>
+                                                                    
+                                                                    <!-- ================================================================== -->
+                                                                    <!--           DOCUMENTOS COMUNS A TODOS OS TRABALHADORES             -->
+                                                                    <!-- ================================================================== -->
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-6">
+                                                                            <p class="mb-1"><strong><i class="fas fa-file-alt me-2"></i>Doc. de Identificação:</strong></p>
+                                                                            {% if trabalhador.documento_identificacao %}
+                                                                                <a href="{{ trabalhador.documento_identificacao.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>
+                                                                            {% else %}<span class="text-muted">Não informado</span>{% endif %}
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <p class="mb-1"><strong><i class="fas fa-id-card-alt me-2"></i>Carteira Profissional:</strong></p>
+                                                                            {% if trabalhador.carteira_orgao_profissional %}
+                                                                                <a href="{{ trabalhador.carteira_orgao_profissional.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>
+                                                                            {% else %}<span class="text-muted">Não informado</span>{% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                    <hr>
+
+                                                                    <!-- ================================================================== -->
+                                                                    <!--         DOCUMENTOS ESPECÍFICOS PARA CADA SUBCATEGORIA            -->
+                                                                    <!-- ================================================================== -->
+                                                                    <h6 class="text-primary mt-3">Documentos Específicos:</h6>
+
+                                                                    {% if fornecedor.subcategoria == 'CLT' %}
+                                                                        <div class="row">
+                                                                            <div class="col-md-6 mb-2"><p><strong>Descrição do Cargo:</strong> {{ trabalhador.descricao_cargo|default:"Não informado" }}</p></div>
+                                                                            <div class="col-md-6 mb-2"><strong>ASO:</strong> {% if trabalhador.aso %}<a href="{{ trabalhador.aso.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>Ordem de Serviço:</strong> {% if trabalhador.ordem_servico %}<a href="{{ trabalhador.ordem_servico.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>PGR:</strong> {% if trabalhador.pgr %}<a href="{{ trabalhador.pgr.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>PCMSO:</strong> {% if trabalhador.pcmso %}<a href="{{ trabalhador.pcmso.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>Certificados:</strong> {% if trabalhador.certificados_treinamentos %}<a href="{{ trabalhador.certificados_treinamentos.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>Cautela EPI/EPC:</strong> {% if trabalhador.cautela_epi_epc %}<a href="{{ trabalhador.cautela_epi_epc.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>APR/PT:</strong> {% if trabalhador.apr_pt %}<a href="{{ trabalhador.apr_pt.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                        </div>
+
+                                                                    {% elif fornecedor.subcategoria == 'PJ' %}
+                                                                        <div class="row">
+                                                                            <div class="col-md-6 mb-2"><strong>CNPJ:</strong> {% if trabalhador.cnpj %}<a href="{{ trabalhador.cnpj.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>Contrato de Serviço:</strong> {% if trabalhador.contrato_prestacao_servico %}<a href="{{ trabalhador.contrato_prestacao_servico.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                        </div>
+
+                                                                    {% elif fornecedor.subcategoria == 'MEI' %}
+                                                                        <div class="row">
+                                                                            <div class="col-md-6 mb-2"><strong>Certificado MEI:</strong> {% if trabalhador.certificado_mei %}<a href="{{ trabalhador.certificado_mei.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>Contrato de Serviço:</strong> {% if trabalhador.contrato_prestacao_servico %}<a href="{{ trabalhador.contrato_prestacao_servico.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                        </div>
+
+                                                                    {% elif fornecedor.subcategoria == 'AUTONOMO' %}
+                                                                        <div class="row">
+                                                                            <div class="col-md-6 mb-2"><strong>Declaração de Autônomo:</strong> {% if trabalhador.declaracao_autonomo %}<a href="{{ trabalhador.declaracao_autonomo.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                            <div class="col-md-6 mb-2"><strong>Contrato de Serviço:</strong> {% if trabalhador.contrato_prestacao_servico %}<a href="{{ trabalhador.contrato_prestacao_servico.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                        </div>
+
+                                                                    {% elif fornecedor.subcategoria == 'ASSOCIADO' %}
+                                                                        <div class="row">
+                                                                            <div class="col-md-6 mb-2"><strong>Contrato de Associação:</strong> {% if trabalhador.contrato_associacao %}<a href="{{ trabalhador.contrato_associacao.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Visualizar</a>{% else %}<span class="text-muted">Não</span>{% endif %}</div>
+                                                                        </div>
+                                                                    {% endif %}
+
+                                                                {% else %}
+                                                                    <p class="text-muted">Detalhes do representante não encontrados.</p>
+                                                                {% endif %}
+                                                            {% endwith %}
                                                         {% else %}
-                                                        <p class="text-muted">Não há detalhes específicos para esta
-                                                            categoria.</p>
+                                                            <p class="text-muted">Não há detalhes específicos para esta categoria.</p>
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -340,7 +407,7 @@
                                         </div>
                                     </div>
                                 </div>
-
+                    
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                         <i class="fas fa-times me-2"></i>Fechar
@@ -349,34 +416,328 @@
                             </div>
                         </div>
                     </div>
-                    <!-- ================================================================== -->
-                    <!-- FIM DO MODAL DE DETALHES CORRIGIDO                                 -->
-                    <!-- ================================================================== -->
 
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center">Nenhum fornecedor cadastrado.</td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            
-            <!-- ================================================================== -->
-            <!-- INÍCIO DO CONTROLE DE PAGINAÇÃO                                    -->
-            <!-- ================================================================== -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <span id="pagination-info" class="text-muted"></span>
-                <nav>
-                    <ul class="pagination" id="pagination-controls">
-                        <!-- Os botões da paginação serão gerados aqui pelo JavaScript -->
-                    </ul>
-                </nav>
-            </div>
-            <!-- ================================================================== -->
-            <!-- FIM DO CONTROLE DE PAGINAÇÃO                                       -->
-            <!-- ================================================================== -->
         </section>
     </div>
+
+    <!-- Modal de Cadastro Único -->
+    <div class="modal fade" id="modalDeCadastroUnico" tabindex="-1" aria-labelledby="modalDeCadastroUnicoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="modalDeCadastroUnicoLabel">
+                        <i class="fas fa-plus-circle me-2"></i>Novo Cadastro
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" action="{% url 'fornecedores_cadastrados' %}">
+                    {% csrf_token %}
+                    <div class="modal-body bg-light" style="height: 762px;">
+                        <div class="container-fluid">
+                            <!-- Seção de Seleção de Categoria -->
+                            <div class="card mb-4 shadow-sm">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Tipo de Cadastro</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Categoria:</label>
+                                            <select name="categoria" id="categoria" class="form-select" required>
+                                                <option value="">Selecione uma categoria</option>
+                                                <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3" id="subcategoria-container" style="display: none;">
+                                            <label class="form-label">Subcategoria:</label>
+                                            <select name="subcategoria" id="subcategoria" class="form-select">
+                                                <option value="">Selecione uma subcategoria</option>
+                                                <option value="trabalhador_clt">Trabalhador CLT</option>
+                                                <option value="pessoa_juridica">Pessoa Jurídica (PJ)</option>
+                                                <option value="mei">Microempreendedor Individual (MEI)</option>
+                                                <option value="autonomo">Autônomo</option>
+                                                <option value="associado">Associado</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Seção de Validade -->
+                            <div class="card mb-4 shadow-sm">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Configurações de Validade</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Validade (em meses):</label>
+                                            <input type="number" name="validade_meses" id="validade_meses" class="form-control" value="12" min="1" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Container para formulários dinâmicos -->
+                            <div id="forms-container">
+                                <!-- Os formulários específicos serão inseridos aqui via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Salvar Cadastro
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript para formulários dinâmicos -->
+    <!-- JavaScript para formulários dinâmicos -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoriaSelect = document.getElementById('categoria');
+            const subcategoriaSelect = document.getElementById('subcategoria');
+            const subcategoriaContainer = document.getElementById('subcategoria-container');
+            const formsContainer = document.getElementById('forms-container');
+
+            // ==================================================================
+            //           INÍCIO DA CORREÇÃO NOS FORMULÁRIOS DINÂMICOS
+            // ==================================================================
+            const formularios = {
+                'trabalhador_clt': `
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h6 class="mb-0">Dados do Trabalhador CLT</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="nome_representante_clt" class="form-label">Nome do Representante:</label>
+                                    <input type="text" id="nome_representante_clt" name="nome_representante" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="descricao_cargo_clt" class="form-label">Descrição do Cargo:</label>
+                                    <input type="text" id="descricao_cargo_clt" name="descricao_cargo" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="documento_identificacao_clt" class="form-label">Documento de Identificação:</label>
+                                    <input type="file" id="documento_identificacao_clt" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="carteira_orgao_profissional_clt" class="form-label">Carteira do Órgão Profissional:</label>
+                                    <input type="file" id="carteira_orgao_profissional_clt" name="carteira_orgao_profissional" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="aso_clt" class="form-label">ASO:</label>
+                                    <input type="file" id="aso_clt" name="aso" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="ordem_servico_clt" class="form-label">Ordem de Serviço:</label>
+                                    <input type="file" id="ordem_servico_clt" name="ordem_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="pgr_clt" class="form-label">PGR:</label>
+                                    <input type="file" id="pgr_clt" name="pgr" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="pcmso_clt" class="form-label">PCMSO:</label>
+                                    <input type="file" id="pcmso_clt" name="pcmso" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="certificados_treinamentos_clt" class="form-label">Certificados de Treinamentos:</label>
+                                    <input type="file" id="certificados_treinamentos_clt" name="certificados_treinamentos" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cautela_epi_epc_clt" class="form-label">Cautela EPI/EPC:</label>
+                                    <input type="file" id="cautela_epi_epc_clt" name="cautela_epi_epc" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="apr_pt_clt" class="form-label">APR/PT:</label>
+                                    <input type="file" id="apr_pt_clt" name="apr_pt" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                'pessoa_juridica': `
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h6 class="mb-0">Dados da Pessoa Jurídica</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nome do Representante:</label>
+                                    <input type="text" name="nome_representante" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Documento de Identificação:</label>
+                                    <input type="file" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Carteira do Órgão Profissional:</label>
+                                    <input type="file" name="carteira_orgao_profissional" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">CNPJ:</label>
+                                    <input type="file" name="cnpj" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contrato de Prestação de Serviço:</label>
+                                    <input type="file" name="contrato_prestacao_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                // ... (o restante dos formulários também foi ajustado para consistência)
+                'mei': `
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h6 class="mb-0">Dados do MEI</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nome do Representante:</label>
+                                    <input type="text" name="nome_representante" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Documento de Identificação:</label>
+                                    <input type="file" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Carteira do Órgão Profissional:</label>
+                                    <input type="file" name="carteira_orgao_profissional" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Certificado MEI:</label>
+                                    <input type="file" name="certificado_mei" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contrato de Prestação de Serviço:</label>
+                                    <input type="file" name="contrato_prestacao_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                'autonomo': `
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h6 class="mb-0">Dados do Autônomo</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nome do Representante:</label>
+                                    <input type="text" name="nome_representante" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Documento de Identificação:</label>
+                                    <input type="file" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Carteira do Órgão Profissional:</label>
+                                    <input type="file" name="carteira_orgao_profissional" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Declaração de Autônomo:</label>
+                                    <input type="file" name="declaracao_autonomo" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contrato de Prestação de Serviço:</label>
+                                    <input type="file" name="contrato_prestacao_servico" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                'associado': `
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h6 class="mb-0">Dados do Associado</h6></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nome do Representante:</label>
+                                    <input type="text" name="nome_representante" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Documento de Identificação:</label>
+                                    <input type="file" name="documento_identificacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Carteira do Órgão Profissional:</label>
+                                    <input type="file" name="carteira_orgao_profissional" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contrato de Associação:</label>
+                                    <input type="file" name="contrato_associacao" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            };
+            // ==================================================================
+            //             FIM DA CORREÇÃO NOS FORMULÁRIOS DINÂMICOS
+            // ==================================================================
+
+            // Função para limpar completamente o container de formulários
+            function limparFormularios() {
+                formsContainer.innerHTML = '';
+            }
+
+            // Função para exibir o formulário da subcategoria selecionada
+            function exibirFormulario(subcategoria) {
+                limparFormularios();
+                if (formularios[subcategoria]) {
+                    formsContainer.innerHTML = formularios[subcategoria];
+                }
+            }
+
+            // Event listener para mudança de categoria
+            categoriaSelect.addEventListener('change', function() {
+                const categoria = this.value;
+                
+                if (categoria === 'FORNECEDOR') {
+                    subcategoriaContainer.style.display = 'block';
+                    subcategoriaSelect.required = true;
+                } else {
+                    subcategoriaContainer.style.display = 'none';
+                    subcategoriaSelect.required = false;
+                    subcategoriaSelect.value = '';
+                    limparFormularios();
+                }
+            });
+
+            // Event listener para mudança de subcategoria
+            subcategoriaSelect.addEventListener('change', function() {
+                const subcategoria = this.value;
+                
+                if (subcategoria) {
+                    exibirFormulario(subcategoria);
+                } else {
+                    limparFormularios();
+                }
+            });
+
+            // Limpar formulários quando o modal é fechado
+            const modal = document.getElementById('modalDeCadastroUnico');
+            modal.addEventListener('hidden.bs.modal', function() {
+                categoriaSelect.value = '';
+                subcategoriaSelect.value = '';
+                subcategoriaContainer.style.display = 'none';
+                subcategoriaSelect.required = false;
+                document.getElementById('validade_meses').value = '12';
+                limparFormularios();
+            });
+        });
+    </script>
+
 
     <!-- Outros Modais (Edição, Foto) e Scripts -->
     <!-- Modal de Edição -->
@@ -418,38 +779,9 @@
     <!-- SCRIPTS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        $(function () {
-            $('.btn-editar').on('click', function () {
-                let id = $(this).data('id');
-                $.get(`/fornecedor/modal_editar/${id}/`, function (data) {
-                    $('#modal-body-content').html(data.form_html);
-                    $('#formEditarFornecedor').attr('action', `/fornecedor/modal_editar/${id}/`);
-                    $('#modalEditarFornecedor').modal('show');
-                });
-            });
+    <!-- No seu template principal, após os scripts do Bootstrap -->
+    <script src="{% static 'patrimonio/js/modal_edicao_webcam.js' %}"></script>
 
-
-            $('#formEditarFornecedor').on('submit', function (e) {
-                e.preventDefault();
-                let form = $(this);
-
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST',
-                    data: form.serialize(),
-                    success: function (data) {
-                        if (data.success) {
-                            location.reload();  // recarrega para mostrar as alterações
-                        } else {
-                            $('#modal-body-content').html(data.form_html); // mostrar erros de validação
-                        }
-                    }
-                });
-            });
-
-        });
-    </script>
     <script>
         // Função para pegar o CSRF token do cookie (padrão Django)
         function getCookie(name) {
@@ -477,191 +809,50 @@
             }
         });
 
-        // Lógica para o botão Excluir funcionar via AJAX
-        $(document).on('click', '.btn-excluir', function () {
-            if (!confirm('Tem certeza que deseja excluir este fornecedor?')) {
-                return; // cancelou exclusão
-            }
+        // Event listeners para modal de foto
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalFoto = document.getElementById('modalFoto');
+            const fotoExpandida = document.getElementById('fotoExpandida');
 
-            let id = $(this).data('id');
-            $.ajax({
-                url: `/fornecedor/excluir/${id}/`,
-                type: 'POST',
-                success: function (data) {
-                    if (data.success) {
-                        alert('Fornecedor excluído com sucesso.');
-                        location.reload();
-                    } else {
-                        alert('Erro ao excluir fornecedor.');
+            modalFoto.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const fotoUrl = button.getAttribute('data-foto');
+                fotoExpandida.src = fotoUrl;
+            });
+        });
+
+        // Funções para filtros (se necessário)
+        function aplicarFiltros() {
+            // Implementar lógica de filtros aqui
+            console.log('Aplicando filtros...');
+        }
+
+        function limparFiltros(event) {
+            event.preventDefault();
+            document.getElementById('filtro-data').value = '';
+            document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-fornecedor').value = '';
+            document.getElementById('filtro-status').value = '';
+            console.log('Filtros limpos');
+        }
+
+        // Função para excluir fornecedor
+        document.addEventListener('DOMContentLoaded', function() {
+            const botoesExcluir = document.querySelectorAll('.btn-excluir');
+            
+            botoesExcluir.forEach(function(botao) {
+                botao.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.getAttribute('data-id');
+                    
+                    if (confirm('Tem certeza que deseja excluir este cadastro?')) {
+                        // Implementar lógica de exclusão aqui
+                        console.log('Excluindo fornecedor ID:', id);
                     }
-                },
-                error: function () {
-                    alert('Erro ao tentar excluir fornecedor.');
-                }
+                });
             });
         });
     </script>
-    <script>           
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleSidebarBtn');
-
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('reduzida');        
-        });
-    </script>
-    <script>
-        const modalFoto = document.getElementById('modalFoto')
-        const fotoExpandida = document.getElementById('fotoExpandida')
-
-        modalFoto.addEventListener('show.bs.modal', event => {
-            const triggerElement = event.relatedTarget // elemento que acionou o modal (imagem clicada)
-            const urlFoto = triggerElement.getAttribute('data-foto')
-            fotoExpandida.src = urlFoto
-        })
-    </script>
-    
-    <!-- ================================================================== -->
-    <!-- SCRIPT DE PAGINAÇÃO E FILTRO COMBINADOS                            -->
-    <!-- ================================================================== -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // --- VARIÁVEIS GLOBAIS PARA PAGINAÇÃO E FILTRO ---
-            const registrosPorPagina = 10;
-            let paginaAtual = 1;
-            const tabelaBody = document.querySelector(".table-cadastro tbody");
-            const todasAsLinhas = Array.from(tabelaBody.querySelectorAll("tr"));
-            let linhasFiltradas = todasAsLinhas;
-
-            const paginationControls = document.getElementById("pagination-controls");
-            const paginationInfo = document.getElementById("pagination-info");
-
-            // --- FUNÇÕES DE PAGINAÇÃO ---
-            function exibirPagina(pagina) {
-                paginaAtual = pagina;
-                tabelaBody.innerHTML = "";
-
-                const inicio = (pagina - 1) * registrosPorPagina;
-                const fim = inicio + registrosPorPagina;
-                const linhasDaPagina = linhasFiltradas.slice(inicio, fim);
-
-                linhasDaPagina.forEach(linha => tabelaBody.appendChild(linha));
-
-                const totalFiltrado = linhasFiltradas.length;
-                const inicioInfo = totalFiltrado > 0 ? inicio + 1 : 0;
-                const fimInfo = Math.min(fim, totalFiltrado);
-                paginationInfo.textContent = `Mostrando ${inicioInfo} a ${fimInfo} de ${totalFiltrado} registros`;
-            }
-
-            function setupPagination() {
-                paginationControls.innerHTML = "";
-                const totalDePaginas = Math.ceil(linhasFiltradas.length / registrosPorPagina);
-
-                if (totalDePaginas <= 1) {
-                    paginationInfo.textContent = `Mostrando ${linhasFiltradas.length} registros`;
-                    return;
-                }
-
-                // Botão "Anterior"
-                let liPrev = `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
-                            <a class="page-link" href="#" onclick="mudarPagina(event, ${paginaAtual - 1})">Anterior</a>
-                          </li>`;
-                paginationControls.innerHTML += liPrev;
-
-                // Botões de página numerados (máximo 5 páginas visíveis)
-                let startPage = Math.max(1, paginaAtual - 2);
-                let endPage = Math.min(totalDePaginas, startPage + 4);
-
-                if (endPage - startPage < 4) {
-                    startPage = Math.max(1, endPage - 4);
-                }
-
-                for (let i = startPage; i <= endPage; i++) {
-                    let li = `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
-                            <a class="page-link" href="#" onclick="mudarPagina(event, ${i})">${i}</a>
-                          </li>`;
-                    paginationControls.innerHTML += li;
-                }
-
-                // Botão "Próximo"
-                let liNext = `<li class="page-item ${paginaAtual === totalDePaginas ? 'disabled' : ''}">
-                            <a class="page-link" href="#" onclick="mudarPagina(event, ${paginaAtual + 1})">Próximo</a>
-                          </li>`;
-                paginationControls.innerHTML += liNext;
-            }
-
-            // --- FUNÇÃO PARA MUDAR PÁGINA ---
-            window.mudarPagina = function(event, novaPagina) {
-                event.preventDefault();
-                const totalDePaginas = Math.ceil(linhasFiltradas.length / registrosPorPagina);
-                
-                if (novaPagina >= 1 && novaPagina <= totalDePaginas) {
-                    exibirPagina(novaPagina);
-                    setupPagination();
-                }
-            }
-
-            // --- FUNÇÕES DE FILTRO ---
-            function aplicarFiltros() {
-                const filtroData = document.getElementById("filtro-data").value;
-                const filtroCategoria = document.getElementById("filtro-categoria").value.toLowerCase();
-                const filtroFornecedor = document.getElementById("filtro-fornecedor").value.toLowerCase();
-                const filtroStatus = document.getElementById("filtro-status").value.toLowerCase();
-
-                linhasFiltradas = todasAsLinhas.filter(linha => {
-                    // Pular linhas vazias (como a linha "Nenhum fornecedor cadastrado")
-                    if (linha.cells.length < 7) return false;
-
-                    const dataIntegracao = linha.cells[3].textContent.trim();
-                    const categoria = linha.cells[1].textContent.trim().toLowerCase();
-                    const nomeEmpresa = linha.cells[2].textContent.trim().toLowerCase();
-                    const status = linha.cells[5].textContent.trim().toLowerCase();
-
-                    // Filtro por data
-                    if (filtroData) {
-                        const dataFormatada = new Date(filtroData).toLocaleDateString('pt-BR');
-                        if (!dataIntegracao.includes(dataFormatada)) return false;
-                    }
-
-                    // Filtro por categoria
-                    if (filtroCategoria && !categoria.includes(filtroCategoria)) return false;
-
-                    // Filtro por nome/empresa
-                    if (filtroFornecedor && !nomeEmpresa.includes(filtroFornecedor)) return false;
-
-                    // Filtro por status
-                    if (filtroStatus && !status.includes(filtroStatus)) return false;
-
-                    return true;
-                });
-
-                paginaAtual = 1; // Resetar para primeira página
-                exibirPagina(paginaAtual);
-                setupPagination();
-            }
-
-            function limparFiltros(event) {
-                event.preventDefault();
-                document.getElementById("filtro-data").value = "";
-                document.getElementById("filtro-categoria").value = "";
-                document.getElementById("filtro-fornecedor").value = "";
-                document.getElementById("filtro-status").value = "";
-                
-                linhasFiltradas = todasAsLinhas;
-                paginaAtual = 1;
-                exibirPagina(paginaAtual);
-                setupPagination();
-            }
-
-            // Tornar as funções globais
-            window.aplicarFiltros = aplicarFiltros;
-            window.limparFiltros = limparFiltros;
-
-            // --- INICIALIZAÇÃO ---
-            exibirPagina(1);
-            setupPagination();
-        });
-    </script>
-
 </body>
 </html>
 

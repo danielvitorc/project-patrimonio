@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import auth, adm, home, controle_visitantes, chave, cracha, ocorrencias, export_excel
+from .views import auth, adm, home, controle_visitantes, chave, cracha, ocorrencias, export_excel 
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -16,9 +16,11 @@ urlpatterns = [
     path('fornecedor/excluir/<int:pk>/', controle_visitantes.excluir_fornecedor, name='excluir_fornecedor'),
     path('status_fornecedor/<int:pk>/', controle_visitantes.status_fornecedor, name='status_fornecedor'),
     path('fornecedores-cadastrados/', controle_visitantes.fornecedores_cadastrados, name='fornecedores-cadastrados'),
-    path('fornecedores-cadastrados/', controle_visitantes.fornecedores_cadastrados, name='fornecedores-cadastrados'),
-    path('fornecedor/modal_editar/<int:pk>/', controle_visitantes.modal_editar_fornecedor, name='modal_editar_fornecedor'),
+    path("fornecedor/<int:pk>/editar/", controle_visitantes.modal_editar_fornecedor_completo, name="modal_editar_fornecedor_completo"),
+    path("fornecedor/<int:pk>/dados/", controle_visitantes.carregar_dados_fornecedor, name="carregar_dados_fornecedor"),
     path('entrada/<int:pk>/excluir/', controle_visitantes.excluir_entrada, name='excluir_entrada'),
+
+    path("fornecedores/", controle_visitantes.fornecedores_cadastrados, name="fornecedores_cadastrados"),
 
     # Urls de Chaves
     path('entrega_de_chave/', chave.entrega_de_chave, name='entrega_de_chave'),

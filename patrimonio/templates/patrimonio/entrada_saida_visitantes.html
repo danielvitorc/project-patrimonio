@@ -89,80 +89,32 @@
                         {{ form_visitante.motivo_visita }}
                     </div>
                     <!-- Webcam -->
-                    <div id="webcam-container" style="margin-top: 1rem;">
-                        <h6>Captura de Foto</h6>
-                        <video id="webcam" autoplay playsinline style="width: 100%; max-width: 320px; border: 1px solid #ccc;"></video>
-                        <canvas id="canvas" style="display: none;"></canvas>
-                        <input type="hidden" name="foto_visitante" id="id_foto_visitante">
-                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFoto()">📸 Tirar Foto</button>
-                        <div id="foto-confirmada" class="text-success fw-bold mt-2" style="display: none;">✅ Foto capturada com sucesso!</div>
-                        <div id="galeria-foto-visitante" style="display: none; margin-top: 1rem; position: relative;">
-                            <img id="imagem-preview-visitante" src="" style="max-width: 320px; border: 2px solid #28a745; border-radius: 5px;">
-                            <button type="button" onclick="removerFotoVisitante()" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 0 0 0 5px; padding: 4px 8px; font-weight: bold;">X</button>
+                    <div id="webcam-container" class="card shadow-sm p-3 mt-3">
+                        <h6 class="card-title mb-3"><i class="fas fa-camera me-2"></i>Captura de Foto</h6>
+                        <div class="d-flex justify-content-center align-items-center mb-3 position-relative">
+                            <video id="webcam" autoplay playsinline class="rounded shadow-sm" style="width: 100%; max-width: 320px; height: auto; border: 2px solid #0d6efd;"></video>
+                            <canvas id="canvas" style="display: none;"></canvas>
+                            <input type="hidden" name="foto_visitante" id="id_foto_visitante">
+                            <div id="webcam-status" class="position-absolute top-0 start-0 bg-primary text-white px-2 py-1 rounded-bottom-end" style="font-size: 0.8em;">Webcam Inativa</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="button" class="btn btn-primary btn-lg" id="btn-tirar-foto" onclick="tirarFoto()">
+                                <i class="fas fa-camera me-2"></i>Tirar Foto
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btn-retomar-webcam" onclick="retomarWebcam()" style="display: none;">
+                                <i class="fas fa-sync-alt me-2"></i>Retomar Webcam
+                            </button>
                         </div>
 
-                    </div>
-                </div>
-                <div id="entregaFields" style="display:none;">
-                    <h6>Informações Entrega</h6>
-
-                    <div class="mb-2">
-                        <label for="id_tipo_entrega">Tipo de Entrega</label>
-                        {{ form_entrega.tipo_entrega }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_descricao_item">Descrição do Item</label>
-                        {{ form_entrega.descricao_item }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_nome_transportadora">Nome da Transportadora</label>
-                        {{ form_entrega.nome_transportadora }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_nome_entregador">Nome do Entregador</label>
-                        {{ form_entrega.nome_entregador }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_documentos_entregador">Documentos do Entregador</label>
-                        {{ form_entrega.documentos_entregador }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_data_hora_recebimento">Data e Hora do Recebimento</label>
-                        {{ form_entrega.data_hora_recebimento }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_nome_matricula_responsavel">Nome e Matrícula do Responsável</label>
-                        {{ form_entrega.nome_matricula_responsavel }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_assinatura_responsavel">Assinatura do Responsável</label>
-                        {{ form_entrega.assinatura_responsavel }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label for="id_data_hora_entrega_material">Data e Hora da Entrega do Material</label>
-                        {{ form_entrega.data_hora_entrega_material }}
-                    </div>
-
-                    {{ form_entrega.foto_webcam }}  <!-- campo hidden para armazenar foto capturada pela webcam -->
-
-                    <!-- Seção da webcam -->
-                    <div id="webcam-entrega-container" style="display:none;">
-                        <h6>Foto da Entrega (Caixa)</h6>
-                        <video id="webcam-entrega" autoplay playsinline width="300"></video>
-                        <canvas id="canvas-entrega" style="display:none;"></canvas>
-                        <input type="hidden" id="id_foto_entrega" name="foto_webcam">
-                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="tirarFotoEntrega()">Tirar Foto da Entrega</button>
-                        <div id="galeria-foto-entrega" class="position-relative mt-2" style="display: none;">
-                            <button type="button" onclick="removerFotoEntrega()" class="btn-close position-absolute top-0 end-0 m-1" aria-label="Fechar"></button>
-                            <img id="imagem-preview-entrega" src="" alt="Foto da Entrega" class="img-thumbnail" style="max-width: 100%; height: auto;">
+                        <div id="galeria-foto-visitante" class="mt-3 text-center" style="display: none;">
+                            <p class="text-success fw-bold"><i class="fas fa-check-circle me-2"></i>Foto capturada!</p>
+                            <div class="position-relative d-inline-block">
+                                <img id="imagem-preview-visitante" src="" class="img-fluid rounded shadow-lg" style="max-width: 320px; border: 3px solid #28a745;">
+                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle" onclick="removerFotoVisitante()" title="Remover Foto">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -170,21 +122,47 @@
                     let webcamStarted = false;
                     let webcamStream = null;
 
-                    let webcamEntregaStarted = false;
-                    let webcamEntregaStream = null;
+                    // Elementos da webcam
+                    const videoElement = document.getElementById('webcam');
+                    const canvasElement = document.getElementById('canvas');
+                    const fotoInput = document.getElementById('id_foto_visitante');
+                    const galeriaFoto = document.getElementById('galeria-foto-visitante');
+                    const imagemPreview = document.getElementById('imagem-preview-visitante');
+                    const btnTirarFoto = document.getElementById('btn-tirar-foto');
+                    const btnRetomarWebcam = document.getElementById('btn-retomar-webcam');
+                    const webcamStatus = document.getElementById('webcam-status');
+
+                    function updateWebcamStatus(statusText, isError = false) {
+                        webcamStatus.textContent = statusText;
+                        webcamStatus.className = 'position-absolute top-0 start-0 px-2 py-1 rounded-bottom-end';
+                        if (isError) {
+                            webcamStatus.classList.add('bg-danger', 'text-white');
+                        } else if (statusText === 'Webcam Ativa') {
+                            webcamStatus.classList.add('bg-success', 'text-white');
+                        } else {
+                            webcamStatus.classList.add('bg-primary', 'text-white');
+                        }
+                    }
 
                     function startWebcam() {
                         if (webcamStarted) return;
-                        const video = document.getElementById('webcam');
-
+                        updateWebcamStatus('Iniciando Webcam...', false);
                         navigator.mediaDevices.getUserMedia({ video: true })
                             .then(stream => {
-                                video.srcObject = stream;
+                                videoElement.srcObject = stream;
                                 webcamStream = stream;
                                 webcamStarted = true;
+                                videoElement.style.display = 'block'; // Mostra o vídeo
+                                btnTirarFoto.style.display = 'block'; // Mostra o botão de tirar foto
+                                btnRetomarWebcam.style.display = 'none'; // Esconde o botão de retomar
+                                updateWebcamStatus('Webcam Ativa', false);
                             })
                             .catch(err => {
                                 console.error("Erro ao acessar webcam visitante:", err);
+                                updateWebcamStatus('Erro ao iniciar Webcam', true);
+                                videoElement.style.display = 'none'; // Esconde o vídeo em caso de erro
+                                btnTirarFoto.style.display = 'none'; // Esconde o botão de tirar foto
+                                btnRetomarWebcam.style.display = 'block'; // Mostra o botão de retomar
                             });
                     }
 
@@ -192,135 +170,81 @@
                         if (webcamStream) {
                             webcamStream.getTracks().forEach(track => track.stop());
                             webcamStarted = false;
+                            videoElement.srcObject = null;
+                            videoElement.style.display = 'none'; // Esconde o vídeo
+                            btnTirarFoto.style.display = 'none'; // Esconde o botão de tirar foto
+                            updateWebcamStatus('Webcam Inativa', false);
                         }
+                    }
+
+                    function retomarWebcam() {
+                        galeriaFoto.style.display = 'none'; // Esconde a foto anterior
+                        fotoInput.value = ''; // Limpa o input
+                        imagemPreview.src = ''; // Limpa a preview
+                        startWebcam(); // Inicia a webcam novamente
                     }
 
                     function tirarFoto() {
-                        const video = document.getElementById('webcam');
-                        const canvas = document.getElementById('canvas');
-                        const input = document.getElementById('id_foto_visitante');
-                        const galeria = document.getElementById('galeria-foto-visitante');
-                        const imgPreview = document.getElementById('imagem-preview-visitante');
+                        canvasElement.width = videoElement.videoWidth;
+                        canvasElement.height = videoElement.videoHeight;
+                        canvasElement.getContext('2d').drawImage(videoElement, 0, 0);
 
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        const imageData = canvasElement.toDataURL('image/jpeg');
+                        fotoInput.value = imageData;
 
-                        const imageData = canvas.toDataURL('image/jpeg');
-                        input.value = imageData;
+                        imagemPreview.src = imageData;
+                        galeriaFoto.style.display = 'block';
 
-                        imgPreview.src = imageData;
-                        galeria.style.display = 'block';
-
-                        pararWebcam();
+                        pararWebcam(); // Para a webcam após tirar a foto
+                        btnRetomarWebcam.style.display = 'block'; // Mostra o botão de retomar
+                        updateWebcamStatus('Foto Capturada', false);
                     }
 
-
-
-                    function startWebcamEntrega() {
-                        if (webcamEntregaStarted) return;
-                        const video = document.getElementById('webcam-entrega');
-
-                        navigator.mediaDevices.getUserMedia({ video: true })
-                            .then(stream => {
-                                video.srcObject = stream;
-                                webcamEntregaStream = stream;
-                                webcamEntregaStarted = true;
-                            })
-                            .catch(err => {
-                                console.error("Erro ao acessar webcam entrega:", err);
-                            });
-                    }
-
-                    function pararWebcamEntrega() {
-                        if (webcamEntregaStream) {
-                            webcamEntregaStream.getTracks().forEach(track => track.stop());
-                            webcamEntregaStarted = false;
-                        }
-                    }
-
-                    function tirarFotoEntrega() {
-                        const video = document.getElementById('webcam-entrega');
-                        const canvas = document.getElementById('canvas-entrega');
-                        const input = document.getElementById('id_foto_entrega');
-                        const galeria = document.getElementById('galeria-foto-entrega');
-                        const imgPreview = document.getElementById('imagem-preview-entrega');
-
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        canvas.getContext('2d').drawImage(video, 0, 0);
-
-                        const imageData = canvas.toDataURL('image/jpeg');
-                        input.value = imageData;
-
-                        imgPreview.src = imageData;
-                        galeria.style.display = 'block';
-
-                        pararWebcamEntrega();
-                    }
-
-                    function removerFotoEntrega() {
-                        const input = document.getElementById('id_foto_entrega');
-                        const galeria = document.getElementById('galeria-foto-entrega');
-                        const imgPreview = document.getElementById('imagem-preview-entrega');
-
-                        input.value = '';
-                        imgPreview.src = '';
-                        galeria.style.display = 'none';
-
-                        startWebcamEntrega();  // reativa a câmera
-                    }
                     function removerFotoVisitante() {
-                        const input = document.getElementById('id_foto_visitante');
-                        const galeria = document.getElementById('galeria-foto-visitante');
-                        const imgPreview = document.getElementById('imagem-preview-visitante');
-
-                        input.value = '';
-                        imgPreview.src = '';
-                        galeria.style.display = 'none';
-
+                        fotoInput.value = '';
+                        imagemPreview.src = '';
+                        galeriaFoto.style.display = 'none';
+                        btnRetomarWebcam.style.display = 'none'; // Esconde o botão de retomar
                         startWebcam();  // reativa a câmera
                     }
-
-
-
 
                     const fornecedorModal = document.getElementById('fornecedorModal');
 
                     fornecedorModal.addEventListener('show.bs.modal', () => {
                         const categoria = document.getElementById('id_categoria')?.value;
-
-                        document.getElementById('visitanteFields').style.display = 'none';
-                        document.getElementById('fornecedorServicoFields').style.display = 'none';
-                        document.getElementById('entregaFields').style.display = 'none';
-                        document.getElementById('webcam-entrega-container').style.display = 'none';
+                        const visitanteFields = document.getElementById('visitanteFields');
 
                         if (categoria === 'VISITANTE') {
-                            document.getElementById('visitanteFields').style.display = 'block';
+                            visitanteFields.style.display = 'block';
                             startWebcam();
-                        } else if (categoria === 'FORNECEDOR') {
-                            document.getElementById('fornecedorServicoFields').style.display = 'block';
-                            startWebcamServico();
-                        } else if (categoria === 'ENTREGA') {
-                            document.getElementById('entregaFields').style.display = 'block';
-                            document.getElementById('webcam-entrega-container').style.display = 'block';
-                            startWebcamEntrega();
+                        } else {
+                            visitanteFields.style.display = 'none';
+                            pararWebcam();
                         }
                     });
 
                     fornecedorModal.addEventListener('hide.bs.modal', () => {
                         pararWebcam();
-                        pararWebcamServico();
-                        pararWebcamEntrega();
-
-                        document.getElementById('id_foto_visitante').value = '';
-                        document.getElementById('id_foto_webcam').value = '';
-                        document.getElementById('id_foto_entrega').value = '';
+                        // Limpa o input da foto e a preview ao fechar o modal
+                        fotoInput.value = '';
+                        imagemPreview.src = '';
+                        galeriaFoto.style.display = 'none';
+                        btnRetomarWebcam.style.display = 'none';
+                        updateWebcamStatus('Webcam Inativa', false);
                     });
 
                     // Atualiza webcams se mudar a categoria manualmente
                     document.getElementById('id_categoria')?.addEventListener('change', () => {
-                        fornecedorModal.dispatchEvent(new Event('show.bs.modal'));
+                        const categoria = document.getElementById('id_categoria').value;
+                        const visitanteFields = document.getElementById('visitanteFields');
+
+                        if (categoria === 'VISITANTE') {
+                            visitanteFields.style.display = 'block';
+                            startWebcam();
+                        } else {
+                            visitanteFields.style.display = 'none';
+                            pararWebcam();
+                        }
                     });
                 </script>
 
@@ -349,8 +273,7 @@
                     }
                 }
 
-                categoriaSelect.addEventListener('change', toggleFields);
-                toggleFields();  // Executar no carregamento
+                categoriaSelect.addEventListener("change", toggleFields);
             });
         </script>
 
@@ -442,20 +365,13 @@
                                     data-bs-toggle="modal" 
                                     data-bs-target="#modalFoto" 
                                     data-foto="{{ entrada.fornecedor.visitante.foto_visitante.url }}">
-                            {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico and entrada.fornecedor.fornecedor_servico.foto_fornecedor %}
-                                <img src="{{ entrada.fornecedor.fornecedor_servico.foto_fornecedor.url }}" 
+                            {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.trabalhador_relacionado and entrada.fornecedor.trabalhador_relacionado.foto_representante %}
+                                <img src="{{ entrada.fornecedor.trabalhador_relacionado.foto_representante.url }}" 
                                     alt="Foto Fornecedor" 
                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
                                     data-bs-toggle="modal" 
                                     data-bs-target="#modalFoto" 
-                                    data-foto="{{ entrada.fornecedor.fornecedor_servico.foto_fornecedor.url }}">
-                            {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega and entrada.fornecedor.entrega.foto_caixa_entrega %}
-                                <img src="{{ entrada.fornecedor.entrega.foto_caixa_entrega.url }}" 
-                                    alt="Foto Entrega" 
-                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #28a745; cursor: pointer;"
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#modalFoto" 
-                                    data-foto="{{ entrada.fornecedor.entrega.foto_caixa_entrega.url }}">
+                                    data-foto="{{ entrada.fornecedor.trabalhador_relacionado.foto_representante.url }}">
                             {% else %}
                                 <span>—</span>
                             {% endif %}
@@ -471,7 +387,26 @@
                             </td>
                             <td>{{ entrada.base }}</td>
                             <td>{{ entrada.fornecedor.get_categoria_display }}</td>
-                            <td>{{ entrada.get_nome_fornecedor }}</td>
+                            <td>
+                                {% if entrada.fornecedor.categoria == 'VISITANTE' %}
+                                    {{ entrada.fornecedor.visitante.nome }}
+                                {% elif entrada.fornecedor.categoria == 'FORNECEDOR' %}
+                                    {% if entrada.fornecedor.fornecedor_servico %}
+                                        {{ entrada.fornecedor.fornecedor_servico.nome_empresa }}
+                                        {% if entrada.fornecedor.trabalhador_relacionado %}
+                                            <br><small class="text-muted">{{ entrada.fornecedor.trabalhador_relacionado.nome_representante }}</small>
+                                        {% endif %}
+                                    {% elif entrada.fornecedor.trabalhador_relacionado %}
+                                        {{ entrada.fornecedor.trabalhador_relacionado.nome_representante }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                {% elif entrada.fornecedor.categoria == 'ENTREGA' %}
+                                    {{ entrada.fornecedor.entrega.nome_entregador }}
+                                {% else %}
+                                    ID {{ entrada.fornecedor.id }}
+                                {% endif %}
+                            </td>
                             <td>{{ entrada.assinatura_portaria }}</td>
                             <td>{{ entrada.status }}</td>
                             <td>
@@ -602,26 +537,6 @@
                                                                 <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
                                                                 <p><strong>Responsável Autorizante:</strong> {{ entrada.responsavel_autorizante }}</p>
                                                                 <p><strong>Veículo:</strong> {{ entrada.modelo_veiculo|default:"Não informado" }} - {{ entrada.placa_veiculo|default:"N/A" }}</p>
-
-                                                            {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.fornecedor_servico %}
-                                                                <p><strong>Empresa:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_empresa }}</p>
-                                                                <p><strong>Representante:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_representante }}</p>
-                                                                <p><strong>Documento:</strong> {{ entrada.fornecedor.fornecedor_servico.documento }}</p>
-                                                                <p><strong>Atividade/Serviço:</strong> {{ entrada.fornecedor.fornecedor_servico.atividade_servico }}</p>
-                                                                <hr>
-                                                                <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
-                                                                <p><strong>Responsável Autorizante:</strong> {{ entrada.responsavel_autorizante }}</p>
-                                                                <p><strong>Veículo:</strong> {{ entrada.modelo_veiculo|default:"Não informado" }} - {{ entrada.placa_veiculo|default:"N/A" }}</p>
-
-                                                            {% elif entrada.fornecedor.categoria == 'ENTREGA' and entrada.fornecedor.entrega %}
-                                                                <p><strong>Entregador:</strong> {{ entrada.fornecedor.entrega.nome_entregador }}</p>
-                                                                <p><strong>Transportadora:</strong> {{ entrada.fornecedor.entrega.nome_transportadora }}</p>
-                                                                <p><strong>Tipo de Entrega:</strong> {{ entrada.fornecedor.entrega.tipo_entrega }}</p>
-                                                                <p><strong>Descrição do Item:</strong> {{ entrada.fornecedor.entrega.descricao_item }}</p>
-                                                                <hr>
-                                                                <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
-                                                                <p><strong>Documentos:</strong> {{ entrada.fornecedor.entrega.documentos_entregador }}</p>
-                                                                <p><strong>Veículo (Placa):</strong> {{ entrada.placa_veiculo|default:"Não informado" }}</p>
                                                             {% endif %}
                                                         </div>
                                                     </div>
@@ -746,15 +661,13 @@
     document.addEventListener("DOMContentLoaded", function () {
         const categoriaSelect = document.querySelector('#id_categoria');
         const visitanteFields = document.getElementById('visitanteFields');
-        const fornecedorServicoFields = document.getElementById('fornecedorServicoFields');
-        const entregaFields = document.getElementById('entregaFields');
 
         // Função para mostrar/esconder e habilitar/desabilitar campos
         function toggleFields() {
             const categoria = categoriaSelect.value;
 
             // Esconde e desabilita todos os campos
-            [visitanteFields, fornecedorServicoFields, entregaFields].forEach(fieldset => {
+            [visitanteFields].forEach(fieldset => {
                 fieldset.style.display = 'none';
                 fieldset.querySelectorAll('input, select, textarea').forEach(input => {
                     input.disabled = true;
@@ -767,24 +680,11 @@
                 visitanteFields.querySelectorAll('input, select, textarea').forEach(input => {
                     input.disabled = false;
                 });
-            } else if (categoria === 'FORNECEDOR') {
-                fornecedorServicoFields.style.display = 'block';
-                fornecedorServicoFields.querySelectorAll('input, select, textarea').forEach(input => {
-                    input.disabled = false;
-                });
-            } else if (categoria === 'ENTREGA') {
-                entregaFields.style.display = 'block';
-                entregaFields.querySelectorAll('input, select, textarea').forEach(input => {
-                    input.disabled = false;
-                });
-            }
+            } 
         }
 
-        // Evento quando o usuário muda a categoria
-        categoriaSelect.addEventListener('change', toggleFields);
+        // Evento qu                categoriaSelect.addEventListener('change', toggleFields);
 
-        // Executa ao carregar a página
-        toggleFields();
     });
     </script>
 
