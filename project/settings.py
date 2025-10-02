@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['portaria.nortesistech.com', '54.156.216.155', '127.0.0.1', 'localhost']
 
-
+LOGIN_URL = '/login/'
 
 # Application definition
 
