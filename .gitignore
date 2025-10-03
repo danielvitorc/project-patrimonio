@@ -11,3 +11,6 @@ __pycache__/
 
 # Ignore o Banco de Dados
 *.sqlite3
+
+# Mantém apenas as pastas (sem arquivos)
+!media/**/
