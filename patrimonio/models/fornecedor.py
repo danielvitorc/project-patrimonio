@@ -78,9 +78,19 @@ class Fornecedor(models.Model):
         
         return None
 
+class Visitante(models.Model, Base64ImageMixin):
+    fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='visitante')
+    nome = models.CharField(max_length=255)
+    documento = models.CharField(max_length=100, help_text="RG, CPF ou CNH")
+    motivo_visita = models.CharField(max_length=255)
+    foto_visitante = models.ImageField(upload_to='fotos_visitantes/', blank=True, null=True)
 
+    def save_base64_image(self, base64_string, filename):
+        """Salva a imagem base64 no campo foto_visitante"""
+        self.save_base64_image(base64_string, filename, self.foto_visitante)
 
-
+    def __str__(self):
+        return f"{self.nome} ({self.documento})"
 
 # Seu modelo original, com pequenos ajustes e relacionamento a Fornecedor
 class FornecedorServico(models.Model):
@@ -184,21 +194,6 @@ class Associado(BaseTrabalhador):
     class Meta:
         verbose_name = "Associado"
         verbose_name_plural = "Associados"
-
-
-class Visitante(models.Model, Base64ImageMixin):
-    fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='visitante')
-    nome = models.CharField(max_length=255)
-    documento = models.CharField(max_length=100, help_text="RG, CPF ou CNH")
-    motivo_visita = models.CharField(max_length=255)
-    foto_visitante = models.ImageField(upload_to='fotos_visitantes/', blank=True, null=True)
-
-    def save_base64_image(self, base64_string, filename):
-        """Salva a imagem base64 no campo foto_visitante"""
-        self.save_base64_image(base64_string, filename, self.foto_visitante)
-
-    def __str__(self):
-        return f"{self.nome} ({self.documento})"
 
 class Entrega(models.Model):
     fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='entrega')
