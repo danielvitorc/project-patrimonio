@@ -144,126 +144,99 @@ from django.db import transaction
 
 @login_required
 def fornecedores_cadastrados(request):
-    # 1. Inicialize todos os formulários que a página pode precisar
+    # 1. Inicialize todos os formulários que a página pode precisar para o método GET
     fornecedor_form = FornecedorPrestadorForm()
+    fornecedor_servico_form = FornecedorServicoForm() # Adicionado aqui para o contexto inicial
     clt_form = TrabalhadorCLTForm()
     pj_form = PessoaJuridicaForm()
     mei_form = MEIForm()
     autonomo_form = AutonomoForm()
     associado_form = AssociadoForm()
-    # Adicione o form de serviço também, caso precise dele no futuro
-    fornecedor_servico_form = FornecedorServicoForm()
 
     if request.method == "POST":
-        print("POST recebido:", request.POST)  # Debug
-        print("FILES recebidos:", request.FILES)  # Debug
-        
         # Extrair dados básicos do POST
         categoria = request.POST.get("categoria")
         subcategoria_slug = request.POST.get("subcategoria")
         validade_meses = request.POST.get("validade_meses")
         
-        print(f"Categoria: {categoria}")  # Debug
-        print(f"Subcategoria recebida: {subcategoria_slug}")  # Debug
-        print(f"Validade meses: {validade_meses}")  # Debug
-
-        # CORREÇÃO: Mapeamento correto dos valores do HTML para os formulários
+        # Mapeamento dos valores do HTML para os formulários e modelos
         form_map = {
-            "trabalhador_clt": TrabalhadorCLTForm,
-            "pessoa_juridica": PessoaJuridicaForm,
-            "mei": MEIForm,
-            "autonomo": AutonomoForm,
-            "associado": AssociadoForm,
-            "fornecedor_servico": FornecedorServicoForm,
+            "trabalhador_clt": (TrabalhadorCLTForm, "CLT"),
+            "pessoa_juridica": (PessoaJuridicaForm, "PJ"),
+            "mei": (MEIForm, "MEI"),
+            "autonomo": (AutonomoForm, "AUTONOMO"),
+            "associado": (AssociadoForm, "ASSOCIADO"),
         }
 
-        # CORREÇÃO: Mapeamento dos valores do HTML para os valores do modelo
-        subcategoria_model_map = {
-            "trabalhador_clt": "CLT",
-            "pessoa_juridica": "PJ",
-            "mei": "MEI",
-            "autonomo": "AUTONOMO",
-            "associado": "ASSOCIADO",
-            "fornecedor_servico": "FORNECEDOR_SERVICO",
-        }
-
-        trabalhador_form = None # Inicializa como None
+        trabalhador_form = None
 
         if categoria == "FORNECEDOR" and subcategoria_slug in form_map:
-            # Criar o fornecedor primeiro
+            TrabalhadorForm, subcategoria_model = form_map[subcategoria_slug]
+
+            # 2. Instancie os TRÊS formulários com os dados do POST
             fornecedor_data = {
-                'categoria': categoria,
-                'subcategoria': subcategoria_model_map.get(subcategoria_slug),
+                'subcategoria': subcategoria_model,
                 'validade_meses': validade_meses
             }
-            
-            print(f"Dados do fornecedor: {fornecedor_data}")  # Debug
-            
-            # Criar formulário do fornecedor com dados corretos
             fornecedor_form = FornecedorPrestadorForm(fornecedor_data)
-            
-            TrabalhadorForm = form_map[subcategoria_slug]
-            # 3. Preencha o formulário do trabalhador específico com os dados do POST
+            fornecedor_servico_form = FornecedorServicoForm(request.POST) # Novo formulário
             trabalhador_form = TrabalhadorForm(request.POST, request.FILES)
             
-            print(f"Formulário criado: {TrabalhadorForm.__name__}")  # Debug
-            print(f"Dados do fornecedor válidos: {fornecedor_form.is_valid()}")  # Debug
-            print(f"Dados do trabalhador válidos: {trabalhador_form.is_valid()}")  # Debug
-            
-            if not fornecedor_form.is_valid():
-                print(f"Erros do fornecedor: {fornecedor_form.errors}")  # Debug
-            if not trabalhador_form.is_valid():
-                print(f"Erros do trabalhador: {trabalhador_form.errors}")  # Debug
-
-            # 4. Valide AMBOS os formulários
-            if fornecedor_form.is_valid() and trabalhador_form.is_valid():
+            # 3. Valide os TRÊS formulários
+            if fornecedor_form.is_valid() and fornecedor_servico_form.is_valid() and trabalhador_form.is_valid():
                 try:
+                    # Usar transaction.atomic para garantir que tudo seja salvo ou nada
                     with transaction.atomic():
-                        # Salvar o fornecedor primeiro
+                        # a. Salva o Fornecedor principal primeiro para obter um ID
                         fornecedor_instance = fornecedor_form.save()
                         
-                        # Salvar o trabalhador vinculado ao fornecedor
+                        # b. Salva o FornecedorServico, vinculando-o ao Fornecedor criado
+                        servico_instance = fornecedor_servico_form.save(commit=False)
+                        servico_instance.fornecedor = fornecedor_instance
+                        servico_instance.save()
+                        
+                        # c. Salva o Trabalhador específico, também vinculando-o
                         trabalhador_instance = trabalhador_form.save(commit=False)
                         trabalhador_instance.fornecedor = fornecedor_instance
                         trabalhador_instance.save()
-                        
-                        print("Salvamento realizado com sucesso!")  # Debug
                     
-                    return redirect("fornecedores_cadastrados") # SUCESSO!
+                    # Se tudo deu certo, redireciona
+                    return redirect("fornecedores_cadastrados")
+                
                 except Exception as e:
-                    print(f"Erro na transação: {e}") # Log para depuração
-                    # Adicione um erro não-campo ao formulário para notificar o usuário
+                    # Se ocorrer um erro durante o salvamento
                     fornecedor_form.add_error(None, f"Ocorreu um erro inesperado ao salvar: {e}")
             else:
-                print("Formulários inválidos:")  # Debug
-                print(f"Fornecedor form errors: {fornecedor_form.errors}")
+                # Se a validação falhar, imprima os erros para depuração
+                print("--- ERROS DE VALIDAÇÃO ---")
+                print(f"Fornecedor Form: {fornecedor_form.errors}")
+                print(f"Serviço Form: {fornecedor_servico_form.errors}")
                 if trabalhador_form:
-                    print(f"Trabalhador form errors: {trabalhador_form.errors}")
+                    print(f"Trabalhador Form: {trabalhador_form.errors}")
+                print("--------------------------")
 
-            # 5. SE A VALIDAÇÃO FALHAR, a view continua aqui.
-            # A mágica é que as variáveis `fornecedor_form` e `trabalhador_form`
-            # agora contêm os dados preenchidos e os dicionários de erros.
-            # Precisamos garantir que o formulário correto seja passado para o contexto.
-            
+            # Se a validação falhar, a view continua e renderiza os formulários com os erros
+            # Atribuir o formulário do trabalhador com erro à variável de contexto correta
             if subcategoria_slug == "trabalhador_clt": clt_form = trabalhador_form
             elif subcategoria_slug == "pessoa_juridica": pj_form = trabalhador_form
             elif subcategoria_slug == "mei": mei_form = trabalhador_form
             elif subcategoria_slug == "autonomo": autonomo_form = trabalhador_form
             elif subcategoria_slug == "associado": associado_form = trabalhador_form
-            elif subcategoria_slug == "fornecedor_servico": fornecedor_servico_form = trabalhador_form
 
     # Lógica para GET (ou se o POST falhar)
-    fornecedores = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').all().order_by('-data_integracao')
+    fornecedores = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
+        'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'
+    ).all().order_by('-data_integracao')
 
     context = {
         "fornecedores": fornecedores,
-        "fornecedor_prestador_form": fornecedor_form, # Passa o formulário (vazio ou com erros)
+        "fornecedor_prestador_form": fornecedor_form,
+        "fornecedor_servico_form": fornecedor_servico_form, # Passa o form para o contexto
         "clt_form": clt_form,
         "pj_form": pj_form,
         "mei_form": mei_form,
         "autonomo_form": autonomo_form,
         "associado_form": associado_form,
-        "fornecedor_servico_form": fornecedor_servico_form,
     }
     return render(request, "patrimonio/fornecedores_cadastrados.html", context)
 
