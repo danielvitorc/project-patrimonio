@@ -27,21 +27,18 @@ class Fornecedor(models.Model):
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
     subcategoria = models.CharField(max_length=20, choices=SUBCATEGORIAS, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Integrado')
-    validade_meses = models.IntegerField()
-    data_integracao = models.DateField(blank=True, null=True)
-    data_validade = models.DateField(null=True, blank=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if not self.id:
-            if not self.data_integracao:
-                self.data_integracao = timezone.now().date()
-            if self.validade_meses:
-                self.data_validade = self.data_integracao + relativedelta(months=self.validade_meses)
-        
-        if self.data_validade:
-            self.status = 'Pendente' if timezone.now().date() >= self.data_validade else 'Integrado'
-        super().save(*args, **kwargs)
+    def atualizar_status(self):
+        """Atualiza o status com base na validade da última integração."""
+        ultima_integracao = self.integracoes.order_by('-data_integracao').first()
+        if not ultima_integracao:
+            self.status = 'Sem integração'
+        elif ultima_integracao.data_validade < timezone.now().date():
+            self.status = 'Pendente'
+        else:
+            self.status = 'Integrado'
+        self.save(update_fields=['status'])
         
     def __str__(self):
         # Tenta obter o nome do visitante, se existir
@@ -194,6 +191,38 @@ class Associado(BaseTrabalhador):
     class Meta:
         verbose_name = "Associado"
         verbose_name_plural = "Associados"
+
+class Integracao(models.Model):
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.CASCADE, related_name='integracoes')
+    data_integracao = models.DateField()
+    validade_meses = models.PositiveIntegerField()
+    data_validade = models.DateField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        """Define automaticamente a data de validade e atualiza o status do fornecedor."""
+        if self.data_integracao and self.validade_meses:
+            self.data_validade = self.data_integracao + relativedelta(months=self.validade_meses)
+        super().save(*args, **kwargs)
+        self.fornecedor.atualizar_status()
+
+    def __str__(self):
+        return f"Integracao {self.fornecedor} - {self.data_integracao}"
+
+class QuestionarioIntegracao(models.Model):
+    integracao = models.OneToOneField(Integracao, on_delete=models.CASCADE, related_name='questionario')
+    questao1 = models.BooleanField()
+    questao2 = models.BooleanField()
+    questao3 = models.BooleanField()
+    data_registro = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        """Valida se o fornecedor é do tipo FORNECEDOR antes de salvar."""
+        if self.integracao.fornecedor.categoria != 'FORNECEDOR':
+            raise ValueError("Apenas fornecedores de serviço podem responder o questionário de integração.")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Questionário de {self.integracao.fornecedor}"
 
 class Entrega(models.Model):
     fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='entrega')
