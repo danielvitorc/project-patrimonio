@@ -20,13 +20,14 @@ class Fornecedor(models.Model):
     ]
 
     STATUS_CHOICES = [
+        ('Sem integração', 'Sem integração'),
         ('Integrado', 'Integrado'),
         ('Pendente', 'Pendente'),
     ]
     
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
     subcategoria = models.CharField(max_length=20, choices=SUBCATEGORIAS, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Integrado')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Sem integração')
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
     def atualizar_status(self):
