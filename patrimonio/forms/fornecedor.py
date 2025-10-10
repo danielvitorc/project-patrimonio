@@ -1,6 +1,6 @@
 from django import forms
 from django_select2.forms import Select2Widget 
-from patrimonio.models import Fornecedor, Visitante, FornecedorServico, Entrega, EntradaFornecedor, TrabalhadorCLT, PessoaJuridica, MEI, Autonomo, Associado
+from patrimonio.models import Fornecedor, Visitante, FornecedorServico, Entrega, EntradaFornecedor, TrabalhadorCLT, PessoaJuridica, MEI, Autonomo, Associado, QuestionarioIntegracao
 from ._choices import BASE_CHOICES
 
 
@@ -15,11 +15,10 @@ BASE_CHOICES = [
 class FornecedorForm(forms.ModelForm):
     class Meta:
         model = Fornecedor
-        fields = ['categoria', 'subcategoria', 'validade_meses']
+        fields = ['categoria', 'subcategoria']
         widgets = {
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'subcategoria': forms.Select(attrs={'class': 'form-select'}),
-            'validade_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -27,8 +26,6 @@ class FornecedorForm(forms.ModelForm):
         # restringe choices só para Visitante
         self.fields['categoria'].choices = [('VISITANTE', 'Visitante')]
         self.fields['categoria'].initial = 'VISITANTE'
-        # seta validade padrão como 12 meses
-        self.fields['validade_meses'].initial = 12
         # opcional: esconder subcategoria para Visitante
         self.fields['subcategoria'].widget = forms.HiddenInput()
         self.fields['subcategoria'].required = False
@@ -38,19 +35,13 @@ class FornecedorForm(forms.ModelForm):
 class FornecedorPrestadorForm(forms.ModelForm):
     class Meta:
         model = Fornecedor
-        fields = ['subcategoria', 'validade_meses']
+        fields = ['subcategoria']
         widgets = {
             'subcategoria': forms.Select(attrs={'class': 'form-select'}),
-            'validade_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
         labels = {
             'subcategoria': 'Selecione a Subcategoria',
-            'validade_meses': 'Validade do Cadastro (em meses)'
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['validade_meses'].initial = 12
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -312,3 +303,8 @@ class EntradaFornecedorForm(forms.ModelForm):
         # 3. Fallback: Se nada funcionar, mostra o ID.
         # Isso nos ajuda a saber quais objetos estão com dados faltando.
         return f"Cadastro ID {obj.pk}"
+
+class QuestionarioIntegracaoForm(forms.ModelForm):
+    class Meta:
+        model = QuestionarioIntegracao
+        fields = ['questao1', 'questao2', 'questao3']

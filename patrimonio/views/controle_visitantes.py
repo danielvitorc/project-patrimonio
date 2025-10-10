@@ -1,14 +1,17 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Value
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
-from patrimonio.forms import FornecedorForm, VisitanteForm, EntregaForm, EntradaFornecedorForm, FornecedorPrestadorForm, TrabalhadorCLTForm, PessoaJuridicaForm, MEIForm, AutonomoForm, AssociadoForm, FornecedorServicoForm
-from patrimonio.models import Fornecedor, EntradaFornecedor, Visitante, Entrega, TrabalhadorCLT, PessoaJuridica, MEI, Autonomo, Associado
+from patrimonio.forms import FornecedorForm, VisitanteForm, EntregaForm, EntradaFornecedorForm, FornecedorPrestadorForm, TrabalhadorCLTForm, PessoaJuridicaForm, MEIForm, AutonomoForm, AssociadoForm, FornecedorServicoForm, QuestionarioIntegracaoForm
+from patrimonio.models import Fornecedor, EntradaFornecedor, Visitante, Entrega, TrabalhadorCLT, PessoaJuridica, MEI, Autonomo, Associado, Integracao, IntegracaoToken
 from patrimonio.utils import process_webcam_photo, enviar_alerta_vencimentos
 from django.core.files.base import ContentFile
+from datetime import timedelta
+import secrets
 import base64
 import uuid
 
@@ -143,6 +146,90 @@ def status_fornecedor(request, pk):
 from django.db import transaction
 
 @login_required
+def gerar_link_integracao(request, fornecedor_id):
+    fornecedor = get_object_or_404(Fornecedor, id=fornecedor_id)
+
+    # ✅ Impede gerar se já estiver integrado
+    if fornecedor.status not in ["Sem integração", "Pendente"]:
+        return JsonResponse({"erro": "Este fornecedor já está integrado."}, status=400)
+
+    # ✅ Cria ou busca a integração existente, mas SEM definir data_integracao
+    integracao, _ = Integracao.objects.get_or_create(
+        fornecedor=fornecedor,
+        defaults={"validade_meses": 12}  # padrão inicial
+    )
+
+    # ✅ Verifica se já existe token válido
+    token_existente = integracao.tokens.filter(expira_em__gt=timezone.now()).first()
+    if token_existente:
+        url = request.build_absolute_uri(
+            reverse("pagina_integracao_externa", args=[integracao.uuid_link, token_existente.uuid_link])
+        )
+        return JsonResponse({
+            "link": url,
+            "token": token_existente.token,
+            "mensagem": "Um link já foi gerado nas últimas 24 horas."
+        })
+
+    # ✅ Verifica se já existe validade definida
+    validade_meses = integracao.validade_meses or request.POST.get("validade_meses")
+
+    # Se ainda não existir validade (nova integração e o usuário não informou)
+    if not validade_meses:
+        return JsonResponse({"erro": "Informe a validade (em meses)."}, status=400)
+
+    validade_meses = int(validade_meses)
+    integracao.validade_meses = validade_meses
+    integracao.save(update_fields=["validade_meses"])
+
+    # ✅ Cria novo token válido por 24h
+    token = IntegracaoToken.objects.create(
+        integracao=integracao,
+        criado_por=request.user,
+        expira_em=timezone.now() + timedelta(hours=24)
+    )
+
+    url = request.build_absolute_uri(
+        reverse("pagina_integracao_externa", args=[integracao.uuid_link, token.uuid_link])
+    )
+
+    return JsonResponse({
+        "link": url,
+        "token": token.token,
+        "mensagem": "Novo link de integração gerado com sucesso.",
+        "validade_usada": validade_meses,
+    })
+
+
+def pagina_integracao_externa(request, uuid_link, token):
+    integracao = get_object_or_404(Integracao, uuid_link=uuid_link)
+    token_obj = get_object_or_404(IntegracaoToken, integracao=integracao, uuid_link=token)
+
+    # ✅ Valida o token
+    if not token_obj.is_valid():
+        return HttpResponse("❌ Token expirado ou inválido. Solicite um novo link de integração.", status=403)
+
+    # ✅ Se o questionário já foi preenchido, bloqueia novo envio
+    if hasattr(integracao, "questionario"):
+        return HttpResponse("✅ Questionário já foi preenchido para este fornecedor.", status=200)
+
+    if request.method == "POST":
+        form = QuestionarioIntegracaoForm(request.POST)
+        if form.is_valid():
+            questionario = form.save(commit=False)
+            questionario.integracao = integracao
+            questionario.save()
+            return HttpResponse("✅ Questionário enviado com sucesso. Obrigado!", status=200)
+    else:
+        form = QuestionarioIntegracaoForm()
+
+    return render(request, "patrimonio/integracao_externa.html", {
+        "fornecedor": integracao.fornecedor,
+        "integracao": integracao,
+        "form": form
+    })
+
+@login_required
 def fornecedores_cadastrados(request):
     # 1. Inicialize todos os formulários que a página pode precisar para o método GET
     fornecedor_form = FornecedorPrestadorForm()
@@ -157,7 +244,6 @@ def fornecedores_cadastrados(request):
         # Extrair dados básicos do POST
         categoria = request.POST.get("categoria")
         subcategoria_slug = request.POST.get("subcategoria")
-        validade_meses = request.POST.get("validade_meses")
         
         # Mapeamento dos valores do HTML para os formulários e modelos
         form_map = {
@@ -176,7 +262,6 @@ def fornecedores_cadastrados(request):
             # 2. Instancie os TRÊS formulários com os dados do POST
             fornecedor_data = {
                 'subcategoria': subcategoria_model,
-                'validade_meses': validade_meses
             }
             fornecedor_form = FornecedorPrestadorForm(fornecedor_data)
             fornecedor_servico_form = FornecedorServicoForm(request.POST) # Novo formulário
@@ -226,7 +311,7 @@ def fornecedores_cadastrados(request):
     # Lógica para GET (ou se o POST falhar)
     fornecedores = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
         'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'
-    ).all().order_by('-data_integracao')
+    ).all()
 
     context = {
         "fornecedores": fornecedores,

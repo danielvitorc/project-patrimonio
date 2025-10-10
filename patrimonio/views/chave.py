@@ -79,4 +79,4 @@ def excluir_chave(request, id):
         messages.success(request, "Movimentação de Chave excluído com sucesso.")
     except Exception as e:
         messages.error(request, f"Ocorreu um erro ao tentar excluir movimentação de chave: {e}")
-    return redirect('entrega_de_chave')  
+    return redirect('entrega_de_chave')

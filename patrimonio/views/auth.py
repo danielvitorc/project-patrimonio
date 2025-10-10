@@ -35,4 +35,3 @@ def login_usuario(request):
 def logout_usuario(request):
     logout(request)
     return redirect('login')
-

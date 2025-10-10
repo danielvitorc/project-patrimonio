@@ -1,8 +1,13 @@
 from django.contrib.auth.models import User 
 from django.db import models
 from django.utils import timezone
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 from patrimonio.utils import Base64ImageMixin
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+import secrets
+import uuid
 
 
 class Fornecedor(models.Model):
@@ -31,34 +36,27 @@ class Fornecedor(models.Model):
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
     def atualizar_status(self):
-        """Atualiza o status com base na validade da última integração."""
         ultima_integracao = self.integracoes.order_by('-data_integracao').first()
-        if not ultima_integracao:
+        if not ultima_integracao or not ultima_integracao.data_integracao:
             self.status = 'Sem integração'
-        elif ultima_integracao.data_validade < timezone.now().date():
+        elif ultima_integracao.data_validade and ultima_integracao.data_validade < timezone.now().date():
             self.status = 'Pendente'
         else:
             self.status = 'Integrado'
         self.save(update_fields=['status'])
+
         
     def __str__(self):
-        # Tenta obter o nome do visitante, se existir
         if self.categoria == 'VISITANTE' and hasattr(self, 'visitante'):
             return f"Visitante: {self.visitante.nome}"
         
-        # Tenta obter o nome da empresa/representante do fornecedor de serviço
         if self.categoria == 'FORNECEDOR' and hasattr(self, 'trabalhador_relacionado'):
-            # O 'trabalhador_relacionado' é uma property que você já deve ter
-            # para buscar o representante em diferentes tabelas (CLT, PJ, etc.)
             trabalhador = self.trabalhador_relacionado
             if trabalhador:
-                # Se tiver nome da empresa e do representante
                 if hasattr(self, 'fornecedor_servico') and self.fornecedor_servico.nome_empresa:
                     return f"{self.fornecedor_servico.nome_empresa} ({trabalhador.nome_representante})"
-                # Se tiver só o nome do representante
                 return f"Fornecedor: {trabalhador.nome_representante}"
 
-        # Fallback: se não encontrar um nome específico, retorna o ID
         return f"Fornecedor ID {self.pk}"
 
     @property
@@ -73,8 +71,25 @@ class Fornecedor(models.Model):
             return self.autonomos.first()
         if self.subcategoria == 'ASSOCIADO':
             return self.associados.first()
-        
         return None
+    
+    @property
+    def ultima_integracao(self):
+        return self.integracoes.order_by('-data_integracao').first()
+
+    @property
+    def data_integracao_formatada(self):
+        ultima = self.ultima_integracao
+        if ultima and ultima.data_integracao:
+            return ultima.data_integracao.strftime("%d/%m/%Y")
+        return "Ainda não foi integrado"
+
+    @property
+    def data_validade_formatada(self):
+        ultima = self.ultima_integracao
+        if ultima and ultima.data_validade:
+            return ultima.data_validade.strftime("%d/%m/%Y")
+        return "-"
 
 class Visitante(models.Model, Base64ImageMixin):
     fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='visitante')
@@ -195,19 +210,25 @@ class Associado(BaseTrabalhador):
 
 class Integracao(models.Model):
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.CASCADE, related_name='integracoes')
-    data_integracao = models.DateField()
+    uuid_link = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, null=True, blank=True)
+    data_integracao = models.DateField(blank=True, null=True)
     validade_meses = models.PositiveIntegerField()
     data_validade = models.DateField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         """Define automaticamente a data de validade e atualiza o status do fornecedor."""
-        if self.data_integracao and self.validade_meses:
+        # ✅ Calcula a validade apenas se houver data_integracao
+        if self.data_integracao and not self.data_validade:
             self.data_validade = self.data_integracao + relativedelta(months=self.validade_meses)
+
         super().save(*args, **kwargs)
-        self.fornecedor.atualizar_status()
+
+        # ✅ Só atualiza o status se a integração estiver concluída (ou seja, data_integracao definida)
+        if self.data_integracao:
+            self.fornecedor.atualizar_status()
 
     def __str__(self):
-        return f"Integracao {self.fornecedor} - {self.data_integracao}"
+        return f"Integracao {self.fornecedor} - {self.data_integracao or 'Sem data'}"
 
 class QuestionarioIntegracao(models.Model):
     integracao = models.OneToOneField(Integracao, on_delete=models.CASCADE, related_name='questionario')
@@ -217,13 +238,26 @@ class QuestionarioIntegracao(models.Model):
     data_registro = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        """Valida se o fornecedor é do tipo FORNECEDOR antes de salvar."""
+        """Valida se o fornecedor é do tipo FORNECEDOR antes de salvar."""  
         if self.integracao.fornecedor.categoria != 'FORNECEDOR':
             raise ValueError("Apenas fornecedores de serviço podem responder o questionário de integração.")
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Questionário de {self.integracao.fornecedor}"
+
+
+@receiver(post_save, sender=QuestionarioIntegracao)
+def preencher_data_integracao(sender, instance, created, **kwargs):
+    """
+    Quando o questionário for preenchido, define a data_integracao
+    automaticamente na Integração associada.
+    """
+    if created and instance.integracao:
+        integracao = instance.integracao
+        if not integracao.data_integracao:
+            integracao.data_integracao = timezone.now().date()
+            integracao.save(update_fields=["data_integracao"])
 
 class Entrega(models.Model):
     fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='entrega')
@@ -281,3 +315,25 @@ class EntradaFornecedor(models.Model):
 
     def __str__(self):
         return f"{self.get_nome_fornecedor()} - {self.data}"
+
+def default_expira_em():
+    return timezone.now() + timedelta(hours=24)
+
+class IntegracaoToken(models.Model):
+    integracao = models.ForeignKey(Integracao, on_delete=models.CASCADE, related_name="tokens")
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    uuid_link = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    token = models.CharField(max_length=100, unique=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    expira_em = models.DateTimeField(default=default_expira_em)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = uuid.uuid4().hex
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return timezone.now() < self.expira_em
+
+    def __str__(self):
+        return f"Token de {self.integracao.fornecedor.nome_empresa}"

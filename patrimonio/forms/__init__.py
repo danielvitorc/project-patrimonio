@@ -12,7 +12,8 @@ from .fornecedor import (
     MEIForm,
     AutonomoForm,
     AssociadoForm,
-    FornecedorServicoForm
+    FornecedorServicoForm,
+    QuestionarioIntegracaoForm
     )
 from .ocorrencia import OcorrenciaForm
 from .uploadfile import UploadFileForm

@@ -205,11 +205,15 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <td class="text-center">{{ fornecedor.data_integracao|date:"d/m/Y" }}</td>
+                        <td class="text-center">{{ fornecedor.data_integracao_formatada }}</td>
                         <td class="text-center">
                             <div class="validade-info">
-                                <strong>{{ fornecedor.validade_meses }} meses</strong>
-                                <br><small class="text-muted">{{ fornecedor.data_validade|date:"d/m/Y" }}</small>
+                                {% if fornecedor.ultima_integracao %}
+                                    <strong>{{ fornecedor.ultima_integracao.validade_meses }} meses</strong>
+                                    <br><small class="text-muted">{{ fornecedor.data_validade_formatada }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
                             </div>
                         </td>
                         <td class="text-center">
@@ -235,6 +239,13 @@
                                     <li><a class="dropdown-item btn-editar" href="#" data-id="{{ fornecedor.id }}" data-bs-toggle="modal" data-bs-target="#modalEditarFornecedor">
                                         <i class="bi bi-pencil me-2"></i>Editar
                                     </a></li>
+                                    {% if fornecedor.status == "Sem integração" or fornecedor.status == "Pendente" %}
+                                    <li>
+                                        <a class="dropdown-item text-success btn-gerar-link" href="#" data-id="{{ fornecedor.id }}">
+                                            <i class="bi bi-link-45deg me-2"></i>Gerar Link de Integração
+                                        </a>
+                                    </li>
+                                    {% endif %}
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
@@ -272,10 +283,10 @@
                                                         <p><strong><i class="fas fa-id-card text-primary me-2"></i>ID do Cadastro:</strong> {{ fornecedor.id }}</p>
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <p><strong><i class="fas fa-calendar-alt text-primary me-2"></i>Data de Integração:</strong> {{ fornecedor.data_integracao|date:"d/m/Y" }}</p>
+                                                        <p><strong><i class="fas fa-calendar-alt text-primary me-2"></i>Data de Integração:</strong> {{ fornecedor.data_integracao_formatada }}</p>
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <p><strong><i class="fas fa-calendar-times text-danger me-2"></i>Data de Validade:</strong> {{ fornecedor.data_validade|date:"d/m/Y" }}</p>
+                                                        <p><strong><i class="fas fa-calendar-times text-danger me-2"></i>Data de Validade:</strong> {{ fornecedor.data_validade_formatada }}</p>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <p><strong><i class="fas fa-traffic-light text-primary me-2"></i>Status:</strong>
@@ -467,21 +478,6 @@
                                 </div>
                             </div>
 
-                            <!-- Seção de Validade -->
-                            <div class="card mb-4 shadow-sm">
-                                <div class="card-header">
-                                    <h6 class="mb-0">Configurações de Validade</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Validade (em meses):</label>
-                                            <input type="number" name="validade_meses" id="validade_meses" class="form-control" value="12" min="1" required>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             <!-- Container para formulários dinâmicos -->
                             <div id="forms-container">
                                 <!-- Os formulários específicos serão inseridos aqui via JavaScript -->
@@ -501,6 +497,47 @@
             </div>
         </div>
     </div>
+    <!-- Modal de Link de Integração -->
+    <div class="modal fade" id="modalLinkIntegracao" tabindex="-1" aria-labelledby="modalLinkIntegracaoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg rounded-3 border-0">
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="modalLinkIntegracaoLabel">
+            <i class="bi bi-link-45deg me-2"></i>Link de Integração Gerado
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Fornecedor:</strong> <span id="nomeFornecedor"></span></p>
+
+            <div class="mb-3">
+            <label class="form-label fw-semibold">Link de Integração:</label>
+            <div class="input-group">
+                <input type="text" id="linkIntegracao" class="form-control" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto('linkIntegracao')">
+                <i class="bi bi-clipboard"></i>
+                </button>
+            </div>
+            </div>
+
+            <div>
+            <label class="form-label fw-semibold">Token:</label>
+            <div class="input-group">
+                <input type="text" id="tokenIntegracao" class="form-control" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto('tokenIntegracao')">
+                <i class="bi bi-clipboard"></i>
+                </button>
+            </div>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
 
     <!-- JavaScript para formulários dinâmicos -->
     <!-- JavaScript para formulários dinâmicos -->
@@ -927,6 +964,63 @@
                 });
             });
         });
+    </script>
+    <script>
+    document.querySelectorAll('.btn-gerar-link').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const fornecedorId = this.dataset.id;
+            const validade = prompt("Informe a validade em meses:");
+
+            if (!validade) {
+                alert("Você precisa informar a validade em meses.");
+                return;
+            }
+
+            fetch(`/gerar-link-integracao/${fornecedorId}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: new URLSearchParams({ validade_meses: validade })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) {
+                    alert(data.erro);
+                    return;
+                }
+                const modal = `
+                    <div class="modal fade" id="modalLink${fornecedorId}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content p-3">
+                        <h5 class="mb-2">🔗 Link de Integração</h5>
+                        <input class="form-control mb-2" value="${data.link}" readonly>
+                        <h6 class="mt-3">🔑 Token de Acesso</h6>
+                        <input class="form-control mb-3" value="${data.token}" readonly>
+                        <small class="text-muted">${data.mensagem}</small>
+                        </div>
+                    </div>
+                    </div>`;
+                document.body.insertAdjacentHTML("beforeend", modal);
+                new bootstrap.Modal(document.getElementById(`modalLink${fornecedorId}`)).show();
+            });
+        });
+    });
+
+    // Função auxiliar para CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
     </script>
 </body>
 </html>
