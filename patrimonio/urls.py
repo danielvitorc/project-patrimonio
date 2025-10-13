@@ -20,7 +20,9 @@ urlpatterns = [
     path("fornecedor/<int:pk>/dados/", controle_visitantes.carregar_dados_fornecedor, name="carregar_dados_fornecedor"),
     path('entrada/<int:pk>/excluir/', controle_visitantes.excluir_entrada, name='excluir_entrada'),
     path('gerar-link-integracao/<int:fornecedor_id>/', controle_visitantes.gerar_link_integracao, name='gerar_link_integracao'),
-    path('integracao/<uuid:uuid_link>/<uuid:token>/', controle_visitantes.pagina_integracao_externa, name='pagina_integracao_externa'),
+    path('integracao/sucesso/', controle_visitantes.integracao_sucesso, name='integracao_sucesso'),
+    path('integracao/<uuid_link>/', controle_visitantes.pagina_integracao_externa, name='pagina_integracao_externa'),
+
 
 
     path("fornecedores/", controle_visitantes.fornecedores_cadastrados, name="fornecedores_cadastrados"),

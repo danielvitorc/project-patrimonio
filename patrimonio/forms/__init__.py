@@ -13,7 +13,8 @@ from .fornecedor import (
     AutonomoForm,
     AssociadoForm,
     FornecedorServicoForm,
-    QuestionarioIntegracaoForm
+    QuestionarioIntegracaoForm,
+    CORRECT_ANSWERS
     )
 from .ocorrencia import OcorrenciaForm
 from .uploadfile import UploadFileForm

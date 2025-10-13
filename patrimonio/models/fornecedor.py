@@ -257,7 +257,7 @@ def preencher_data_integracao(sender, instance, created, **kwargs):
         integracao = instance.integracao
         if not integracao.data_integracao:
             integracao.data_integracao = timezone.now().date()
-            integracao.save(update_fields=["data_integracao"])
+            integracao.save()
 
 class Entrega(models.Model):
     fornecedor = models.OneToOneField(Fornecedor, on_delete=models.CASCADE, related_name='entrega')

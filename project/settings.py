@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-9xk10&&n1-9c2+!u13e%q(yj9#$48o(b$(2k*72@@s(q2sfksd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['portaria.nortesistech.com', '54.156.216.155', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 LOGIN_URL = '/login/'
 

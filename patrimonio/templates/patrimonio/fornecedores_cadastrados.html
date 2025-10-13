@@ -241,7 +241,7 @@
                                     </a></li>
                                     {% if fornecedor.status == "Sem integração" or fornecedor.status == "Pendente" %}
                                     <li>
-                                        <a class="dropdown-item text-success btn-gerar-link" href="#" data-id="{{ fornecedor.id }}">
+                                        <a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#modalValidade{{ fornecedor.id }}">
                                             <i class="bi bi-link-45deg me-2"></i>Gerar Link de Integração
                                         </a>
                                     </li>
@@ -537,6 +537,31 @@
         </div>
     </div>
     </div>
+
+    <!-- Modal fora do dropdown (pode colocar no final da tabela ou body) -->
+    <div class="modal fade" id="modalValidade{{ fornecedor.id }}" tabindex="-1" aria-labelledby="modalValidadeLabel{{ fornecedor.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="modalValidadeLabel{{ fornecedor.id }}">Validade da Integração</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+            <form id="formValidade{{ fornecedor.id }}">
+            <div class="mb-3">
+                <label for="validadeMeses{{ fornecedor.id }}" class="form-label">Meses de validade</label>
+                <input type="number" class="form-control" id="validadeMeses{{ fornecedor.id }}" name="validade_meses" value="12" min="1" max="36" required>
+            </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary btn-confirmar-link" data-id="{{ fornecedor.id }}">Gerar Link</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
 
 
     <!-- JavaScript para formulários dinâmicos -->
@@ -1021,6 +1046,33 @@
         }
         return cookieValue;
     }
+    </script>
+
+    <script>
+        $(document).on('click', '.btn-confirmar-link', function() {
+            var fornecedorId = $(this).data('id');
+            var validade = $('#validadeMeses' + fornecedorId).val();
+
+            $.ajax({
+                url: "{% url 'gerar_link_integracao' 0 %}".replace("0", fornecedorId),
+                method: "POST",
+                data: {
+                    validade_meses: validade,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    alert(response.mensagem + "\nToken: " + response.token + "\nLink: " + response.link);
+
+                    // Bootstrap 5 - fecha modal
+                    var myModalEl = document.getElementById('modalValidade' + fornecedorId);
+                    var modal = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                    modal.hide();
+                },
+                error: function(xhr) {
+                    alert("Erro: " + xhr.responseJSON.erro);
+                }
+            });
+        });
     </script>
 </body>
 </html>

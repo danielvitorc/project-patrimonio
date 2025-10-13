@@ -6,8 +6,8 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
-from patrimonio.forms import FornecedorForm, VisitanteForm, EntregaForm, EntradaFornecedorForm, FornecedorPrestadorForm, TrabalhadorCLTForm, PessoaJuridicaForm, MEIForm, AutonomoForm, AssociadoForm, FornecedorServicoForm, QuestionarioIntegracaoForm
-from patrimonio.models import Fornecedor, EntradaFornecedor, Visitante, Entrega, TrabalhadorCLT, PessoaJuridica, MEI, Autonomo, Associado, Integracao, IntegracaoToken
+from patrimonio.forms import FornecedorForm, VisitanteForm, EntregaForm, EntradaFornecedorForm, FornecedorPrestadorForm, TrabalhadorCLTForm, PessoaJuridicaForm, MEIForm, AutonomoForm, AssociadoForm, FornecedorServicoForm, QuestionarioIntegracaoForm, CORRECT_ANSWERS
+from patrimonio.models import Fornecedor,FornecedorServico, EntradaFornecedor, Integracao, IntegracaoToken, QuestionarioIntegracao
 from patrimonio.utils import process_webcam_photo, enviar_alerta_vencimentos
 from django.core.files.base import ContentFile
 from datetime import timedelta
@@ -20,7 +20,7 @@ def controle_visitantes(request):
     hoje = timezone.now().date()
 
     # Atualiza status automaticamente
-    Fornecedor.objects.filter(data_validade__lte=hoje, status='Integrado').update(status='Pendente')
+    Fornecedor.objects.filter(integracoes__data_validade__lte=hoje, status='Integrado').update(status='Pendente')
 
     # Envia alerta por e-mail
     enviar_alerta_vencimentos()
@@ -149,38 +149,36 @@ from django.db import transaction
 def gerar_link_integracao(request, fornecedor_id):
     fornecedor = get_object_or_404(Fornecedor, id=fornecedor_id)
 
-    # ✅ Impede gerar se já estiver integrado
     if fornecedor.status not in ["Sem integração", "Pendente"]:
         return JsonResponse({"erro": "Este fornecedor já está integrado."}, status=400)
 
-    # ✅ Cria ou busca a integração existente, mas SEM definir data_integracao
-    integracao, _ = Integracao.objects.get_or_create(
+    # ✅ Pega valor enviado pelo usuário
+    validade_meses_input = request.POST.get("validade_meses")
+    if validade_meses_input:
+        validade_meses = int(validade_meses_input)
+    else:
+        validade_meses = 12  # padrão se usuário não informar
+
+    # ✅ Cria ou busca integração usando o valor informado
+    integracao, created = Integracao.objects.get_or_create(
         fornecedor=fornecedor,
-        defaults={"validade_meses": 12}  # padrão inicial
+        defaults={"validade_meses": validade_meses}
     )
+
+    # Se integração já existia mas usuário passou um novo valor, atualiza
+    if not created and validade_meses_input:
+        integracao.validade_meses = validade_meses
+        integracao.save(update_fields=["validade_meses"])
 
     # ✅ Verifica se já existe token válido
     token_existente = integracao.tokens.filter(expira_em__gt=timezone.now()).first()
     if token_existente:
-        url = request.build_absolute_uri(
-            reverse("pagina_integracao_externa", args=[integracao.uuid_link, token_existente.uuid_link])
-        )
+        link = request.build_absolute_uri(reverse("pagina_integracao_externa", args=[integracao.uuid_link]))
         return JsonResponse({
-            "link": url,
+            "link": link,
             "token": token_existente.token,
             "mensagem": "Um link já foi gerado nas últimas 24 horas."
         })
-
-    # ✅ Verifica se já existe validade definida
-    validade_meses = integracao.validade_meses or request.POST.get("validade_meses")
-
-    # Se ainda não existir validade (nova integração e o usuário não informou)
-    if not validade_meses:
-        return JsonResponse({"erro": "Informe a validade (em meses)."}, status=400)
-
-    validade_meses = int(validade_meses)
-    integracao.validade_meses = validade_meses
-    integracao.save(update_fields=["validade_meses"])
 
     # ✅ Cria novo token válido por 24h
     token = IntegracaoToken.objects.create(
@@ -189,45 +187,81 @@ def gerar_link_integracao(request, fornecedor_id):
         expira_em=timezone.now() + timedelta(hours=24)
     )
 
-    url = request.build_absolute_uri(
-        reverse("pagina_integracao_externa", args=[integracao.uuid_link, token.uuid_link])
-    )
+    # ✅ Link SEM token
+    link = request.build_absolute_uri(reverse("pagina_integracao_externa", args=[integracao.uuid_link]))
 
     return JsonResponse({
-        "link": url,
+        "link": link,
         "token": token.token,
         "mensagem": "Novo link de integração gerado com sucesso.",
         "validade_usada": validade_meses,
     })
 
+def integracao_sucesso(request):
+    return render(request, "patrimonio/integracao_sucesso.html")
 
-def pagina_integracao_externa(request, uuid_link, token):
+def pagina_integracao_externa(request, uuid_link):
     integracao = get_object_or_404(Integracao, uuid_link=uuid_link)
-    token_obj = get_object_or_404(IntegracaoToken, integracao=integracao, uuid_link=token)
+    mensagem = None
 
-    # ✅ Valida o token
-    if not token_obj.is_valid():
-        return HttpResponse("❌ Token expirado ou inválido. Solicite um novo link de integração.", status=403)
+    # GET inicial → pede token
+    if request.method == "GET":
+        token_input = request.GET.get("token")
+        if not token_input:
+            return render(request, "patrimonio/token_login.html", {"uuid_link": uuid_link})
+    else:  # POST
+        token_input = request.POST.get("token")
 
-    # ✅ Se o questionário já foi preenchido, bloqueia novo envio
-    if hasattr(integracao, "questionario"):
-        return HttpResponse("✅ Questionário já foi preenchido para este fornecedor.", status=200)
+    # Valida token
+    token_obj = IntegracaoToken.objects.filter(integracao=integracao, token=token_input).first()
+    if not token_obj or not token_obj.is_valid():
+        return render(request, "patrimonio/token_login.html", {
+            "erro": "Token inválido ou expirado.",
+            "uuid_link": uuid_link
+        })
 
+    # Formulário
     if request.method == "POST":
         form = QuestionarioIntegracaoForm(request.POST)
         if form.is_valid():
-            questionario = form.save(commit=False)
-            questionario.integracao = integracao
+            q1_ok = form.cleaned_data['questao1'] == CORRECT_ANSWERS['questao1']
+            q2_ok = form.cleaned_data['questao2'] == CORRECT_ANSWERS['questao2']
+            q3_ok = form.cleaned_data['questao3'] == CORRECT_ANSWERS['questao3']
+            # Salva no model que tem campos booleanos
+            questionario = QuestionarioIntegracao(
+                integracao=integracao,
+                questao1=q1_ok,
+                questao2=q2_ok,
+                questao3=q3_ok
+            )
             questionario.save()
-            return HttpResponse("✅ Questionário enviado com sucesso. Obrigado!", status=200)
+
+
+            # Invalida token após uso
+            token_obj.expira_em = timezone.now()
+            token_obj.save(update_fields=["expira_em"])
+
+            # ✅ Redireciona para página de sucesso
+            return redirect('integracao_sucesso')
     else:
         form = QuestionarioIntegracaoForm()
 
+    fornecedor = integracao.fornecedor
+
+    try:
+        fornecedorservico = fornecedor.fornecedor_servico  # usa underscore conforme o related_name
+    except FornecedorServico.DoesNotExist:
+        fornecedorservico = None
+
     return render(request, "patrimonio/integracao_externa.html", {
-        "fornecedor": integracao.fornecedor,
+        "fornecedor": fornecedor,
+        "fornecedorservico": fornecedorservico,
         "integracao": integracao,
-        "form": form
+        "form": form,
+        "token": token_input,
+        "mensagem": mensagem
     })
+
 
 @login_required
 def fornecedores_cadastrados(request):

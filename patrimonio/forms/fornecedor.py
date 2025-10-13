@@ -304,7 +304,45 @@ class EntradaFornecedorForm(forms.ModelForm):
         # Isso nos ajuda a saber quais objetos estão com dados faltando.
         return f"Cadastro ID {obj.pk}"
 
-class QuestionarioIntegracaoForm(forms.ModelForm):
-    class Meta:
-        model = QuestionarioIntegracao
-        fields = ['questao1', 'questao2', 'questao3']
+# choices e respostas corretas (ajuste o texto conforme seu conteúdo)
+Q1_CHOICES = [
+    ('A', 'A: Usar shorts e sandálias para maior conforto.'),
+    ('B', 'B: Respeitar placas de sinalização, utilizar crachá visível, não obstruir saídas de emergência e utilizar EPIs de acordo com o risco da atividade.'),
+    ('C', 'C: Falar ao celular enquanto sobe escadas.'),
+]
+
+Q2_CHOICES = [
+    ('A', 'A: Evacuar imediatamente e dirigir-se a um dos pontos de encontro definidos.'),
+    ('B', 'B: Utilizar elevadores para agilizar a saída'),
+    ('C', 'C: Permanecer no posto de trabalho aguardando instruções.'),
+]
+
+Q3_CHOICES = [
+    ('A', 'A: Respeito e empatia entre colegas.'),
+    ('B', 'B: Cumprimento das normas de segurança.'),
+    ('C', 'C:  Assédio moral, sexual ou qualquer conduta que cause constrangimento.'),
+]
+
+# mapa das respostas corretas — chave é nome lógico do campo
+CORRECT_ANSWERS = {
+    'questao1': 'B',
+    'questao2': 'C',
+    'questao3': 'C',
+}
+
+class QuestionarioIntegracaoForm(forms.Form):
+    questao1 = forms.ChoiceField(
+        choices=Q1_CHOICES,
+        widget=forms.RadioSelect,
+        label="Quais cuidados são obrigatórios ao circular nas dependência da empresa?"
+    )
+    questao2 = forms.ChoiceField(
+        choices=Q2_CHOICES,
+        widget=forms.RadioSelect,
+        label="O que deve ser feito ao soar o segundo alarme em caso de princípio de incêndio?"
+    )
+    questao3 = forms.ChoiceField(
+        choices=Q3_CHOICES,
+        widget=forms.RadioSelect,
+        label="Qual comportamento não é tolerado no ambiente de trabalho?"
+    )
