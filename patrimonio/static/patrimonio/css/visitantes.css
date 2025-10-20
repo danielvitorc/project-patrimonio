@@ -216,7 +216,7 @@ button.btn-warning:hover {
   border-collapse: collapse;
   background-color: #ffffff;
   border-radius: 12px;
-  overflow: hidden;
+  /*overflow: hidden;*/
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 

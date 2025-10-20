@@ -1,10 +1,12 @@
 from django.urls import path
-from .views import auth, adm, home, controle_visitantes, chave, cracha, ocorrencias, export_excel 
+from .views import auth, adm, home, controle_visitantes, chave, cracha, ocorrencias, export_excel, integracao 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 
 urlpatterns = [
     # Urls de Auth
+    path('', lambda request: redirect('login', permanent=False)),
     path('login/', auth.login_usuario, name='login'),
     path('logout/', auth.logout_usuario, name='logout'),
 
@@ -18,14 +20,18 @@ urlpatterns = [
     path('fornecedores-cadastrados/', controle_visitantes.fornecedores_cadastrados, name='fornecedores-cadastrados'),
     path("fornecedor/<int:pk>/editar/", controle_visitantes.modal_editar_fornecedor_completo, name="modal_editar_fornecedor_completo"),
     path("fornecedor/<int:pk>/dados/", controle_visitantes.carregar_dados_fornecedor, name="carregar_dados_fornecedor"),
+    path('fornecedores/excluir/', controle_visitantes.excluir_fornecedor, name='excluir_fornecedor'),
     path('entrada/<int:pk>/excluir/', controle_visitantes.excluir_entrada, name='excluir_entrada'),
-    path('gerar-link-integracao/<int:fornecedor_id>/', controle_visitantes.gerar_link_integracao, name='gerar_link_integracao'),
-    path('integracao/sucesso/', controle_visitantes.integracao_sucesso, name='integracao_sucesso'),
-    path('integracao/<uuid_link>/', controle_visitantes.pagina_integracao_externa, name='pagina_integracao_externa'),
-
-
+    path('gerar-link-integracao/<int:fornecedor_id>/', integracao.gerar_link_integracao, name='gerar_link_integracao'),
+    path('integracao/<uuid:uuid_link>/', integracao.token_login, name='token_login'),
+    path('integracao/<uuid:uuid_link>/orientacoes/', integracao.integracao_orientacoes, name='integracao_orientacoes'),
+    path('integracao/<uuid:uuid_link>/formulario/', integracao.pagina_integracao_externa, name='pagina_integracao_externa'),
+    path('integracao/<uuid:uuid_link>/video/', integracao.integracao_video, name='integracao_video'),
+    path('integracao/<int:integracao_id>/sucesso/', integracao.integracao_sucesso, name='integracao_sucesso'),
+    path('integracao/<int:integracao_id>/certificado/', integracao.gerar_certificado_integracao, name='gerar_certificado_integracao'),
 
     path("fornecedores/", controle_visitantes.fornecedores_cadastrados, name="fornecedores_cadastrados"),
+    path("fornecedores/filtrar/", controle_visitantes.fornecedores_filtrados, name="fornecedores_filtrados"),
 
     # Urls de Chaves
     path('entrega_de_chave/', chave.entrega_de_chave, name='entrega_de_chave'),

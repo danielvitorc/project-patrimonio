@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Value
+from django.db.models import Value, Q
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
@@ -8,9 +8,10 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from patrimonio.forms import FornecedorForm, VisitanteForm, EntregaForm, EntradaFornecedorForm, FornecedorPrestadorForm, TrabalhadorCLTForm, PessoaJuridicaForm, MEIForm, AutonomoForm, AssociadoForm, FornecedorServicoForm, QuestionarioIntegracaoForm, CORRECT_ANSWERS
 from patrimonio.models import Fornecedor,FornecedorServico, EntradaFornecedor, Integracao, IntegracaoToken, QuestionarioIntegracao
+from django.views.decorators.http import require_POST
 from patrimonio.utils import process_webcam_photo, enviar_alerta_vencimentos
 from django.core.files.base import ContentFile
-from datetime import timedelta
+from datetime import timedelta, datetime
 import secrets
 import base64
 import uuid
@@ -145,123 +146,73 @@ def status_fornecedor(request, pk):
 
 from django.db import transaction
 
+
 @login_required
-def gerar_link_integracao(request, fornecedor_id):
-    fornecedor = get_object_or_404(Fornecedor, id=fornecedor_id)
+def fornecedores_filtrados(request):
+    categoria = request.GET.get("categoria")
+    status = request.GET.get("status")
+    fornecedor_nome = request.GET.get("fornecedor")
+    data_integracao = request.GET.get("data_integracao")
 
-    if fornecedor.status not in ["Sem integração", "Pendente"]:
-        return JsonResponse({"erro": "Este fornecedor já está integrado."}, status=400)
-
-    # ✅ Pega valor enviado pelo usuário
-    validade_meses_input = request.POST.get("validade_meses")
-    if validade_meses_input:
-        validade_meses = int(validade_meses_input)
-    else:
-        validade_meses = 12  # padrão se usuário não informar
-
-    # ✅ Cria ou busca integração usando o valor informado
-    integracao, created = Integracao.objects.get_or_create(
-        fornecedor=fornecedor,
-        defaults={"validade_meses": validade_meses}
+    fornecedores = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
+        'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'
     )
 
-    # Se integração já existia mas usuário passou um novo valor, atualiza
-    if not created and validade_meses_input:
-        integracao.validade_meses = validade_meses
-        integracao.save(update_fields=["validade_meses"])
+    # Aplica os filtros conforme preenchido
+    if categoria:
+        fornecedores = fornecedores.filter(categoria__icontains=categoria)
 
-    # ✅ Verifica se já existe token válido
-    token_existente = integracao.tokens.filter(expira_em__gt=timezone.now()).first()
-    if token_existente:
-        link = request.build_absolute_uri(reverse("pagina_integracao_externa", args=[integracao.uuid_link]))
-        return JsonResponse({
-            "link": link,
-            "token": token_existente.token,
-            "mensagem": "Um link já foi gerado nas últimas 24 horas."
-        })
-
-    # ✅ Cria novo token válido por 24h
-    token = IntegracaoToken.objects.create(
-        integracao=integracao,
-        criado_por=request.user,
-        expira_em=timezone.now() + timedelta(hours=24)
-    )
-
-    # ✅ Link SEM token
-    link = request.build_absolute_uri(reverse("pagina_integracao_externa", args=[integracao.uuid_link]))
-
-    return JsonResponse({
-        "link": link,
-        "token": token.token,
-        "mensagem": "Novo link de integração gerado com sucesso.",
-        "validade_usada": validade_meses,
-    })
-
-def integracao_sucesso(request):
-    return render(request, "patrimonio/integracao_sucesso.html")
-
-def pagina_integracao_externa(request, uuid_link):
-    integracao = get_object_or_404(Integracao, uuid_link=uuid_link)
-    mensagem = None
-
-    # GET inicial → pede token
-    if request.method == "GET":
-        token_input = request.GET.get("token")
-        if not token_input:
-            return render(request, "patrimonio/token_login.html", {"uuid_link": uuid_link})
-    else:  # POST
-        token_input = request.POST.get("token")
-
-    # Valida token
-    token_obj = IntegracaoToken.objects.filter(integracao=integracao, token=token_input).first()
-    if not token_obj or not token_obj.is_valid():
-        return render(request, "patrimonio/token_login.html", {
-            "erro": "Token inválido ou expirado.",
-            "uuid_link": uuid_link
-        })
-
-    # Formulário
-    if request.method == "POST":
-        form = QuestionarioIntegracaoForm(request.POST)
-        if form.is_valid():
-            q1_ok = form.cleaned_data['questao1'] == CORRECT_ANSWERS['questao1']
-            q2_ok = form.cleaned_data['questao2'] == CORRECT_ANSWERS['questao2']
-            q3_ok = form.cleaned_data['questao3'] == CORRECT_ANSWERS['questao3']
-            # Salva no model que tem campos booleanos
-            questionario = QuestionarioIntegracao(
-                integracao=integracao,
-                questao1=q1_ok,
-                questao2=q2_ok,
-                questao3=q3_ok
+    #print(fornecedores.values_list('status', flat=True).distinct())
+    if status:
+        status = status.strip().lower()
+        if status == "pendente":
+            fornecedores = fornecedores.filter(
+                Q(status__iexact="Pendente") | Q(status__iexact="Sem integração")
             )
-            questionario.save()
+        else:
+            fornecedores = fornecedores.filter(status__iexact=status)
 
 
-            # Invalida token após uso
-            token_obj.expira_em = timezone.now()
-            token_obj.save(update_fields=["expira_em"])
+    if fornecedor_nome:
+        fornecedores = fornecedores.filter(
+            Q(fornecedor_servico__nome_empresa__icontains=fornecedor_nome) |
+            Q(trabalhadores_clt__nome_representante__icontains=fornecedor_nome) |
+            Q(visitante__nome__icontains=fornecedor_nome)
+        )
 
-            # ✅ Redireciona para página de sucesso
-            return redirect('integracao_sucesso')
-    else:
-        form = QuestionarioIntegracaoForm()
+    if data_integracao:
+        try:
+            data_obj = datetime.strptime(data_integracao, "%Y-%m-%d").date()
+            fornecedores = fornecedores.filter(integracoes__data_integracao=data_obj)
+        except ValueError:
+            pass
 
-    fornecedor = integracao.fornecedor
+    context = {
+        "fornecedores": fornecedores,
+        "fornecedor_prestador_form": FornecedorPrestadorForm(),
+        "fornecedor_servico_form": FornecedorServicoForm(),
+        "clt_form": TrabalhadorCLTForm(),
+        "pj_form": PessoaJuridicaForm(),
+        "mei_form": MEIForm(),
+        "autonomo_form": AutonomoForm(),
+        "associado_form": AssociadoForm(),
+    }
 
-    try:
-        fornecedorservico = fornecedor.fornecedor_servico  # usa underscore conforme o related_name
-    except FornecedorServico.DoesNotExist:
-        fornecedorservico = None
+    return render(request, "patrimonio/fornecedores_cadastrados.html", context)
 
-    return render(request, "patrimonio/integracao_externa.html", {
-        "fornecedor": fornecedor,
-        "fornecedorservico": fornecedorservico,
-        "integracao": integracao,
-        "form": form,
-        "token": token_input,
-        "mensagem": mensagem
-    })
 
+@login_required
+@require_POST
+def excluir_fornecedor(request):
+    fornecedor_id = request.POST.get("id")
+
+    if not fornecedor_id:
+        return JsonResponse({"success": False, "message": "ID não fornecido."}, status=400)
+
+    fornecedor = get_object_or_404(Fornecedor, id=fornecedor_id)
+    fornecedor.delete()
+
+    return JsonResponse({"success": True, "message": "Fornecedor excluído com sucesso!"})
 
 @login_required
 def fornecedores_cadastrados(request):
@@ -386,8 +337,36 @@ def processar_edicao_fornecedor(request, fornecedor):
             
             if fornecedor.categoria == 'VISITANTE':
                 return processar_edicao_visitante(request, fornecedor)
+
             elif fornecedor.categoria == 'FORNECEDOR':
-                return processar_edicao_fornecedor_servico(request, fornecedor)
+                # Atualiza apenas o que o modal permite alterar
+                trabalhador = fornecedor.trabalhador_relacionado
+                if trabalhador:
+                    trabalhador.nome_representante = request.POST.get('nome_representante', trabalhador.nome_representante)
+
+                    # Processa foto do representante (se houver)
+                    foto_base64 = request.POST.get('foto_representante_base64')
+                    if foto_base64 and foto_base64.startswith('data:image'):
+                        try:
+                            format, imgstr = foto_base64.split(';base64,')
+                            ext = format.split('/')[-1]
+                            img_data = base64.b64decode(imgstr)
+                            filename = f'representante_{fornecedor.id}_{uuid.uuid4().hex[:8]}.{ext}'
+                            trabalhador.foto_representante.save(
+                                filename,
+                                ContentFile(img_data),
+                                save=False
+                            )
+                        except Exception as e:
+                            print(f"Erro ao processar foto do representante: {e}")
+
+                    trabalhador.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Fornecedor atualizado com sucesso!'
+                })
+
                 
     except Exception as e:
         return JsonResponse({
@@ -538,15 +517,15 @@ def carregar_dados_fornecedor(request, pk):
     """
     try:
         fornecedor = get_object_or_404(Fornecedor, pk=pk)
+        # Busca a última integração (se existir)
+        ultima_integracao = fornecedor.integracoes.order_by('-data_integracao').first()
 
         dados = {
             'id': fornecedor.id,
             'categoria': fornecedor.categoria,
             'subcategoria': fornecedor.subcategoria,
-            'validade_meses': fornecedor.validade_meses,
             'status': fornecedor.status,
-            'data_integracao': fornecedor.data_integracao.strftime('%Y-%m-%d') if fornecedor.data_integracao else '',
-            'data_validade': fornecedor.data_validade.strftime('%Y-%m-%d') if fornecedor.data_validade else '',
+            'validade_meses': ultima_integracao.validade_meses if ultima_integracao else None,
         }
         
         # Carregar dados específicos por categoria
