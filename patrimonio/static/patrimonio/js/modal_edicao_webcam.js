@@ -1,487 +1,380 @@
-// Variáveis globais para controle das webcams
+// project-patrimonio/patrimonio/static/patrimonio/js/modal_edicao_webcam.js
+// Refatorado para remover jQuery e Bootstrap JS.
+
+// ===================================================================
+// ESCOPO GLOBAL DO SCRIPT
+// ===================================================================
+
+// Variáveis de stream da Webcam
 let webcamVisitanteStream = null;
 let webcamRepresentanteStream = null;
-let webcamVisitanteAtiva = false;
-let webcamRepresentanteAtiva = false;
 
-// ==================== FUNÇÕES PARA WEBCAM DO VISITANTE ====================
-
-function iniciarWebcamVisitante() {
-    if (webcamVisitanteAtiva) return;
-    
-    const video = document.getElementById("webcam-visitante-edicao");
-    const btnCapturar = document.getElementById("btn-capturar-visitante");
-    const btnParar = document.getElementById("btn-parar-visitante");
-    
-    if (!video) { 
-        console.warn("Elemento webcam-visitante-edicao não encontrado.");
-        return;
-    }
-
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            width: { ideal: 640 }, 
-            height: { ideal: 480 } 
-        } 
-    })
-    .then(stream => {
-        video.srcObject = stream;
-        video.style.display = "block";
-        webcamVisitanteStream = stream;
-        webcamVisitanteAtiva = true;
-        
-        // Mostrar botões de controle
-        if (btnCapturar) btnCapturar.style.display = "inline-block"; 
-        if (btnParar) btnParar.style.display = "inline-block"; 
-        
-        console.log("Webcam do visitante iniciada com sucesso");
-    })
-    .catch(err => {
-        console.error("Erro ao acessar webcam do visitante:", err);
-        alert("Erro ao acessar a câmera. Verifique as permissões do navegador.");
-    });
-}
-
-function capturarFotoVisitante() {
-    const video = document.getElementById("webcam-visitante-edicao");
-    const canvas = document.getElementById("canvas-visitante-edicao");
-    const input = document.getElementById("foto_visitante_base64_edicao");
-    const preview = document.getElementById("preview-foto-visitante-edicao");
-    const imgPreview = document.getElementById("img-preview-visitante-edicao");
-    
-    if (!video || !canvas || !input || !preview || !imgPreview) { 
-        console.warn("Elementos da captura de foto do visitante não encontrados.");
-        return;
-    }
-
-    if (!webcamVisitanteAtiva || !video.videoWidth) {
-        alert("Câmera não está ativa ou não carregou completamente.");
-        return;
-    }
-    
-    // Configurar canvas com as dimensões do vídeo
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Desenhar frame atual do vídeo no canvas
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Converter para base64
-    const imageData = canvas.toDataURL("image/jpeg", 0.8);
-    
-    // Salvar no campo hidden
-    input.value = imageData;
-    
-    // Mostrar preview
-    imgPreview.src = imageData;
-    preview.style.display = "block";
-    
-    // Parar webcam após captura
-    pararWebcamVisitante();
-    
-    console.log("Foto do visitante capturada com sucesso");
-}
-
-function pararWebcamVisitante() {
-    if (webcamVisitanteStream) {
-        webcamVisitanteStream.getTracks().forEach(track => track.stop());
-        webcamVisitanteStream = null;
-    }
-    
-    const video = document.getElementById("webcam-visitante-edicao");
-    const btnCapturar = document.getElementById("btn-capturar-visitante");
-    const btnParar = document.getElementById("btn-parar-visitante");
-    
-    if (video) { 
-        video.style.display = "none";
-        video.srcObject = null;
-    }
-    webcamVisitanteAtiva = false;
-    
-    // Esconder botões de controle
-    if (btnCapturar) btnCapturar.style.display = "none"; 
-    if (btnParar) btnParar.style.display = "none"; 
-    
-    console.log("Webcam do visitante parada");
-}
-
-function removerFotoVisitante() {
-    const input = document.getElementById("foto_visitante_base64_edicao");
-    const preview = document.getElementById("preview-foto-visitante-edicao");
-    const imgPreview = document.getElementById("img-preview-visitante-edicao");
-    
-    if (!input || !preview || !imgPreview) { 
-        console.warn("Elementos de remoção de foto do visitante não encontrados.");
-        return;
-    }
-
-    input.value = "";
-    imgPreview.src = "";
-    preview.style.display = "none";
-    
-    console.log("Foto do visitante removida");
-}
-
-// ==================== FUNÇÕES PARA WEBCAM DO REPRESENTANTE ====================
-
-function iniciarWebcamRepresentante() {
-    if (webcamRepresentanteAtiva) return;
-    
-    const video = document.getElementById("webcam-representante-edicao");
-    const btnCapturar = document.getElementById("btn-capturar-representante");
-    const btnParar = document.getElementById("btn-parar-representante");
-    
-    if (!video) { 
-        console.warn("Elemento webcam-representante-edicao não encontrado.");
-        return;
-    }
-
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            width: { ideal: 640 }, 
-            height: { ideal: 480 } 
-        } 
-    })
-    .then(stream => {
-        video.srcObject = stream;
-        video.style.display = "block";
-        webcamRepresentanteStream = stream;
-        webcamRepresentanteAtiva = true;
-        
-        // Mostrar botões de controle
-        if (btnCapturar) btnCapturar.style.display = "inline-block"; 
-        if (btnParar) btnParar.style.display = "inline-block"; 
-        
-        console.log("Webcam do representante iniciada com sucesso");
-    })
-    .catch(err => {
-        console.error("Erro ao acessar webcam do representante:", err);
-        alert("Erro ao acessar a câmera. Verifique as permissões do navegador.");
-    });
-}
-
-function capturarFotoRepresentante() {
-    const video = document.getElementById("webcam-representante-edicao");
-    const canvas = document.getElementById("canvas-representante-edicao");
-    const input = document.getElementById("foto_representante_base64_edicao");
-    const preview = document.getElementById("preview-foto-representante-edicao");
-    const imgPreview = document.getElementById("img-preview-representante-edicao");
-    
-    if (!video || !canvas || !input || !preview || !imgPreview) { 
-        console.warn("Elementos da captura de foto do representante não encontrados.");
-        return;
-    }
-
-    if (!webcamRepresentanteAtiva || !video.videoWidth) {
-        alert("Câmera não está ativa ou não carregou completamente.");
-        return;
-    }
-    
-    // Configurar canvas com as dimensões do vídeo
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Desenhar frame atual do vídeo no canvas
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Converter para base64
-    const imageData = canvas.toDataURL("image/jpeg", 0.8);
-    
-    // Salvar no campo hidden
-    input.value = imageData;
-    
-    // Mostrar preview
-    imgPreview.src = imageData;
-    preview.style.display = "block";
-    
-    // Parar webcam após captura
-    pararWebcamRepresentante();
-    
-    console.log("Foto do representante capturada com sucesso");
-}
-
-function pararWebcamRepresentante() {
-    if (webcamRepresentanteStream) {
-        webcamRepresentanteStream.getTracks().forEach(track => track.stop());
-        webcamRepresentanteStream = null;
-    }
-    
-    const video = document.getElementById("webcam-representante-edicao");
-    const btnCapturar = document.getElementById("btn-capturar-representante");
-    const btnParar = document.getElementById("btn-parar-representante");
-    
-    if (video) { 
-        video.style.display = "none";
-        video.srcObject = null;
-    }
-    webcamRepresentanteAtiva = false;
-    
-    // Esconder botões de controle
-    if (btnCapturar) btnCapturar.style.display = "none"; 
-    if (btnParar) btnParar.style.display = "none"; 
-    
-    console.log("Webcam do representante parada");
-}
-
-function removerFotoRepresentante() {
-    const input = document.getElementById("foto_representante_base64_edicao");
-    const preview = document.getElementById("preview-foto-representante-edicao");
-    const imgPreview = document.getElementById("img-preview-representante-edicao");
-    
-    if (!input || !preview || !imgPreview) { 
-        console.warn("Elementos de remoção de foto do representante não encontrados.");
-        return;
-    }
-
-    input.value = "";
-    imgPreview.src = "";
-    preview.style.display = "none";
-    
-    console.log("Foto do representante removida");
-}
-
-// ==================== FUNÇÕES DE CONTROLE DO MODAL ====================
-
-// Esta função agora será chamada APÓS o HTML do formulário ser carregado no modal
-function inicializarCamposModal(data) {
-    const dados = data.dados; // Os dados do fornecedor
-
-    // Preencher campos básicos
-    const categoriaEdicao = document.getElementById("categoria_edicao");
-    const subcategoriaEdicao = document.getElementById("subcategoria_edicao");
-    const validadeMesesEdicao = document.getElementById("validade_meses_edicao");
-    const statusEdicao = document.getElementById("status_edicao");
-
-    if (categoriaEdicao) categoriaEdicao.value = dados.categoria;
-    if (subcategoriaEdicao) subcategoriaEdicao.value = dados.subcategoria || "";
-    if (validadeMesesEdicao) validadeMesesEdicao.value = dados.validade_meses;
-    if (statusEdicao) statusEdicao.value = dados.status;
-    
-    // Re-atribuir event listeners para os selects de categoria e subcategoria
-    if (categoriaEdicao) {
-        categoriaEdicao.removeEventListener("change", mostrarCamposCategoria); // Evitar duplicação
-        categoriaEdicao.addEventListener("change", mostrarCamposCategoria);
-    }
-    
-    if (subcategoriaEdicao) {
-        subcategoriaEdicao.removeEventListener("change", mostrarCamposCategoria); // Evitar duplicação
-        subcategoriaEdicao.addEventListener("change", mostrarCamposCategoria);
-    }
-
-    // Mostrar campos apropriados com base nos dados carregados
-    mostrarCamposCategoria();
-    
-    // Preencher campos específicos baseado na categoria
-    if (dados.categoria === "VISITANTE" && dados.visitante) {
-        const nomeVisitanteEdicao = document.getElementById("nome_visitante_edicao");
-        const documentoVisitanteEdicao = document.getElementById("documento_visitante_edicao");
-        const motivoVisitaEdicao = document.getElementById("motivo_visita_edicao");
-
-        if (nomeVisitanteEdicao) nomeVisitanteEdicao.value = dados.visitante.nome || "";
-        if (documentoVisitanteEdicao) documentoVisitanteEdicao.value = dados.visitante.documento || "";
-        if (motivoVisitaEdicao) motivoVisitaEdicao.value = dados.visitante.motivo_visita || "";
-        
-        // Mostrar foto existente se houver
-        if (dados.visitante.foto_visitante) {
-            const imgPreview = document.getElementById("img-preview-visitante-edicao");
-            const preview = document.getElementById("preview-foto-visitante-edicao");
-            if (imgPreview) imgPreview.src = dados.visitante.foto_visitante;
-            if (preview) preview.style.display = "block";
-        }
-    } else if (dados.categoria === "FORNECEDOR") {
-        // Preencher dados da empresa
-        if (dados.fornecedor_servico) {
-            const nomeEmpresaEdicao = document.getElementById("nome_empresa_edicao");
-            const atividadeServicoEdicao = document.getElementById("atividade_servico_edicao");
-            if (nomeEmpresaEdicao) nomeEmpresaEdicao.value = dados.fornecedor_servico.nome_empresa || "";
-            if (atividadeServicoEdicao) atividadeServicoEdicao.value = dados.fornecedor_servico.atividade_servico || "";
-        }
-        
-        // Preencher dados do representante
-        if (dados.trabalhador_relacionado) {
-            const nomeRepresentanteEdicao = document.getElementById("nome_representante_edicao");
-            if (nomeRepresentanteEdicao) nomeRepresentanteEdicao.value = dados.trabalhador_relacionado.nome_representante || "";
-            
-            // Mostrar foto existente se houver
-            if (dados.trabalhador_relacionado.foto_representante) {
-                const imgPreview = document.getElementById("img-preview-representante-edicao");
-                const preview = document.getElementById("preview-foto-representante-edicao");
-                if (imgPreview) imgPreview.src = dados.trabalhador_relacionado.foto_representante;
-                if (preview) preview.style.display = "block";
-            }
-            
-            // Preencher campos específicos da subcategoria
-            if (dados.subcategoria === "CLT") {
-                const descricaoCargoEdicao = document.getElementById("descricao_cargo_edicao");
-                if (descricaoCargoEdicao) descricaoCargoEdicao.value = dados.trabalhador_relacionado.descricao_cargo || "";
-            } else if (dados.subcategoria === "PJ") {
-                // Preencher campos PJ
-            } else if (dados.subcategoria === "MEI") {
-                // Preencher campos MEI
-            } else if (dados.subcategoria === "AUTONOMO") {
-                // Preencher campos Autônomo
-            } else if (dados.subcategoria === "ASSOCIADO") {
-                // Preencher campos Associado
+// Helper: Pega o CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
     }
+    return cookieValue;
+}
+const csrfToken = getCookie('csrftoken');
+
+// ===================================================================
+// FUNÇÕES DE CONTROLE DA WEBCAM
+// (Abstraídas para aceitar seletores)
+// ===================================================================
+
+/**
+ * Inicia uma stream de webcam
+ * @param {HTMLVideoElement} videoEl - O elemento <video>
+ * @param {HTMLSpanElement} statusEl - O span de status
+ * @param {HTMLButtonElement} btnCapturar - O botão de capturar
+ * @param {HTMLButtonElement} btnParar - O botão de parar
+ * @returns {Promise<MediaStream>} - A stream
+ */
+async function iniciarWebcam(videoEl, statusEl, btnCapturar, btnParar) {
+    if (!videoEl || !statusEl || !btnCapturar || !btnParar) return null;
+    if (videoEl.srcObject) return videoEl.srcObject; // Já está ativa
+
+    statusEl.textContent = "Iniciando...";
+    statusEl.className = 'webcam-status-badge status-info';
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: { ideal: 640 }, height: { ideal: 480 } } 
+        });
+        videoEl.srcObject = stream;
+        videoEl.style.display = "block";
+        btnCapturar.style.display = "inline-flex";
+        btnParar.style.display = "inline-flex";
+        statusEl.textContent = "Webcam Ativa";
+        statusEl.className = 'webcam-status-badge status-success';
+        return stream;
+    } catch (err) {
+        console.error("Erro ao acessar webcam:", err);
+        statusEl.textContent = "Erro na Câmera";
+        statusEl.className = 'webcam-status-badge status-error';
+        return null;
+    }
 }
 
-function mostrarCamposCategoria() {
-    const categoriaSelect = document.getElementById("categoria_edicao");
-    const subcategoriaSelect = document.getElementById("subcategoria_edicao");
+/**
+ * Captura uma foto da stream
+ * @param {MediaStream} stream - A stream da webcam
+ * @param {HTMLVideoElement} videoEl - O elemento <video>
+ * @param {HTMLCanvasElement} canvasEl - O elemento <canvas>
+ * @param {HTMLInputElement} inputEl - O <input type="hidden">
+ * @param {HTMLElement} previewEl - O container <div> do preview
+ * @param {HTMLImageElement} imgPreviewEl - A <img> de preview
+ */
+function capturarFoto(stream, videoEl, canvasEl, inputEl, previewEl, imgPreviewEl) {
+    if (!stream || !videoEl || !canvasEl || !inputEl || !previewEl || !imgPreviewEl) return;
+    
+    canvasEl.width = videoEl.videoWidth;
+    canvasEl.height = videoEl.videoHeight;
+    canvasEl.getContext("2d").drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+    
+    const imageData = canvasEl.toDataURL("image/jpeg", 0.8);
+    inputEl.value = imageData;
+    imgPreviewEl.src = imageData;
+    previewEl.style.display = "block";
+    
+    // Para a webcam após a captura
+    pararWebcam(stream, videoEl, null, null, null); // Passa null para os que não precisamos
+}
 
-    if (!categoriaSelect || !subcategoriaSelect) { 
-        console.warn("Elementos categoria_edicao ou subcategoria_edicao não encontrados.");
-        return;
+/**
+ * Para uma stream de webcam
+ * @param {MediaStream} stream - A stream
+ * @param {HTMLVideoElement} videoEl - O elemento <video>
+ * @param {HTMLSpanElement} statusEl - O span de status
+ * @param {HTMLButtonElement} btnCapturar - O botão de capturar
+ * @param {HTMLButtonElement} btnParar - O botão de parar
+ * @returns {null} - Retorna null para zerar a variável de stream
+ */
+function pararWebcam(stream, videoEl, statusEl, btnCapturar, btnParar) {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
     }
+    if (videoEl) videoEl.style.display = "none";
+    if (statusEl) {
+        statusEl.textContent = "Inativa";
+        statusEl.className = 'webcam-status-badge status-info';
+    }
+    if (btnCapturar) btnCapturar.style.display = "none";
+    if (btnParar) btnParar.style.display = "none";
+    return null; // Retorna null para a variável de stream ser resetada
+}
 
-    const categoria = categoriaSelect.value;
-    const subcategoria = subcategoriaSelect.value;
-    
-    // Esconder todos os campos primeiro
-    const camposVisitante = document.getElementById("campos_visitante_edicao");
-    const camposFornecedor = document.getElementById("campos_fornecedor_edicao");
-    const camposRepresentante = document.getElementById("campos_representante_edicao");
-    const subcategoriaContainer = document.getElementById("subcategoria_container_edicao");
-    
-    if (camposVisitante) camposVisitante.style.display = "none";
-    if (camposFornecedor) camposFornecedor.style.display = "none";
-    if (camposRepresentante) camposRepresentante.style.display = "none";
-    if (subcategoriaContainer) subcategoriaContainer.style.display = "none";
-    
-    // Esconder campos específicos de subcategoria
-    const camposClt = document.getElementById("campos_clt_edicao");
-    const camposPj = document.getElementById("campos_pj_edicao");
-    const camposMei = document.getElementById("campos_mei_edicao");
-    const camposAutonomo = document.getElementById("campos_autonomo_edicao");
-    const camposAssociado = document.getElementById("campos_associado_edicao");
+/**
+ * Limpa a foto capturada
+ * @param {HTMLInputElement} inputEl - O <input type="hidden">
+ * @param {HTMLElement} previewEl - O container <div> do preview
+ * @param {HTMLImageElement} imgPreviewEl - A <img> de preview
+ */
+function removerFoto(inputEl, previewEl, imgPreviewEl) {
+    if (!inputEl || !previewEl || !imgPreviewEl) return;
+    inputEl.value = "";
+    imgPreviewEl.src = "";
+    previewEl.style.display = "none";
+}
 
-    if (camposClt) camposClt.style.display = "none";
-    if (camposPj) camposPj.style.display = "none";
-    if (camposMei) camposMei.style.display = "none";
-    if (camposAutonomo) camposAutonomo.style.display = "none";
-    if (camposAssociado) camposAssociado.style.display = "none";
+// ===================================================================
+// FUNÇÕES DE CONTROLE DO MODAL DE EDIÇÃO
+// ===================================================================
+
+/**
+ * Mostra/Esconde campos do formulário com base na categoria/subcategoria
+ */
+function mostrarCamposCategoriaEdicao() {
+    const categoria = document.getElementById("categoria_edicao")?.value;
+    const subcategoria = document.getElementById("subcategoria_edicao")?.value;
+
+    // Esconde todos os containers
+    document.getElementById("campos_visitante_edicao")?.style.setProperty('display', 'none');
+    document.getElementById("campos_fornecedor_edicao")?.style.setProperty('display', 'none');
+    document.getElementById("campos_representante_edicao")?.style.setProperty('display', 'none');
+    document.getElementById("subcategoria_container_edicao")?.style.setProperty('display', 'none');
     
+    // Esconde todos os sub-campos
+    document.querySelectorAll('.sub-fields').forEach(el => el.style.setProperty('display', 'none'));
+
+    // Mostra baseado na Categoria
     if (categoria === "VISITANTE") {
-        if (camposVisitante) camposVisitante.style.display = "block";
+        document.getElementById("campos_visitante_edicao")?.style.setProperty('display', 'block');
     } else if (categoria === "FORNECEDOR") {
-        if (subcategoriaContainer) subcategoriaContainer.style.display = "block";
-        if (camposFornecedor) camposFornecedor.style.display = "block";
-        if (camposRepresentante) camposRepresentante.style.display = "block";
-        
-        // Mostrar campos específicos da subcategoria
-        if (subcategoria === "CLT") {
-            if (camposClt) camposClt.style.display = "block";
-        } else if (subcategoria === "PJ") {
-            if (camposPj) camposPj.style.display = "block";
-        } else if (subcategoria === "MEI") {
-            if (camposMei) camposMei.style.display = "block";
-        } else if (subcategoria === "AUTONOMO") {
-            if (camposAutonomo) camposAutonomo.style.display = "block";
-        } else if (subcategoria === "ASSOCIADO") {
-            if (camposAssociado) camposAssociado.style.display = "block";
+        document.getElementById("subcategoria_container_edicao")?.style.setProperty('display', 'block');
+        document.getElementById("campos_fornecedor_edicao")?.style.setProperty('display', 'block');
+        document.getElementById("campos_representante_edicao")?.style.setProperty('display', 'block');
+
+        // Mostra sub-campo baseado na Subcategoria
+        if (subcategoria) {
+            const subCampoEl = document.getElementById(`campos_${subcategoria.toLowerCase()}_edicao`);
+            if (subCampoEl) {
+                subCampoEl.style.setProperty('display', 'block');
+            }
         }
     }
 }
 
-function carregarDadosFornecedor(fornecedorId) {
-    fetch(`/fornecedor/${fornecedorId}/dados/`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Inserir o HTML do formulário no corpo do modal
-                const modalBodyContent = document.getElementById("modal-body-content");
-                if (modalBodyContent) {
-                    modalBodyContent.innerHTML = data.form_html;
-                }
+/**
+ * Preenche os campos do formulário com os dados carregados do 'data.dados'
+ */
+function inicializarCamposModalEdicao(data) {
+    const dados = data.dados;
+    if (!dados) return;
 
-                // Agora que o HTML do formulário está na página, inicializar os campos
-                inicializarCamposModal(data);
-
-                // Abrir o modal
-                // var modal = new bootstrap.Modal(document.getElementById("modalEditarFornecedor"));
-                // modal.show(); // Não chamar show aqui, pois o modal já está sendo aberto pelo show.bs.modal
-
-            } else {
-                console.error("Erro ao carregar dados do fornecedor:", data.error);
-                alert("Erro ao carregar dados do fornecedor." + (data.error ? ": " + data.error : ""));
-            }
-        })
-        .catch(error => {
-            console.error("Erro na requisição AJAX:", error);
-            alert("Ocorreu um erro ao carregar os dados do fornecedor.");
-        });
-}
-
-// ==================== EVENT LISTENERS ====================
-
-document.addEventListener("DOMContentLoaded", function() {
-    // Event listener para quando o modal for fechado
-    const modal = document.getElementById("modalEditarFornecedor");
-    if (modal) {
-        modal.addEventListener("hide.bs.modal", function() {
-            // Parar todas as webcams quando o modal for fechado
-            pararWebcamVisitante();
-            pararWebcamRepresentante();
-            
-            // Limpar previews
-            removerFotoVisitante();
-            removerFotoRepresentante();
-            
-            // Limpar o conteúdo do modal-body-content para evitar dados antigos
-            const modalBodyContent = document.getElementById("modal-body-content");
-            if (modalBodyContent) {
-                modalBodyContent.innerHTML = "<p>Carregando dados...</p>";
-            }
-            
-            console.log("Modal fechado - webcams paradas e dados limpos");
-        });
-        
-        // Event listener para quando o modal for aberto
-        modal.addEventListener("show.bs.modal", function(event) {
-            const button = event.relatedTarget;
-            if (button) {
-                const fornecedorId = button.getAttribute("data-id");
-                
-                // *** INÍCIO DA CORREÇÃO ***
-                const form = document.getElementById("formEditarFornecedor");
-                if (fornecedorId && form) {
-                    // Constrói a URL correta para a view de edição
-                    const actionUrl = `/fornecedor/${fornecedorId}/editar/`; // Ajuste a URL se for diferente
-                    form.setAttribute("action", actionUrl);
-                    
-                    // Agora carrega os dados
-                    carregarDadosFornecedor(fornecedorId);
-                }
-                // *** FIM DA CORREÇÃO ***
-
-            } else { 
-                console.warn("Modal aberto sem relatedTarget. Assumindo que o carregamento de dados já foi tratado.");
-            }
-        });
+    // Preenche campos básicos
+    document.getElementById("categoria_edicao").value = dados.categoria || "";
+    document.getElementById("subcategoria_edicao").value = dados.subcategoria || "";
+    document.getElementById("validade_meses_edicao").value = dados.validade_meses || "";
+    document.getElementById("status_edicao").value = dados.status || "";
+    
+    // Preenche campos de Visitante
+    if (dados.categoria === "VISITANTE" && dados.visitante) {
+        document.getElementById("nome_visitante_edicao").value = dados.visitante.nome || "";
+        document.getElementById("documento_visitante_edicao").value = dados.visitante.documento || "";
+        document.getElementById("motivo_visita_edicao").value = dados.visitante.motivo_visita || "";
+        if (dados.visitante.foto_visitante) {
+            document.getElementById("img-preview-visitante-edicao").src = dados.visitante.foto_visitante;
+            document.getElementById("preview-foto-visitante-edicao").style.display = "block";
+        }
     }
     
-    // Event listener para submit do formulário (agora que o formulário é carregado dinamicamente, este listener precisa ser re-atribuído ou usar delegação)
-    // A delegação é mais robusta para elementos carregados dinamicamente
-    $(document).on("submit", "#formEditarFornecedor", function(e) {
-        e.preventDefault();
-        let form = $(this);
-        
-        // Aqui você pode adicionar validações adicionais se necessário
-        if (!validarFormulario()) {
-            return; // Impede a submissão se a validação falhar
+    // Preenche campos de Fornecedor
+    if (dados.categoria === "FORNECEDOR") {
+        if (dados.fornecedor_servico) {
+            document.getElementById("nome_empresa_edicao").value = dados.fornecedor_servico.nome_empresa || "";
+            document.getElementById("atividade_servico_edicao").value = dados.fornecedor_servico.atividade_servico || "";
         }
+        if (dados.trabalhador_relacionado) {
+            document.getElementById("nome_representante_edicao").value = dados.trabalhador_relacionado.nome_representante || "";
+            if (dados.trabalhador_relacionado.foto_representante) {
+                document.getElementById("img-preview-representante-edicao").src = dados.trabalhador_relacionado.foto_representante;
+                document.getElementById("preview-foto-representante-edicao").style.display = "block";
+            }
+            // Preenche sub-campos
+            if (dados.subcategoria === "CLT") {
+                document.getElementById("descricao_cargo_edicao").value = dados.trabalhador_relacionado.descricao_cargo || "";
+            }
+            // ... (adicionar preenchimento para outros campos de subcategoria se necessário) ...
+        }
+    }
+    
+    // Mostra os campos corretos
+    mostrarCamposCategoriaEdicao();
+    
+    // Adiciona listener para o select de subcategoria
+    // (O select de categoria é 'disabled', então não precisa de listener)
+    document.getElementById("subcategoria_edicao").addEventListener("change", mostrarCamposCategoriaEdicao);
+    
+    // Adiciona listeners aos botões da webcam
+    adicionarListenersWebcam();
+}
+
+/**
+ * Adiciona todos os event listeners para as webcams no modal de edição
+ */
+function adicionarListenersWebcam() {
+    // --- Webcam Visitante ---
+    const visVideo = document.getElementById("webcam-visitante-edicao");
+    const visStatus = document.getElementById("webcam-status-visitante");
+    const visCanvas = document.getElementById("canvas-visitante-edicao");
+    const visInput = document.getElementById("foto_visitante_base64_edicao");
+    const visPreview = document.getElementById("preview-foto-visitante-edicao");
+    const visImgPreview = document.getElementById("img-preview-visitante-edicao");
+    const visBtnIniciar = document.getElementById("btn-iniciar-visitante");
+    const visBtnCapturar = document.getElementById("btn-capturar-visitante");
+    const visBtnParar = document.getElementById("btn-parar-visitante");
+    const visBtnRemover = document.getElementById("btn-remover-visitante");
+
+    visBtnIniciar?.addEventListener('click', async () => {
+        webcamVisitanteStream = await iniciarWebcam(visVideo, visStatus, visBtnCapturar, visBtnParar);
+    });
+    visBtnCapturar?.addEventListener('click', () => {
+        capturarFoto(webcamVisitanteStream, visVideo, visCanvas, visInput, visPreview, visImgPreview);
+        webcamVisitanteStream = pararWebcam(webcamVisitanteStream, visVideo, visStatus, visBtnCapturar, visBtnParar);
+    });
+    visBtnParar?.addEventListener('click', () => {
+        webcamVisitanteStream = pararWebcam(webcamVisitanteStream, visVideo, visStatus, visBtnCapturar, visBtnParar);
+    });
+    visBtnRemover?.addEventListener('click', () => {
+        removerFoto(visInput, visPreview, visImgPreview);
+    });
+
+    // --- Webcam Representante ---
+    const repVideo = document.getElementById("webcam-representante-edicao");
+    const repStatus = document.getElementById("webcam-status-representante");
+    const repCanvas = document.getElementById("canvas-representante-edicao");
+    const repInput = document.getElementById("foto_representante_base64_edicao");
+    const repPreview = document.getElementById("preview-foto-representante-edicao");
+    const repImgPreview = document.getElementById("img-preview-representante-edicao");
+    const repBtnIniciar = document.getElementById("btn-iniciar-representante");
+    const repBtnCapturar = document.getElementById("btn-capturar-representante");
+    const repBtnParar = document.getElementById("btn-parar-representante");
+    const repBtnRemover = document.getElementById("btn-remover-representante");
+    
+    repBtnIniciar?.addEventListener('click', async () => {
+        webcamRepresentanteStream = await iniciarWebcam(repVideo, repStatus, repBtnCapturar, repBtnParar);
+    });
+    repBtnCapturar?.addEventListener('click', () => {
+        capturarFoto(webcamRepresentanteStream, repVideo, repCanvas, repInput, repPreview, repImgPreview);
+        webcamRepresentanteStream = pararWebcam(webcamRepresentanteStream, repVideo, repStatus, repBtnCapturar, repBtnParar);
+    });
+    repBtnParar?.addEventListener('click', () => {
+        webcamRepresentanteStream = pararWebcam(webcamRepresentanteStream, repVideo, repStatus, repBtnCapturar, repBtnParar);
+    });
+    repBtnRemover?.addEventListener('click', () => {
+        removerFoto(repInput, repPreview, repImgPreview);
+    });
+}
+
+// ===================================================================
+// EVENT LISTENERS PRINCIPAIS (nível do documento)
+// ===================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modalEditar = document.getElementById('modalEditarFornecedorOverlay');
+    if (!modalEditar) {
+         // console.warn("Modal de edição não encontrado nesta página.");
+         return; // Sai se o modal principal não existir
+    }
+    
+    let currentEditId = null; // Armazena o ID do fornecedor sendo editado
+    const modalBody = modalEditar.querySelector('#modal-body-content');
+
+    // Função para carregar o conteúdo do modal
+    const carregarDadosFornecedor = (fornecedorId) => {
+        if (!modalBody) return;
+        modalBody.innerHTML = `<p class="loading-text">Carregando dados...</p>`; // Estado de loading
+
+        fetch(`/fornecedor/${fornecedorId}/dados/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    modalBody.innerHTML = data.form_html; // Injeta o HTML
+                    // Agora que o HTML existe, inicializa os campos e a lógica
+                    inicializarCamposModalEdicao(data);
+                } else {
+                     modalBody.innerHTML = `<p style="color: var(--danger-color);">Erro: ${data.error}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Erro na requisição AJAX:", error);
+                 modalBody.innerHTML = `<p style="color: var(--danger-color);">Ocorreu um erro ao carregar os dados.</p>`;
+            });
+    };
+
+    // Observa o modal de edição para carregar o conteúdo quando ele for aberto
+    // e parar as webcams quando for fechado.
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                const isActive = modalEditar.classList.contains('active');
+                if (isActive) {
+                    // Modal foi aberto
+                    // Precisamos saber qual botão foi clicado.
+                    // Usamos um truque: o listener 'click' abaixo adiciona a classe 'active-trigger'
+                    const editTrigger = document.querySelector('.active-trigger[data-modal-target="#modalEditarFornecedorOverlay"]');
+                    if (editTrigger) {
+                        currentEditId = editTrigger.getAttribute('data-id');
+                        if (currentEditId) {
+                            // Atualiza a action do formulário (que será carregado)
+                            // O form ID é 'formEditarFornecedor'
+                            // (A action será setada no listener de submit)
+                            carregarDadosFornecedor(currentEditId);
+                        }
+                        editTrigger.classList.remove('active-trigger'); // Limpa o gatilho
+                    }
+                } else {
+                    // Modal foi fechado
+                    webcamVisitanteStream = pararWebcam(webcamVisitanteStream, document.getElementById("webcam-visitante-edicao"), document.getElementById("webcam-status-visitante"), document.getElementById("btn-capturar-visitante"), document.getElementById("btn-parar-visitante"));
+                    webcamRepresentanteStream = pararWebcam(webcamRepresentanteStream, document.getElementById("webcam-representante-edicao"), document.getElementById("webcam-status-representante"), document.getElementById("btn-capturar-representante"), document.getElementById("btn-parar-representante"));
+                    if (modalBody) modalBody.innerHTML = ""; // Limpa o conteúdo
+                }
+            }
+        });
+    });
+    observer.observe(modalEditar, { attributes: true });
+
+    // Delegação de eventos para todo o 'body'
+    document.body.addEventListener('click', (e) => {
+        // 1. Marca qual botão abriu o modal de edição
+        const trigger = e.target.closest('[data-modal-target="#modalEditarFornecedorOverlay"]');
+        if (trigger) {
+            // Remove 'active-trigger' de qualquer outro botão
+            document.querySelectorAll('.active-trigger').forEach(btn => btn.classList.remove('active-trigger'));
+            // Adiciona ao botão clicado
+            trigger.classList.add('active-trigger');
+        }
+    });
+    
+    // 2. Listener para o SUBMIT do formulário de edição (delegado ao modal)
+    modalEditar.addEventListener('submit', (e) => {
+        const form = e.target.closest('#formEditarFornecedor');
+        if (!form) return; // Não é o submit que procuramos
         
-        const formData = new FormData(form[0]); // Use form[0] para obter o elemento DOM nativo
-        
-        fetch(form.attr("action") || window.location.href, {
+        e.preventDefault();
+        if (!currentEditId) {
+            alert("Erro: ID do fornecedor não definido.");
+            return;
+        }
+
+        const formData = new FormData(form);
+        const actionUrl = `/fornecedor/${currentEditId}/editar/`; // Constrói a URL de submit
+
+        fetch(actionUrl, {
             method: "POST",
             body: formData,
             headers: {
-                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                "X-CSRFToken": csrfToken,
+                "Accept": "application/json" // Pede JSON de volta
             }
         })
         .then(response => response.json())
@@ -491,66 +384,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 location.reload(); // Recarregar a página para mostrar as alterações
             } else {
                 alert("Erro ao atualizar fornecedor: " + (data.error || "Erro desconhecido"));
-                // Se a view retornar form_html com erros, você pode inseri-lo novamente
+                // Se a view retornar form_html com erros, podemos re-injetá-lo
                 if (data.form_html) {
-                    const modalBodyContent = document.getElementById("modal-body-content");
-                    if (modalBodyContent) {
-                        modalBodyContent.innerHTML = data.form_html;
+                    if (modalBody) {
+                        modalBody.innerHTML = data.form_html;
                         // Re-inicializar campos após re-renderização do formulário com erros
-                        inicializarCamposModal(data); // Pode precisar de ajustes para lidar com erros de validação
+                        inicializarCamposModalEdicao(data); // 'data' contém 'data.dados'
                     }
                 }
             }
         })
         .catch(error => {
-            console.error("Erro:", error);
+            console.error("Erro no fetch:", error);
             alert("Erro ao processar solicitação.");
         });
     });
 });
-
-// ==================== FUNÇÕES AUXILIARES ====================
-
-function validarFormulario() {
-    const categoriaSelect = document.getElementById("categoria_edicao");
-    if (!categoriaSelect) return true; // Se o elemento não existe, não valida
-
-    const categoria = categoriaSelect.value;
-    
-    if (categoria === "VISITANTE") {
-        const nome = document.getElementById("nome_visitante_edicao");
-        if (nome && !nome.value.trim()) {
-            alert("Nome do visitante é obrigatório.");
-            return false;
-        }
-    } else if (categoria === "FORNECEDOR") {
-        const subcategoriaSelect = document.getElementById("subcategoria_edicao");
-        const nomeRepresentante = document.getElementById("nome_representante_edicao");
-
-        if (nomeRepresentante && !nomeRepresentante.value.trim()) {
-            alert("Nome do representante é obrigatório.");
-            return false;
-        }
-        
-        if (subcategoriaSelect) {
-            const subcategoria = subcategoriaSelect.value;
-            if (subcategoria === "CLT") {
-                const descricaoCargo = document.getElementById("descricao_cargo_edicao");
-                if (descricaoCargo && !descricaoCargo.value.trim()) {
-                    alert("Descrição do cargo é obrigatória para CLT.");
-                    return false;
-                }
-            } else if (subcategoria === "PJ") {
-                // Adicionar validações para PJ
-            } else if (subcategoria === "MEI") {
-                // Adicionar validações para MEI
-            } else if (subcategoria === "AUTONOMO") {
-                // Adicionar validações para Autônomo
-            } else if (subcategoria === "ASSOCIADO") {
-                // Adicionar validações para Associado
-            }
-        }
-    }
-    return true;
-}
-

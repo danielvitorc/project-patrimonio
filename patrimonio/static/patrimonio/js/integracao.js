@@ -1,104 +1,122 @@
-// -------------------- Função CSRF --------------------
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+
+// project-patrimonio/patrimonio/static/patrimonio/js/integracao.js
+// Refatorado para remover jQuery e Bootstrap, e usar modals.js
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Helper: Função para pegar o CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
+    // As variáveis globais window.csrfToken e window.gerarLinkUrl
+    // devem ser definidas no template HTML (bloco extra_js)
+    const csrfToken = window.csrfToken || getCookie('csrftoken');
 
-// -------------------- Botão gerar link --------------------
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("🟢 Script fornecedores.js carregado.");
 
-    // Botão gerar link (fetch)
-    document.querySelectorAll('.btn-gerar-link').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Armazena o ID do fornecedor quando o modal de validade é aberto
+    let currentFornecedorId = null;
+
+    // Listener global para capturar cliques em botões
+    // Isso funciona mesmo que a tabela seja recarregada dinamicamente.
+    document.body.addEventListener('click', (e) => {
+        
+        // Gatilho 1: Usuário clicou no botão para ABRIR o modal de validade
+        // (Ex: <button data-modal-target="#modalValidadeOverlay..." data-id="123">)
+        const trigger = e.target.closest('[data-modal-target^="#modalValidadeOverlay"]');
+        if (trigger) {
+            // Guarda o ID do fornecedor que estamos prestes a processar
+            currentFornecedorId = trigger.getAttribute('data-id');
+        }
+
+        // Gatilho 2: Usuário clicou no botão "Gerar Link" DENTRO do modal de validade
+        // (Ex: <button class="btn-confirmar-link">)
+        const confirmButton = e.target.closest('.btn-confirmar-link');
+        if (confirmButton) {
             e.preventDefault();
-            const fornecedorId = this.dataset.id;
-            const validade = prompt("Informe a validade em meses:");
-
-            if (!validade) {
-                alert("Você precisa informar a validade em meses.");
+            
+            if (!currentFornecedorId) {
+                console.error("ID do Fornecedor não encontrado. O clique no gatilho 1 falhou?");
                 return;
             }
 
-            fetch(`/gerar-link-integracao/${fornecedorId}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: new URLSearchParams({ validade_meses: validade })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.erro) {
-                    alert(data.erro);
-                    return;
-                }
-                const modal = `
-                    <div class="modal fade" id="modalLink${fornecedorId}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content p-3">
-                                <h5 class="mb-2">🔗 Link de Integração</h5>
-                                <input class="form-control mb-2" value="${data.link}" readonly>
-                                <h6 class="mt-3">🔑 Token de Acesso</h6>
-                                <input class="form-control mb-3" value="${data.token}" readonly>
-                                <small class="text-muted">${data.mensagem}</small>
-                            </div>
-                        </div>
-                    </div>`;
-                document.body.insertAdjacentHTML("beforeend", modal);
-                new bootstrap.Modal(document.getElementById(`modalLink${fornecedorId}`)).show();
-            });
-        });
-    });
+            const modalValidade = confirmButton.closest('.modal-overlay');
+            if (!modalValidade) {
+                console.error("Não foi possível encontrar o modal-overlay pai.");
+                return;
+            }
 
-    // -------------------- Botão confirmar link (jQuery) --------------------
-    if (window.jQuery) {
-        $('body').on('click', '.btn-confirmar-link', function(e) {
-            e.preventDefault();
-            console.log("🚀 Clique detectado dentro do modal!");
-
-            const fornecedorId = $(this).data('id');
-            const validade = $('#validadeMeses' + fornecedorId).val();
+            const validadeInput = modalValidade.querySelector('input[name="validade_meses"]');
+            const validade = validadeInput ? validadeInput.value : '12'; // Default 12
 
             if (!validade) {
                 alert("Informe a validade em meses!");
                 return;
             }
 
-            $.ajax({
-                url: window.gerarLinkUrl.replace("0", fornecedorId),
+            // Fecha o modal de validade (função do modals.js)
+            modalValidade.classList.remove('active');
+
+            // Prepara a URL (garante que termine com /)
+            let url = window.gerarLinkUrl.endsWith('/') ? 
+                      window.gerarLinkUrl : 
+                      window.gerarLinkUrl + '/';
+            url = url.replace('0/', `${currentFornecedorId}/`); // Substitui o placeholder
+
+            // Substitui o $.ajax pelo fetch
+            fetch(url, {
                 method: "POST",
-                data: {
-                    validade_meses: validade,
-                    csrfmiddlewaretoken: window.csrfToken
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
-                success: function(response) {
-                    // Fecha o modal de validade
-                    const modalEl = document.getElementById('modalValidade' + fornecedorId);
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    modal.hide();
-
-                    // Preenche o modal genérico com token e link
-                    $('#tokenGerado').text(response.token);
-                    $('#linkGerado').text(response.link).attr('href', response.link);
-
-                    // Abre o modal genérico
-                    const modalLinkEl = document.getElementById('modalLinkGerado');
-                    const modalLink = new bootstrap.Modal(modalLinkEl);
-                    modalLink.show();
-                },
-                error: function(xhr) {
-                    alert("Erro: " + (xhr.responseJSON?.erro || xhr.statusText));
+                body: new URLSearchParams({ validade_meses: validade })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: Falha na requisição`);
                 }
+                return response.json();
+            })
+            .then(response => {
+                if (response.erro) {
+                    alert(response.erro);
+                    return;
+                }
+                
+                // Preenche os campos no modal de "Link Gerado"
+                const tokenEl = document.getElementById('tokenGerado');
+                const linkEl = document.getElementById('linkGerado');
+                
+                if(tokenEl) tokenEl.textContent = response.token;
+                if(linkEl) {
+                    linkEl.textContent = response.link;
+                    linkEl.href = response.link;
+                }
+
+                // Abre o modal de "Link Gerado" (função do modals.js)
+                // (O ID do overlay foi renomeado no HTML que sugeri)
+                const modalLinkGerado = document.getElementById('modalLinkGeradoOverlay');
+                if (modalLinkGerado) {
+                    modalLinkGerado.classList.add('active');
+                } else {
+                    console.error("Modal #modalLinkGeradoOverlay não encontrado.");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao gerar link:", error);
+                alert("Ocorreu um erro ao gerar o link.");
             });
-        });
-    }
+        }
+    });
 });

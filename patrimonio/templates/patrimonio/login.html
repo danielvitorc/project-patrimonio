@@ -1,46 +1,89 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br"> {# O data-theme será adicionado pelo theme.js #}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
     <title>{% block title %}Login - PATRIMONIO{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'patrimonio/css/login.css' %}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    {# Font Awesome continua sendo usado para ícones #}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    {# CSS Base e CSS específico da página de Login #}
+    <link rel="stylesheet" href="{% static 'patrimonio/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'patrimonio/css/login.css' %}">
 </head>
 <body>
 
-<div class="login-wrapper">
-    <!-- Overlay do formulário -->
-    <div class="login-box text-center">
-        <!-- Logo centralizada -->
-        <img src="https://static.wixstatic.com/media/de50eb_ad9cb6f8ec9d429e87290a369ebdf57d~mv2.png" 
-             alt="Logo" 
-             class="login-logo mb-3">
+    {# Botão de Tema #}
+    <button id="theme-toggle-login" class="theme-toggle-button" title="Mudar Tema">
+        <i class="fas fa-sun"></i> <i class="fas fa-moon" style="display: none;"></i>
+    </button>
 
-        {% if messages %}
-            {% for message in messages %}
-                <p class="text-danger text-center">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
+    {# Canvas para animação de estrelas #}
+    <canvas id="stars"></canvas>
 
-        <form method="post">
-            {% csrf_token %}
-            <div class="input-icon mb-3">
-                <i class="fa fa-user"></i>
-                <input type="text" name="username" class="form-control" placeholder="Usuário" required>
-            </div>
-            <div class="input-icon mb-3">
-                <i class="fa fa-eye-slash"></i>
-                <input type="password" name="password" class="form-control" placeholder="Senha" required>
-            </div>
-            <button type="submit" class="btn btn-login w-100">ENTRAR</button>
-        </form>
+    {# Container principal da tela de login #}
+    <div class="login-container">
+        {# Caixa central do formulário #}
+        <div class="login-box">
+
+            <img src="https://static.wixstatic.com/media/de50eb_ad9cb6f8ec9d429e87290a369ebdf57d~mv2.png"
+                 alt="Logo NorteTech"
+                 class="login-logo">
+
+            <h1 class="login-title">Controle de Portaria</h1>
+
+            {# Mensagens de erro/sucesso do Django #}
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message-item message-{{ message.tags }}"> {# Usa message.tags para classe (ex: message-error) #}
+                            <i class="fas fa-exclamation-triangle icon"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# Formulário de Login #}
+            <form method="post" class="login-form">
+                {% csrf_token %}
+
+                {# Campo Usuário #}
+                <div class="form-group">
+                    <label for="username" class="sr-only">Usuário</label> {# Label para acessibilidade #}
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa fa-user fa-fw"></i></span>
+                        <input type="text" id="username" name="username" class="input-field" placeholder="Usuário" required>
+                    </div>
+                </div>
+
+                {# Campo Senha #}
+                <div class="form-group">
+                    <label for="password" class="sr-only">Senha</label> {# Label para acessibilidade #}
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa fa-lock fa-fw"></i></span>
+                        <input type="password" id="password" name="password" class="input-field" placeholder="Senha" required>
+                        <button type="button" id="toggle-password" class="toggle-password-button" aria-label="Mostrar senha">
+                            <i class="fas fa-eye-slash icon-toggle"></i>
+                            <i class="fas fa-eye icon-toggle" style="display: none;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {# Botão Entrar #}
+                <button type="submit" class="login-button">ENTRAR</button>
+
+            </form>
+        </div>
     </div>
-</div>
 
+    {# Scripts JS #}
+    <script src="https://cdn.jsdelivr.net/npm/delaunay-fast@1.0.1/delaunay.min.js"></script> {# Dependência para stars.js #}
+    <script src="{% static 'patrimonio/js/theme.js' %}"></script>
+    <script src="{% static 'patrimonio/js/stars.js' %}"></script>
 
 </body>
 </html>

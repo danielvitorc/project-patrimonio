@@ -1,62 +1,50 @@
-<!-- Modal de Cadastro Único -->
-<div class="modal fade" id="modalDeCadastroUnico" tabindex="-1" aria-labelledby="modalDeCadastroUnicoLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+<div class="modal-overlay" id="modalDeCadastroUnicoOverlay" aria-labelledby="modalDeCadastroUnicoLabel" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog--xl"> {# Modal Extra Largo #}
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="modalDeCadastroUnicoLabel">
-                    <i class="fas fa-plus-circle me-2"></i>Novo Cadastro
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Fechar"></button>
-            </div>
-
             <form method="post" enctype="multipart/form-data" action="{% url 'fornecedores_cadastrados' %}">
                 {% csrf_token %}
-                <div class="modal-body bg-light" style="height: 762px;">
-                    <div class="container-fluid">
-                        <!-- Seção de Seleção de Categoria -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header">
-                                <h6 class="mb-0">Tipo de Cadastro</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Categoria:</label>
-                                        <select name="categoria" id="categoria" class="form-select" required>
-                                            <option value="">Selecione uma categoria</option>
-                                            <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6 mb-3" id="subcategoria-container" style="display: none;">
-                                        <label class="form-label">Subcategoria:</label>
-                                        <select name="subcategoria" id="subcategoria" class="form-select">
-                                            <option value="">Selecione uma subcategoria</option>
-                                            <option value="trabalhador_clt">Trabalhador CLT</option>
-                                            <option value="pessoa_juridica">Pessoa Jurídica (PJ)</option>
-                                            <option value="mei">Microempreendedor Individual (MEI)</option>
-                                            <option value="autonomo">Autônomo</option>
-                                            <option value="associado">Associado</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalDeCadastroUnicoLabel">
+                        <i class="fas fa-plus-circle icon"></i> Novo Cadastro
+                    </h2>
+                    <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
+                </div>
 
-                        <!-- Container para formulários dinâmicos -->
-                        <div id="forms-container">
-                            <!-- Os formulários específicos serão inseridos aqui via JavaScript -->
+                <div class="modal-body" style="max-height: 70vh;">
+                    <div class="form-section">
+                        <h3 class="form-section-title">Tipo de Cadastro</h3>
+                        <div class="form-grid">
+                            <div class="form-group grid-col-2">
+                                <label for="categoria" class="form-label">Categoria:</label>
+                                <select name="categoria" id="categoria" class="form-input" required>
+                                    <option value="">Selecione uma categoria</option>
+                                    <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
+                                </select>
+                            </div>
+                            <div class="form-group grid-col-2" id="subcategoria-container" style="display: none;">
+                                <label for="subcategoria" class="form-label">Subcategoria:</label>
+                                <select name="subcategoria" id="subcategoria" class="form-input">
+                                    <option value="">Selecione uma subcategoria</option>
+                                    <option value="trabalhador_clt">Trabalhador CLT</option>
+                                    <option value="pessoa_juridica">Pessoa Jurídica (PJ)</option>
+                                    <option value="mei">Microempreendedor Individual (MEI)</option>
+                                    <option value="autonomo">Autônomo</option>
+                                    <option value="associado">Associado</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
+
+                    <div id="forms-container">
+                        </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save me-2"></i>Salvar Cadastro
+                    <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>
+                        <i class="fas fa-times icon"></i> Cancelar
                     </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Cancelar
+                    <button type="submit" class="modal-button modal-button--success">
+                        <i class="fas fa-save icon"></i> Salvar Cadastro
                     </button>
                 </div>
             </form>

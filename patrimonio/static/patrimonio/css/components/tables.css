@@ -1,0 +1,220 @@
+/* project-patrimonio/patrimonio/static/patrimonio/css/components/tables.css */
+
+/* ===================================================================
+   ESTILOS PADRÃO PARA TABELAS DE DADOS (.data-table)
+   =================================================================*/
+
+.data-table-wrapper {
+    width: 100%;
+    overflow-x: auto; /* Habilita scroll horizontal em telas pequenas */
+    border: 1px solid var(--dark-border-color); /* Borda sutil ao redor */
+    border-radius: 8px; /* Cantos arredondados */
+    background-color: var(--dark-primary-bg); /* Fundo da tabela */
+    margin-bottom: 1.5rem; /* Espaçamento inferior */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+html[data-theme='light'] .data-table-wrapper {
+    border-color: var(--light-border-color);
+    background-color: var(--light-primary-bg);
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse; /* Remove espaços entre células */
+    min-width: 600px; /* Largura mínima para forçar scroll se necessário */
+    font-size: 0.9rem; /* Tamanho da fonte padrão da tabela */
+}
+
+/* --- Cabeçalho da Tabela --- */
+.data-table thead {
+    background-color: var(--dark-accent-bg); /* Fundo do cabeçalho */
+    color: var(--dark-primary-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html[data-theme='light'] .data-table thead {
+    background-color: var(--light-accent-bg);
+    color: var(--light-primary-text);
+    border-bottom: 2px solid var(--light-border-color); /* Linha mais forte abaixo do header */
+}
+
+.data-table th {
+    padding: 0.9rem 1rem; /* Espaçamento interno */
+    text-align: left; /* Alinhamento padrão */
+    font-weight: 600; /* Texto em negrito */
+    text-transform: uppercase; /* Opcional: Maiúsculas */
+    letter-spacing: 0.5px; /* Opcional: Espaçamento letras */
+    border-bottom: 1px solid var(--dark-border-color);
+    transition: border-color 0.3s ease;
+}
+
+html[data-theme='light'] .data-table th {
+     border-bottom-color: var(--light-border-color);
+}
+
+/* --- Corpo da Tabela --- */
+.data-table tbody tr {
+    border-bottom: 1px solid var(--dark-border-color);
+    transition: background-color 0.2s ease, border-color 0.3s ease;
+}
+
+html[data-theme='light'] .data-table tbody tr {
+    border-bottom-color: var(--light-border-color);
+}
+
+
+/* Efeito Hover */
+.data-table tbody tr:hover {
+    background-color: var(--sidebar-hover-bg); /* Reutiliza cor hover da sidebar */
+}
+
+/* Linhas Alternadas (Opcional) */
+.data-table tbody tr:nth-child(even) {
+     background-color: rgba(0, 0, 0, 0.03); /* Cor sutil para linhas pares no tema escuro */
+}
+
+html[data-theme='light'] .data-table tbody tr:nth-child(even) {
+     background-color: var(--light-secondary-bg); /* Cinza claro para linhas pares no tema claro */
+}
+html[data-theme='light'] .data-table tbody tr:hover {
+     background-color: var(--light-accent-bg); /* Cinza mais escuro no hover claro */
+}
+
+
+.data-table td {
+    padding: 0.8rem 1rem; /* Espaçamento interno das células */
+    vertical-align: middle; /* Alinha conteúdo verticalmente */
+    color: var(--dark-secondary-text); /* Cor padrão do texto das células */
+    transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .data-table td {
+    color: var(--light-secondary-text);
+}
+
+
+/* --- Estilos para Conteúdo Comum (Badges, Botões de Ação) --- */
+.data-table .badge {
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.data-table .badge-success { background-color: var(--success-color); color: white; }
+.data-table .badge-danger { background-color: var(--danger-color); color: white; }
+.data-table .badge-warning { background-color: var(--warning-color); color: #333; }
+.data-table .badge-info { background-color: var(--info-color); color: #333; }
+.data-table .badge-secondary { background-color: var(--dark-disabled); color: white; }
+
+html[data-theme='light'] .data-table .badge-warning,
+html[data-theme='light'] .data-table .badge-info {
+    color: var(--light-primary-text);
+}
+html[data-theme='light'] .data-table .badge-secondary {
+    background-color: var(--light-disabled);
+    color: var(--light-primary-text);
+}
+
+.data-table .action-buttons {
+    display: flex;
+    gap: 0.5rem; /* Espaço entre botões */
+    white-space: nowrap; /* Impede que botões quebrem linha */
+}
+
+.data-table .btn-action {
+    background: none;
+    border: 1px solid var(--dark-border-color);
+    color: var(--sidebar-text-color); /* Reutiliza cor de texto */
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    display: inline-flex; /* Para alinhar ícone e texto */
+    align-items: center;
+    gap: 0.3rem;
+}
+.data-table .btn-action i { /* Estilo para ícones dentro dos botões */
+    line-height: 1;
+}
+
+
+html[data-theme='light'] .data-table .btn-action {
+     border-color: var(--light-border-color);
+     color: var(--light-secondary-text);
+}
+
+.data-table .btn-action:hover {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--sidebar-hover-text);
+    border-color: var(--sidebar-hover-text);
+}
+html[data-theme='light'] .data-table .btn-action:hover {
+     background-color: var(--light-accent-bg);
+     color: var(--light-primary-text);
+     border-color: var(--light-secondary-text);
+}
+
+
+/* Cores específicas para botões de ação comuns */
+.data-table .btn-action-edit:hover { border-color: var(--warning-color); color: var(--warning-color); }
+.data-table .btn-action-delete:hover { border-color: var(--danger-color); color: var(--danger-color); }
+.data-table .btn-action-details:hover { border-color: var(--info-color); color: var(--info-color); }
+.data-table .btn-action-success:hover { border-color: var(--success-color); color: var(--success-color); }
+
+
+/* Estilo para imagens pequenas (ex: fotos em tabelas) */
+.data-table .table-photo {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--dark-border-color);
+    vertical-align: middle;
+    transition: transform 0.2s ease, border-color 0.3s ease;
+    cursor: pointer;
+}
+html[data-theme='light'] .data-table .table-photo {
+    border-color: var(--light-border-color);
+}
+.data-table .table-photo:hover {
+    transform: scale(1.1);
+    border-color: var(--dark-highlight);
+}
+html[data-theme='light'] .data-table .table-photo:hover {
+     border-color: var(--light-highlight);
+}
+
+
+/* Placeholder para quando não há foto */
+.data-table .photo-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: var(--dark-accent-bg); /* Cor de fundo sutil */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark-disabled);
+    font-size: 1.2rem;
+    vertical-align: middle;
+    border: 2px solid var(--dark-border-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+html[data-theme='light'] .data-table .photo-placeholder {
+    background-color: var(--light-accent-bg);
+    color: var(--light-disabled);
+    border-color: var(--light-border-color);
+}
+
+
+/* ===================================================================
+   RESPONSIVIDADE PARA TABELAS (Scroll Horizontal)
+   =================================================================*/
+/* O wrapper `.data-table-wrapper` com `overflow-x: auto;` já cuida disso. */

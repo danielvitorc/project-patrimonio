@@ -1,44 +1,48 @@
-<!-- Modal de input de Validade-->
-<div class="modal fade" id="modalValidade{{ fornecedor.id }}" tabindex="-1"
-    aria-labelledby="modalValidadeLabel{{ fornecedor.id }}" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+{# Modal de input de Validade #}
+<div class="modal-overlay" id="modalValidadeOverlay{{ fornecedor.id }}" aria-labelledby="modalValidadeLabel{{ fornecedor.id }}" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog--sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalValidadeLabel{{ fornecedor.id }}">Validade da Integração</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <h2 class="modal-title" id="modalValidadeLabel{{ fornecedor.id }}">Validade da Integração</h2>
+                <button type="button" class="modal-close-button" data-modal-dismiss></button>
             </div>
             <div class="modal-body">
                 <form id="formValidade{{ fornecedor.id }}">
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="validadeMeses{{ fornecedor.id }}" class="form-label">Meses de validade</label>
-                        <input type="number" class="form-control" id="validadeMeses{{ fornecedor.id }}"
+                        <input type="number" class="form-input" id="validadeMeses{{ fornecedor.id }}"
                             name="validade_meses" value="12" min="1" max="36" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-confirmar-link" data-id="{{ fornecedor.id }}">Gerar
-                    Link</button>
+                <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
+                <button type="button" class="modal-button modal-button--primary btn-confirmar-link" data-id="{{ fornecedor.id }}">Gerar Link</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal para mostrar token e link -->
-<div class="modal fade" id="modalLinkGerado" tabindex="-1" aria-labelledby="modalLinkGeradoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+{# Modal para mostrar token e link #}
+<div class="modal-overlay" id="modalLinkGeradoOverlay" aria-labelledby="modalLinkGeradoLabel" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLinkGeradoLabel">Link de Integração Gerado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <h2 class="modal-title" id="modalLinkGeradoLabel">Link de Integração Gerado</h2>
+                <button type="button" class="modal-close-button" data-modal-dismiss></button>
             </div>
             <div class="modal-body">
-                <p><strong>Token:</strong> <span id="tokenGerado"></span></p>
-                <p><strong>Link:</strong> <a href="#" target="_blank" id="linkGerado"></a></p>
+                <div class="form-group">
+                    <label>Token:</label>
+                    <input type="text" class="form-input" id="tokenGerado" readonly>
+                </div>
+                 <div class="form-group">
+                    <label>Link:</label>
+                    <a href="#" target="_blank" id="linkGerado" style="word-break: break-all;"></a>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Fechar</button>
             </div>
         </div>
     </div>

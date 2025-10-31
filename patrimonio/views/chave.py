@@ -1,3 +1,4 @@
+# project-patrimonio/patrimonio/views/chave.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -8,11 +9,11 @@ from patrimonio.models import ControleChaves, Colaborador
 
 @login_required
 def entrega_de_chave(request):
+    # 1. Busca inicial de dados
     chaves = ControleChaves.objects.all().order_by('-id')
     form_chave = ControleChavesForm()
-    devolucao_forms = {}
 
-    # Processar entrega de chave
+    # 2. Processar entrega (POST)
     if request.method == 'POST' and 'form_tipo' in request.POST and request.POST['form_tipo'] == 'entrega':
         form_chave = ControleChavesForm(request.POST, request.FILES)
         if form_chave.is_valid():
@@ -22,14 +23,20 @@ def entrega_de_chave(request):
             messages.success(request, "Entrega registrada com sucesso!")
             return redirect('entrega_de_chave')
         else:
-            for erro in form_chave.non_field_errors():
-                messages.error(request, erro)
+            # Se o form de entrega falhar, recarregamos os forms de devolução para a página
+            for chave in chaves:
+                if chave.situacao == "RETIRADO":
+                    chave.form_devolucao = DevolucaoChaveForm(instance=chave)
+                else:
+                    chave.form_devolucao = None
+            messages.error(request, "Erro ao registrar entrega.")
 
-    # Processar devolução
+    # 3. Processar devolução (POST)
     elif request.method == 'POST' and 'form_tipo' in request.POST and request.POST['form_tipo'] == 'devolucao':
         chave_id = request.POST.get('chave_id')
-        chave = get_object_or_404(ControleChaves, id=chave_id)
-        form_devolucao = DevolucaoChaveForm(request.POST, request.FILES, instance=chave)
+        chave_para_devolver = get_object_or_404(ControleChaves, id=chave_id)
+        form_devolucao = DevolucaoChaveForm(request.POST, request.FILES, instance=chave_para_devolver)
+        
         if form_devolucao.is_valid():
             devolucao = form_devolucao.save(commit=False)
             devolucao.data_devolucao = timezone.now()
@@ -38,16 +45,33 @@ def entrega_de_chave(request):
             messages.success(request, "Chave devolvida com sucesso!")
             return redirect('entrega_de_chave')
         else:
-            messages.error(request, "Erro ao registrar devolução.")
+            # Se o form de devolução falhar, recarregamos todos os forms
+            messages.error(request, "Erro ao registrar devolução. Verifique os campos.")
+            for c in chaves:
+                if c.id == chave_para_devolver.id:
+                    c.form_devolucao = form_devolucao # Anexa o form com erro
+                elif c.situacao == "RETIRADO":
+                    c.form_devolucao = DevolucaoChaveForm(instance=c)
+                else:
+                    c.form_devolucao = None
+            
+            return render(request, 'patrimonio/entrega_de_chave.html', {
+                'form_chave': form_chave,
+                'chaves': chaves,
+            })
 
-    # Pré-preencher formulários de devolução por chave
+    # 4. Lógica para GET (ou se o POST de entrega falhar)
+    # Anexa o form de devolução a cada objeto 'chave'
     for chave in chaves:
-        if chave.situacao == "RETIRADO":
-            devolucao_forms[chave.id] = DevolucaoChaveForm(instance=chave)
+        if not hasattr(chave, 'form_devolucao'): # Evita sobrescrever form com erro
+            if chave.situacao == "RETIRADO":
+                chave.form_devolucao = DevolucaoChaveForm(instance=chave)
+            else:
+                chave.form_devolucao = None
 
+    # Renderiza a página
     return render(request, 'patrimonio/entrega_de_chave.html', {
         'form_chave': form_chave,
-        'devolucao_forms': devolucao_forms,
         'chaves': chaves,
     })
 

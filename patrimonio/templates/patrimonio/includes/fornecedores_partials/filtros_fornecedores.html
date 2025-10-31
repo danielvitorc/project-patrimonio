@@ -1,75 +1,36 @@
-<!-- ================================================================== -->
-<!-- INÍCIO DO CARD DE FILTROS RECOLHÍVEL                               -->
-<!-- ================================================================== -->
-<div class="card shadow-sm mb-4">
-    <!-- Cabeçalho Clicável -->
-    <div class="card-header bg-white p-3 collapsible-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse"
-        aria-expanded="true">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtros de Pesquisa</h5>
+<div class="table-filters">
+    <form id="filter-form" method="get" action="{% url 'fornecedores_filtrados' %}" class="filter-form-grid">
+        <div class="filter-group">
+            <label for="filtro-data" class="filter-label">Data de Integração:</label>
+            <input type="date" id="filtro-data" name="data_integracao" class="filter-input" />
         </div>
-    </div>
-
-    <!-- Conteúdo do Filtro (que recolhe) -->
-    <div class="collapse show" id="filterCollapse">
-        <div class="card-body p-4">
-            <form id="filter-form" method="get" action="{% url 'fornecedores_filtrados' %}"
-                class="row g-3 align-items-end">
-                <!-- Campo Data -->
-                <div class="col-md-3">
-                    <label for="filtro-data" class="form-label fw-bold">Data de Integração:</label>
-                    <input type="date" id="filtro-data" name="data_integracao" class="form-control" />
-                </div>
-
-                <!-- Campo Categoria -->
-                <div class="col-md-3">
-                    <label for="filtro-categoria" class="form-label fw-bold">Categoria:</label>
-                    <select id="filtro-categoria" name="categoria" class="form-select">
-                        <option value="">Todas</option>
-                        <option value="VISITANTE">Visitante</option>
-                        <option value="FORNECEDOR">Fornecedor/Prestador</option>
-                    </select>
-                </div>
-
-                <!-- Campo Fornecedor -->
-                <div class="col-md-3">
-                    <label for="filtro-fornecedor" class="form-label fw-bold">Fornecedor:</label>
-                    <input type="text" id="filtro-fornecedor" name="fornecedor" class="form-control"
-                        placeholder="Buscar nome" />
-                </div>
-
-                <!-- Campo Status -->
-                <div class="col-md-3">
-                    <label for="filtro-status" class="form-label fw-bold">Status:</label>
-                    <select id="filtro-status" name="status" class="form-select">
-                        <option value="">Todos</option>
-                        <option value="Integrado">Integrado</option>
-                        <option value="Pendente">Pendente</option>
-                    </select>
-                </div>
-
-                <!-- Botões -->
-                <div class="col-12 mt-3">
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search me-2"></i>Pesquisar
-                            </button>
-                        </div>
-                        <div class="col-md-2">
-                            <a href="{% url 'fornecedores_filtrados' %}" class="btn btn-outline-secondary w-100"
-                                title="Limpar Filtros">
-                                <i class="bi bi-x-lg"></i> Limpar Filtros
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
+        <div class="filter-group">
+            <label for="filtro-categoria" class="filter-label">Categoria:</label>
+            <select id="filtro-categoria" name="categoria" class="filter-input">
+                <option value="">Todas</option>
+                <option value="VISITANTE">Visitante</option>
+                <option value="FORNECEDOR">Fornecedor/Prestador</option>
+            </select>
         </div>
-    </div>
+        <div class="filter-group">
+            <label for="filtro-fornecedor" class="filter-label">Fornecedor:</label>
+            <input type="text" id="filtro-fornecedor" name="fornecedor" class="filter-input" placeholder="Buscar nome" />
+        </div>
+        <div class="filter-group">
+            <label for="filtro-status" class="filter-label">Status:</label>
+            <select id="filtro-status" name="status" class="filter-input">
+                <option value="">Todos</option>
+                <option value="Integrado">Integrado</option>
+                <option value="Pendente">Pendente</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="button button--primary">
+                <i class="fas fa-search icon"></i>Pesquisar
+            </button>
+            <a href="{% url 'fornecedores_filtrados' %}" class="button button--secondary" title="Limpar Filtros">
+                <i class="fas fa-times icon"></i> Limpar
+            </a>
+        </div>
+    </form>
 </div>
-
-<!-- ================================================================== -->
-<!-- FIM DO CARD DE FILTROS RECOLHÍVEL                                  -->
-<!-- ================================================================== -->

@@ -1,0 +1,249 @@
+/* project-patrimonio/patrimonio/static/patrimonio/css/components/modals.css */
+
+/* ===================================================================
+   ESTILOS PADRÃO PARA MODAIS
+   =================================================================*/
+
+/* --- Overlay (Fundo) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fundo escuro semi-transparente */
+    display: flex; /* Usado para centralizar o dialog */
+    align-items: center;
+    justify-content: center;
+    z-index: 1050; /* Acima da maioria dos conteúdos */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s linear;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s 0s linear;
+}
+
+/* --- Dialog (Caixa do Modal) --- */
+.modal-dialog {
+    background-color: var(--dark-primary-bg);
+    color: var(--dark-primary-text);
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    width: 90%; /* Largura padrão, ajustável com modificadores */
+    max-width: 600px; /* Largura máxima padrão */
+    max-height: 90vh; /* Altura máxima */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Garante que o conteúdo respeite o border-radius */
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.modal-overlay.active .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* --- Tema Claro --- */
+html[data-theme='light'] .modal-dialog {
+    background-color: var(--light-primary-bg);
+    color: var(--light-primary-text);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Modificadores de Tamanho --- */
+.modal-dialog--sm { max-width: 400px; }
+.modal-dialog--lg { max-width: 800px; }
+.modal-dialog--xl { max-width: 1140px; }
+
+/* --- Cabeçalho --- */
+.modal-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--dark-border-color);
+    background-color: var(--dark-accent-bg); /* Fundo sutil para header */
+    flex-shrink: 0; /* Impede que encolha */
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+html[data-theme='light'] .modal-header {
+    border-bottom-color: var(--light-border-color);
+    background-color: var(--light-secondary-bg);
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--dark-primary-text);
+    transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .modal-title {
+    color: var(--light-primary-text);
+}
+
+
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--dark-disabled);
+    cursor: pointer;
+    padding: 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto; /* Ajusta posicionamento */
+    opacity: 0.7;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.modal-close-button:hover {
+    color: var(--dark-primary-text);
+    opacity: 1;
+}
+
+html[data-theme='light'] .modal-close-button {
+    color: var(--light-disabled);
+}
+
+html[data-theme='light'] .modal-close-button:hover {
+    color: var(--light-primary-text);
+}
+
+/* --- Corpo --- */
+.modal-body {
+    padding: 1.5rem;
+    flex-grow: 1; /* Ocupa espaço disponível */
+    overflow-y: auto; /* Habilita scroll se necessário */
+}
+
+/* --- Rodapé --- */
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--dark-border-color);
+    display: flex;
+    justify-content: flex-end; /* Alinha botões à direita por padrão */
+    gap: 0.75rem; /* Espaço entre botões */
+    background-color: var(--dark-primary-bg); /* Fundo igual ao dialog */
+    flex-shrink: 0; /* Impede que encolha */
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+html[data-theme='light'] .modal-footer {
+    border-top-color: var(--light-border-color);
+    background-color: var(--light-secondary-bg); /* Fundo sutil */
+}
+
+/* --- Botões dentro do Modal --- */
+.modal-button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-button:hover {
+    transform: translateY(-1px);
+}
+.modal-button:active {
+    transform: translateY(0);
+}
+
+
+/* Variações de Botão */
+.modal-button--primary {
+    background-color: var(--dark-highlight);
+    color: var(--dark-accent-bg);
+    border-color: var(--dark-highlight);
+}
+.modal-button--primary:hover {
+    background-color: #e6c200; /* Dourado mais escuro */
+    border-color: #e6c200;
+}
+html[data-theme='light'] .modal-button--primary {
+    background-color: var(--light-link);
+    color: var(--light-primary-bg);
+    border-color: var(--light-link);
+}
+html[data-theme='light'] .modal-button--primary:hover {
+    background-color: var(--light-link-hover);
+    border-color: var(--light-link-hover);
+}
+
+
+.modal-button--secondary {
+    background-color: var(--dark-disabled);
+    color: var(--dark-primary-text);
+    border-color: var(--dark-disabled);
+}
+.modal-button--secondary:hover {
+    background-color: #5a6268;
+    border-color: #5a6268;
+}
+html[data-theme='light'] .modal-button--secondary {
+    background-color: var(--light-secondary-text);
+    color: var(--light-primary-bg);
+    border-color: var(--light-secondary-text);
+}
+html[data-theme='light'] .modal-button--secondary:hover {
+     background-color: #3e444a;
+     border-color: #3e444a;
+}
+
+
+.modal-button--danger {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+.modal-button--danger:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+}
+
+.modal-button--success {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+.modal-button--success:hover {
+    background-color: #157347;
+    border-color: #157347;
+}
+
+/* ===================================================================
+   RESPONSIVIDADE
+   =================================================================*/
+
+@media (max-width: 768px) {
+    .modal-dialog {
+        max-width: 95%;
+        margin: 1rem; /* Margem para não colar nas bordas */
+        max-height: 95vh;
+    }
+    .modal-header, .modal-body, .modal-footer {
+        padding: 1rem; /* Menor padding */
+    }
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    .modal-footer {
+        flex-direction: column-reverse; /* Empilha botões */
+        gap: 0.5rem;
+    }
+    .modal-button {
+        width: 100%; /* Botões ocupam largura total */
+    }
+}

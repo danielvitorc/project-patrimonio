@@ -1,230 +1,160 @@
+{% extends 'patrimonio/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Fornecedores - PATRIMONIO{% endblock %}</title>
+{% block title %}Cadastros{% endblock %}
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% block extra_css %}
+    {# O CSS antigo 'visitantes.css' foi removido #}
+{% endblock %}
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'patrimonio/css/visitantes.css' %}">
-
-    <!-- Favicon -->
-    <link rel="icon"
-        href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2"
-        type="image/png">
-</head>
-
-<body>
-    {% include 'patrimonio/includes/sidebar.html' %}
-    <div class="main-content" id="mainContent">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Fornecedores Cadastrados</h1>
-
-            <!-- Botão de Ações com Dropdown -->
-            <div class="dropdown">
-                <!-- Botão para abrir modal -->
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalDeCadastroUnico">
-                    Novo Fornecedor
+{% block page_header %}
+    <div class="header-content">
+        <h1 class="page-title">Cadastros (Fornecedores e Visitantes)</h1>
+        <div class="header-actions">
+            <button type="button" class="button button--primary" data-modal-target="#modalDeCadastroUnicoOverlay">
+                <i class="fas fa-plus icon"></i> Novo Cadastro
+            </button>
+            
+            <div class="dropdown-container"> {# Substituto do dropdown Bootstrap #}
+                <button type="button" class="button button--secondary dropdown-toggle">
+                    <i class="fas fa-cog icon"></i> Ações <i class="fas fa-chevron-down icon-right"></i>
                 </button>
-
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownAcoes" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-cog me-2"></i>Ações
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownAcoes">
-                    <li>
-                        <h6 class="dropdown-header">
-                            <i class="fas fa-file-excel me-2"></i>Exportar para Excel
-                        </h6>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'exportar_visitantes_excel' %}">
-                            <i class="fas fa-user me-2"></i>Visitantes
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'exportar_fornecedores_servico_excel' %}">
-                            <i class="fas fa-building me-2"></i>Fornecedores/Prestadores de Serviços
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'exportar_fornecedores_excel' %}">
-                            <i class="fas fa-file-excel me-2"></i>Exportação Completa
-                        </a>
-                    </li>
+                <ul class="dropdown-menu">
+                    <li><h6 class="dropdown-header">Exportar para Excel</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'exportar_visitantes_excel' %}"><i class="fas fa-user icon"></i> Visitantes</a></li>
+                    <li><a class="dropdown-item" href="{% url 'exportar_fornecedores_servico_excel' %}"><i class="fas fa-building icon"></i> Fornecedores/Prestadores</a></li>
+                    <li><a class="dropdown-item" href="{% url 'exportar_fornecedores_excel' %}"><i class="fas fa-file-excel icon"></i> Exportação Completa</a></li>
                 </ul>
             </div>
         </div>
+    </div>
+{% endblock %}
 
-        {% include 'patrimonio/includes/fornecedores_partials/filtros_fornecedores.html' %}
+{% block content %}
+    
+    {# Filtros (include refatorado) #}
+    {% include 'patrimonio/includes/fornecedores_partials/filtros_fornecedores.html' %}
 
-        <!-- Informativo sobre exportação -->
-        <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
-            <i class="fas fa-info-circle me-2"></i>
-            <div>
-                <strong>Exportação por categoria:</strong> Use o botão 
-                <span class="badge bg-secondary">Ações</span> para acessar as opsções de exportação para Excel: 
-                <span class="badge bg-success">Visitantes</span>, 
-                <span class="badge bg-primary">Fornecedores/Prestadores</span> ou 
-                <span class="badge bg-info">Completa</span>.
-            </div>
-        </div>
-
-        <section class="mt-4">
-            <table class="table-cadastro">
-                <thead>
-                    <tr>
-                        <th width="80">Foto</th>
-                        <th width="140">Categoria</th>
-                        <th width="190">Nome</th>
-                        <th width="120">Integração</th>
-                        <th width="100">Validade</th>
-                        <th width="100">Status</th>
-                        <th width="120">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for fornecedor in fornecedores %}
-                    <tr>
-                        <td class="text-center">
-                            {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante and fornecedor.visitante.foto_visitante %}
-                                <img src="{{ fornecedor.visitante.foto_visitante.url }}" alt="Foto" class="foto-tabela"
-                                    data-bs-toggle="modal" data-bs-target="#modalFoto"
-                                    data-foto="{{ fornecedor.visitante.foto_visitante.url }}">
-                            {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.trabalhador_relacionado and fornecedor.trabalhador_relacionado.foto_representante %}
-                                <img src="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}" alt="Foto" class="foto-tabela"
-                                    data-bs-toggle="modal" data-bs-target="#modalFoto"
-                                    data-foto="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}">
+    {# Tabela de Registros #}
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">Foto</th>
+                    <th>Categoria</th>
+                    <th>Nome / Empresa</th>
+                    <th>Integração</th>
+                    <th>Validade</th>
+                    <th>Status</th>
+                    <th style="min-width: 150px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fornecedor in fornecedores %}
+                <tr class="data-row">
+                    <td style="text-align: center;">
+                        {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante and fornecedor.visitante.foto_visitante %}
+                            <img src="{{ fornecedor.visitante.foto_visitante.url }}" alt="Foto" class="table-photo"
+                                 data-modal-target="#modalFotoOverlay"
+                                 data-foto="{{ fornecedor.visitante.foto_visitante.url }}">
+                        {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.trabalhador_relacionado and fornecedor.trabalhador_relacionado.foto_representante %}
+                            <img src="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}" alt="Foto" class="table-photo"
+                                 data-modal-target="#modalFotoOverlay"
+                                 data-foto="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}">
+                        {% else %}
+                            <span class="photo-placeholder"><i class="fas fa-camera"></i></span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if fornecedor.categoria == 'VISITANTE' %}
+                            <span class="badge badge-info">Visitante</span>
+                        {% else %}
+                            <span class="badge badge-secondary">{{ fornecedor.get_subcategoria_display|default:"Fornecedor" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if fornecedor.categoria == "VISITANTE" and fornecedor.visitante %}
+                            <strong>{{ fornecedor.visitante.nome }}</strong>
+                        {% elif fornecedor.categoria == "FORNECEDOR" %}
+                            {% if fornecedor.fornecedor_servico.nome_empresa %}
+                                <strong>{{ fornecedor.fornecedor_servico.nome_empresa }}</strong>
+                                {% if fornecedor.trabalhador_relacionado %}
+                                    <br><small style="color: var(--dark-disabled);">{{ fornecedor.trabalhador_relacionado.nome_representante }}</small>
+                                {% endif %}
+                            {% elif fornecedor.trabalhador_relacionado %}
+                                <strong>{{ fornecedor.trabalhador_relacionado.nome_representante }}</strong>
                             {% else %}
-                                <div class="foto-placeholder">
-                                    <i class="bi bi-person"></i>
-                                </div>
+                                <span style="color: var(--dark-disabled);">-</span>
                             {% endif %}
-                        </td>
-                        <td>
-                            <span class="categoria-badge categoria-{{ fornecedor.categoria|lower }}">
-                                {% if fornecedor.categoria == 'VISITANTE' %}
-                                <i class="bi bi-person-check me-1"></i>Visitante
-                                {% elif fornecedor.categoria == 'FORNECEDOR' %}
-                                <i class="bi bi-building me-1"></i>Fornecedor
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="nome-info">
-                                {% if fornecedor.categoria == "VISITANTE" and fornecedor.visitante %}
-                                <strong>{{ fornecedor.visitante.nome }}</strong>
-                                {% elif fornecedor.categoria == "FORNECEDOR" %}
-                                    {% if fornecedor.fornecedor_servico %}
-                                        <strong>{{ fornecedor.fornecedor_servico.nome_empresa }}</strong>
-                                        {% if fornecedor.trabalhador_relacionado %}
-                                            <br><small class="text-muted">{{ fornecedor.trabalhador_relacionado.nome_representante }}</small>
-                                        {% endif %}
-                                    {% elif fornecedor.trabalhador_relacionado %}
-                                        <strong>{{ fornecedor.trabalhador_relacionado.nome_representante }}</strong>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td class="text-center">{{ fornecedor.data_integracao_formatada }}</td>
-                        <td class="text-center">
-                            <div class="validade-info">
-                                {% if fornecedor.ultima_integracao %}
-                                    <strong>{{ fornecedor.ultima_integracao.validade_meses }} meses</strong>
-                                    <br><small class="text-muted">{{ fornecedor.data_validade_formatada }}</small>
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            {% if fornecedor.status == "Integrado" %}
-                            <span class="badge bg-success">
-                                <i class="bi bi-check-circle me-1"></i>Integrado
-                            </span>
-                            {% else %}
-                            <span class="badge bg-warning">
-                                <i class="bi bi-exclamation-circle me-1"></i>Pendente
-                            </span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
+                        {% else %}
+                            <span style="color: var(--dark-disabled);">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ fornecedor.data_integracao_formatada }}</td>
+                    <td>{{ fornecedor.data_validade_formatada }}</td>
+                    <td>
+                        {% if fornecedor.status == "Integrado" %}
+                            <span class="badge badge-success">Integrado</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pendente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            {# Botão Detalhes #}
+                            <button type="button" class="btn-action btn-action-details" data-modal-target="#modalDetalhesOverlay{{ fornecedor.id }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {# Botão Editar #}
+                            <button type="button" class="btn-action btn-action-edit" data-id="{{ fornecedor.id }}" data-modal-target="#modalEditarFornecedorOverlay">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            {# Botão Gerar Link #}
+                            {% if fornecedor.status == "Sem integração" or fornecedor.status == "Pendente" %}
+                                <button type="button" class="btn-action btn-action-success" data-id="{{ fornecedor.id }}" data-modal-target="#modalValidadeOverlay{{ fornecedor.id }}">
+                                    <i class="fas fa-link"></i>
                                 </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalDetalhes{{ fornecedor.id }}">
-                                        <i class="bi bi-eye me-2"></i>Ver Detalhes
-                                    </a></li>
-                                    <li><a class="dropdown-item btn-editar" href="#" data-id="{{ fornecedor.id }}" data-bs-toggle="modal" data-bs-target="#modalEditarFornecedor">
-                                        <i class="bi bi-pencil me-2"></i>Editar
-                                    </a></li>
-                                    {% if fornecedor.status == "Sem integração" or fornecedor.status == "Pendente" %}
-                                    <li>
-                                        <a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#modalValidade{{ fornecedor.id }}">
-                                            <i class="bi bi-link-45deg me-2"></i>Gerar Link de Integração
-                                        </a>
-                                    </li>
-                                    {% endif %}
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-danger btn-excluir" href="#" data-id="{{ fornecedor.id }}">
-                                            <i class="bi bi-trash me-2"></i>Excluir
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                    <!--Modal de aprentação do link de integração-->
-                    {% include 'patrimonio/includes/modals/modal_link_integracao.html' %}
-                    
-                    <!--Modal de detalhes de fornecedor-->
-                    {% include 'patrimonio/includes/modals/modal_detalhes_fornecedor.html' %}
+                            {% endif %}
+                             {# Botão Excluir #}
+                            <button type="button" class="btn-action btn-action-delete btn-excluir" data-id="{{ fornecedor.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                {# Includes dos Modais (dentro do loop para ter o ID) #}
+                {% include 'patrimonio/includes/modals/modal_link_integracao.html' %}
+                {% include 'patrimonio/includes/modals/modal_detalhes_fornecedor.html' %}
 
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <!--Modal de cadastro de fornecedor-->
+    {# Modais Globais (fora do loop) #}
     {% include 'patrimonio/includes/modals/modal_cadastro_fornecedor.html' %}
-
-    <!--Modal de edição de fornecedor-->
     {% include 'patrimonio/includes/modals/modal_edicao_fornecedor.html' %}
+    {% include 'patrimonio/includes/modals/modal_foto_expandida.html' %} {# (Novo include genérico para fotos) #}
 
-    <!-- JavaScript para formulários dinâmicos -->
+{% endblock %}
+
+
+{% block extra_js %}
+    {# Removemos a dependência do jQuery que estava aqui #}
     
-
-    <!-- SCRIPTS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'patrimonio/js/modal_edicao_webcam.js' %}"></script>
-    <script src="{% static 'patrimonio/js/modal_cadastro_dinamico.js' %}"></script>
+    {# URLs Globais para o JavaScript #}
     <script>
         window.csrfToken = '{{ csrf_token }}';
+    
         window.excluirFornecedorURL = "{% url 'excluir_fornecedor' %}";
-        window.gerarLinkUrl = "{% url 'gerar_link_integracao' 0 %}";
+        let gerarLinkBaseUrl = "{% url 'gerar_link_integracao' 0 %}";
+        window.gerarLinkUrl = gerarLinkBaseUrl.substring(0, gerarLinkBaseUrl.length - 2) + '/'; // Remove '0/' e adiciona '/'
     </script>
-    <script src="{% static 'patrimonio/js/integracao.js' %}"></script>
+    
+    {# Adiciona os 4 scripts separados #}
     <script src="{% static 'patrimonio/js/excluir_fornecedor.js' %}"></script>
-
-</body>
-</html>
-
+    <script src="{% static 'patrimonio/js/integracao.js' %}"></script>
+    <script src="{% static 'patrimonio/js/modal_cadastro_dinamico.js' %}"></script>
+    <script src="{% static 'patrimonio/js/modal_edicao_webcam.js' %}"></script> {# <-- ARQUIVO ADICIONADO/REFATORADO #}
+{% endblock %}
