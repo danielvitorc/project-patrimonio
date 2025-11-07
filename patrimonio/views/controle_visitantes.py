@@ -1,3 +1,5 @@
+# project-patrimonio/patrimonio/views/controle_visitantes.py
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Value, Q
 from django.db.models.functions import Coalesce
@@ -15,6 +17,9 @@ from datetime import timedelta, datetime
 import secrets
 import base64
 import uuid
+from django.core.paginator import Paginator # 1. Importar Paginator
+from django.db import transaction # Importar transaction (já estava em uso abaixo)
+
 
 @login_required
 def controle_visitantes(request):
@@ -48,6 +53,9 @@ def controle_visitantes(request):
 
 
     if request.method == 'POST':
+        # ... (Toda a lógica de POST (submit_novo_fornecedor, submit_entrada, submit_saida) permanece a mesma) ...
+        # (pois todos eles redirecionam em caso de sucesso)
+
         # Novo Fornecedor (esta parte não precisa mudar)
         if 'submit_novo_fornecedor' in request.POST:
                     form_fornecedor = FornecedorForm(request.POST)
@@ -107,21 +115,32 @@ def controle_visitantes(request):
             entrada.status = 'Saiu'
             entrada.save()
             return redirect('controle_visitantes')
+            
+
+    # --- Fim da lógica POST, início da lógica GET ---
 
     fornecedores = Fornecedor.objects.select_related(
         'visitante',           # Carrega o relacionamento com Visitante
         'fornecedor_servico'   # Carrega o relacionamento com FornecedorServico
     ).all()
 
-    entradas = EntradaFornecedor.objects.all().order_by('-data', '-horario_entrada')
+    # 2. Obter a lista completa de entradas
+    entradas_list = EntradaFornecedor.objects.all().order_by('-data', '-horario_entrada')
+    
+    # 3. Aplicar paginação
+    paginator = Paginator(entradas_list, 25) # 25 por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
 
     context = {
         'form_fornecedor': form_fornecedor,
         'form_visitante': form_visitante,
         'form_entrega': form_entrega,
         'form_entrada': form_entrada, # O form_entrada agora contém a lista ordenada
-        'fornecedores': fornecedores,
-        'entradas': entradas,
+        'fornecedores': fornecedores, # Mantém a lista completa para o modal de entrada
+        'entradas': page_obj,   # 4. Envia o objeto da página
+        'page_obj': page_obj,   # 5. Envia o page_obj para o include 'pagination.html'
     }
     return render(request, 'patrimonio/entrada_saida_visitantes.html', context)
 
@@ -204,6 +223,7 @@ def fornecedores_filtrados(request):
 @login_required
 @require_POST
 def excluir_fornecedor(request):
+    # ... (view excluir_fornecedor permanece a mesma) ...
     fornecedor_id = request.POST.get("id")
 
     if not fornecedor_id:
@@ -216,7 +236,12 @@ def excluir_fornecedor(request):
 
 @login_required
 def fornecedores_cadastrados(request):
-    # 1. Inicialize todos os formulários que a página pode precisar para o método GET
+    # Limpar filtros da sessão se navegar diretamente
+    if 'page' not in request.GET and 'categoria' not in request.GET:
+        if 'fornecedores_filtros' in request.session:
+            del request.session['fornecedores_filtros']
+
+    # 1. Inicialize todos os formulários...
     fornecedor_form = FornecedorPrestadorForm()
     fornecedor_servico_form = FornecedorServicoForm() # Adicionado aqui para o contexto inicial
     clt_form = TrabalhadorCLTForm()
@@ -226,6 +251,9 @@ def fornecedores_cadastrados(request):
     associado_form = AssociadoForm()
 
     if request.method == "POST":
+        # ... (Toda a lógica de POST para criar novo fornecedor permanece a mesma) ...
+        # (pois redireciona ou re-renderiza com formulários, não com a lista paginada)
+        
         # Extrair dados básicos do POST
         categoria = request.POST.get("categoria")
         subcategoria_slug = request.POST.get("subcategoria")
@@ -292,14 +320,22 @@ def fornecedores_cadastrados(request):
             elif subcategoria_slug == "mei": mei_form = trabalhador_form
             elif subcategoria_slug == "autonomo": autonomo_form = trabalhador_form
             elif subcategoria_slug == "associado": associado_form = trabalhador_form
+            
 
     # Lógica para GET (ou se o POST falhar)
-    fornecedores = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
+    fornecedores_list = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
         'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'
-    ).all()
+    ).all().order_by('id') # Adicionar um order_by é bom para paginação
+
+    # Aplicar paginação
+    paginator = Paginator(fornecedores_list, 25) # 25 por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
 
     context = {
-        "fornecedores": fornecedores,
+        "page_obj": page_obj, # Enviar page_obj
+        "fornecedores": page_obj, # Manter 'fornecedores' para compatibilidade
         "fornecedor_prestador_form": fornecedor_form,
         "fornecedor_servico_form": fornecedor_servico_form, # Passa o form para o contexto
         "clt_form": clt_form,
@@ -307,6 +343,7 @@ def fornecedores_cadastrados(request):
         "mei_form": mei_form,
         "autonomo_form": autonomo_form,
         "associado_form": associado_form,
+        "filtros": request.session.get('fornecedores_filtros', {}), # Enviar filtros
     }
     return render(request, "patrimonio/fornecedores_cadastrados.html", context)
 

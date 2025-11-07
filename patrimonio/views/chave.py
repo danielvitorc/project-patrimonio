@@ -6,11 +6,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from patrimonio.forms import ControleChavesForm, DevolucaoChaveForm
 from patrimonio.models import ControleChaves, Colaborador
+from django.core.paginator import Paginator  # 1. Importar Paginator
 
 @login_required
 def entrega_de_chave(request):
     # 1. Busca inicial de dados
-    chaves = ControleChaves.objects.all().order_by('-id')
+    # Mudar para 'chaves_list' para não conflitar
+    chaves_list = ControleChaves.objects.all().order_by('-id')
     form_chave = ControleChavesForm()
 
     # 2. Processar entrega (POST)
@@ -23,13 +25,24 @@ def entrega_de_chave(request):
             messages.success(request, "Entrega registrada com sucesso!")
             return redirect('entrega_de_chave')
         else:
-            # Se o form de entrega falhar, recarregamos os forms de devolução para a página
-            for chave in chaves:
+            # Se o form de entrega falhar, recarregamos tudo com paginação
+            messages.error(request, "Erro ao registrar entrega.")
+            # Aplicar paginação
+            paginator = Paginator(chaves_list, 25) # 25 por página
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            # Anexar forms de devolução apenas para a página atual
+            for chave in page_obj:
                 if chave.situacao == "RETIRADO":
                     chave.form_devolucao = DevolucaoChaveForm(instance=chave)
                 else:
                     chave.form_devolucao = None
-            messages.error(request, "Erro ao registrar entrega.")
+            
+            return render(request, 'patrimonio/entrega_de_chave.html', {
+                'form_chave': form_chave, # O form com erro
+                'page_obj': page_obj,      # O objeto de paginação
+            })
 
     # 3. Processar devolução (POST)
     elif request.method == 'POST' and 'form_tipo' in request.POST and request.POST['form_tipo'] == 'devolucao':
@@ -45,9 +58,16 @@ def entrega_de_chave(request):
             messages.success(request, "Chave devolvida com sucesso!")
             return redirect('entrega_de_chave')
         else:
-            # Se o form de devolução falhar, recarregamos todos os forms
+            # Se o form de devolução falhar, recarregamos com paginação
             messages.error(request, "Erro ao registrar devolução. Verifique os campos.")
-            for c in chaves:
+            
+            # Aplicar paginação
+            paginator = Paginator(chaves_list, 25) # 25 por página
+            # Tenta pegar a página do GET, mesmo sendo um POST, caso a URL tenha
+            page_number = request.GET.get('page') 
+            page_obj = paginator.get_page(page_number)
+
+            for c in page_obj: # Iterar sobre a página atual
                 if c.id == chave_para_devolver.id:
                     c.form_devolucao = form_devolucao # Anexa o form com erro
                 elif c.situacao == "RETIRADO":
@@ -56,13 +76,19 @@ def entrega_de_chave(request):
                     c.form_devolucao = None
             
             return render(request, 'patrimonio/entrega_de_chave.html', {
-                'form_chave': form_chave,
-                'chaves': chaves,
+                'form_chave': form_chave, # Form de entrega (novo)
+                'page_obj': page_obj,      # O objeto de paginação
             })
 
-    # 4. Lógica para GET (ou se o POST de entrega falhar)
-    # Anexa o form de devolução a cada objeto 'chave'
-    for chave in chaves:
+    # 4. Lógica para GET (nenhum POST)
+    
+    # Aplicar paginação
+    paginator = Paginator(chaves_list, 25) # 25 por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Anexa o form de devolução a cada objeto 'chave' APENAS da página atual
+    for chave in page_obj:
         if not hasattr(chave, 'form_devolucao'): # Evita sobrescrever form com erro
             if chave.situacao == "RETIRADO":
                 chave.form_devolucao = DevolucaoChaveForm(instance=chave)
@@ -72,7 +98,7 @@ def entrega_de_chave(request):
     # Renderiza a página
     return render(request, 'patrimonio/entrega_de_chave.html', {
         'form_chave': form_chave,
-        'chaves': chaves,
+        'page_obj': page_obj, # 3. Enviar page_obj ao invés de 'chaves'
     })
 
 @login_required

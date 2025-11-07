@@ -1,28 +1,23 @@
-{# patrimonio/templates/patrimonio/livro_de_ocorrencia.html (Refatorado) #}
-{% extends 'patrimonio/base.html' %} {# Herda do base.html #}
+{# patrimoio/templates/patrimonio/livro_de_ocorrencia.html #}
+{% extends 'patrimonio/base.html' %}
 {% load static %}
 
 {% block title %}Livro de Ocorrências{% endblock %}
 
-{# CSS específico pode ser adicionado aqui se necessário no futuro #}
 {% block extra_css %}{% endblock %}
 
-{# Cabeçalho da página #}
 {% block page_header %}
-    <div class="header-content"> {# Wrapper para alinhar título e botão #}
+    <div class="header-content">
         <h1 class="page-title">Livro de Ocorrências</h1>
-        {# Botão para abrir o modal de nova ocorrência #}
         <button type="button" class="button button--primary" data-modal-target="#modalOcorrenciaOverlay">
             <i class="fas fa-plus icon"></i> Nova Ocorrência
         </button>
     </div>
 {% endblock %}
 
-{# Conteúdo principal da página #}
 {% block content %}
 
-    {# Tabela de Registros #}
-    <div class="data-table-wrapper"> {# Wrapper para scroll horizontal #}
+    <div class="data-table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
@@ -32,17 +27,18 @@
                     <th>Usuário</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for ocorrencia in ocorrencias %}
-                <tr>
-                    <td>{{ ocorrencia.base }}</td>
-                    <td>{{ ocorrencia.data|date:"d/m/Y" }}</td> {# Formatando a data #}
-                    <td>{{ ocorrencia.ocorrencia }}</td>
-                    <td>{{ ocorrencia.usuario.get_full_name|default:ocorrencia.usuario.username }}</td>
+            <tbody id="tabela-ocorrencias-body">
+                
+                {# Loop corrigido pela paginação anterior #}
+                {% for ocorrencia in page_obj %}
+                <tr class="data-row">
+                    <td data-label="Base">{{ ocorrencia.base }}</td>
+                    <td data-label="Data">{{ ocorrencia.data|date:"d/m/Y" }}</td>
+                    <td data-label="Ocorrência" style="white-space: pre-wrap;">{{ ocorrencia.ocorrencia }}</td>
+                    <td data-label="Usuário">{{ ocorrencia.usuario.get_full_name|default:ocorrencia.usuario.username }}</td>
                 </tr>
                 {% empty %}
-                <tr>
-                    {# Mensagem ocupa todas as colunas se não houver dados #}
+                <tr class="empty-row">
                     <td colspan="4" style="text-align: center; padding: 2rem; color: var(--dark-disabled);">Nenhuma ocorrência registrada.</td>
                 </tr>
                 {% endfor %}
@@ -50,10 +46,11 @@
         </table>
     </div>
 
+    {% include "patrimonio/includes/pagination.html" %}
+    
     {# ----- Início Modal Nova Ocorrência ----- #}
     <div class="modal-overlay" id="modalOcorrenciaOverlay" aria-labelledby="modalOcorrenciaLabel" role="dialog" aria-modal="true">
-        <div class="modal-dialog"> {# Tamanho padrão #}
-            {# Conteúdo do modal (header, body, footer) #}
+        <div class="modal-dialog">
             <div class="modal-content">
                 <form method="post">
                     {% csrf_token %}
@@ -62,9 +59,39 @@
                         <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                     </div>
                     <div class="modal-body">
-                        {# Renderizar o form manualmente ou estilizar via CSS #}
-                        {# Exemplo simples com .as_p por enquanto #}
-                        {{ form_ocorrencia.as_p }}
+                        
+                        {# --- INÍCIO DA CORREÇÃO --- #}
+                        {# Substituímos o {{ form_ocorrencia.as_p }} por isso: #}
+
+                        <div class="form-group">
+                            <label for="{{ form_ocorrencia.base.id_for_label }}">{{ form_ocorrencia.base.label }}:</label>
+                            {{ form_ocorrencia.base }}
+                            {% if form_ocorrencia.base.errors %}
+                                <div class="field-errors">
+                                    {% for error in form_ocorrencia.base.errors %}<span>{{ error }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                
+                        <div class="form-group">
+                            <label for="{{ form_ocorrencia.ocorrencia.id_for_label }}">{{ form_ocorrencia.ocorrencia.label }}:</label>
+                            {{ form_ocorrencia.ocorrencia }}
+                            {% if form_ocorrencia.ocorrencia.errors %}
+                                <div class="field-errors">
+                                    {% for error in form_ocorrencia.ocorrencia.errors %}<span>{{ error }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                
+                        {% if form_ocorrencia.non_field_errors %}
+                            <div class="form-errors" style="background-color: var(--danger-color); color: white; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
+                                {% for error in form_ocorrencia.non_field_errors %}
+                                    <p style="margin: 0;">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {# --- FIM DA CORREÇÃO --- #}
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
@@ -79,5 +106,4 @@
 {% endblock %}
 
 {% block extra_js %}
-    {# Adicione JS específico se necessário #}
 {% endblock %}

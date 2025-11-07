@@ -1,0 +1,49 @@
+{# patrimoio/templates/patrimonio/includes/pagination.html #}
+{# Este include espera um 'page_obj' do Paginator do Django #}
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination-container">
+    
+    <span class="pagination-info">
+        Página <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong>
+        (Total: {{ page_obj.paginator.count }} registros)
+    </span>
+
+    <nav class="pagination-nav" aria-label="Navegação de página">
+        <ul class="pagination-list">
+
+            {% if page_obj.has_previous %}
+                <li class="pagination-item">
+                    <a class="pagination-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Anterior</a>
+                </li>
+            {% else %}
+                <li class="pagination-item disabled">
+                    <span class="pagination-disabled">&laquo; Anterior</span>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="pagination-item active" aria-current="page">
+                        <span class="pagination-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="pagination-item page-number">
+                        <a class="pagination-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="pagination-item">
+                    <a class="pagination-link" href="?page={{ page_obj.next_page_number }}">Próximo &raquo;</a>
+                </li>
+            {% else %}
+                <li class="pagination-item disabled">
+                    <span class="pagination-disabled">Próximo &raquo;</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}

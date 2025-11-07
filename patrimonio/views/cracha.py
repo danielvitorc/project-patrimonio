@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from patrimonio.forms import CrachaForm
 from patrimonio.models import EsquecimentoCRACHA
 import pandas as pd
+from django.core.paginator import Paginator # <-- 1. IMPORTAR PAGINATOR
 
 @login_required
 def ocorrencia_cracha(request):
@@ -15,11 +16,23 @@ def ocorrencia_cracha(request):
     else:
         form_cracha = CrachaForm()
 
-    registros = EsquecimentoCRACHA.objects.all().order_by('-data')
+    # 2. BUSCAR A LISTA COMPLETA
+    registros_list = EsquecimentoCRACHA.objects.all().order_by('-data')
+    
+    # 3. CRIAR O PAGINATOR (15 itens por página)
+    paginator = Paginator(registros_list, 15)
+    
+    # 4. PEGAR O NÚMERO DA PÁGINA (da URL, ex: ?page=2)
+    page_number = request.GET.get('page')
+    
+    # 5. OBTER O OBJETO DA PÁGINA
+    page_obj = paginator.get_page(page_number)
 
+
+    # 6. ATUALIZAR O CONTEXTO
     return render(request, 'patrimonio/ocorrencia_cracha.html', {
         'form_cracha': form_cracha,
-        'registros': registros
+        'page_obj': page_obj # <-- Passa o page_obj em vez de 'registros'
     })
 
 @login_required

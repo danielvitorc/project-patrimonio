@@ -106,36 +106,5 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Sidebar ou botão de toggle não encontrado no DOM.');
     }
 
-     // --- Lógica do Botão de Tema na Sidebar (se existir) ---
-    const themeToggleButtonSidebar = document.getElementById('theme-toggle-sidebar');
-    if (themeToggleButtonSidebar && typeof applyTheme === 'function') { // Verifica se a função applyTheme existe (do theme.js)
-         const sunIconSidebar = themeToggleButtonSidebar.querySelector('.fa-sun');
-         const moonIconSidebar = themeToggleButtonSidebar.querySelector('.fa-moon');
-
-         // Atualiza ícone inicial
-         const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-         if (currentTheme === 'light') {
-             if (sunIconSidebar) sunIconSidebar.style.display = 'none';
-             if (moonIconSidebar) moonIconSidebar.style.display = 'inline-block';
-         } else {
-            if (sunIconSidebar) sunIconSidebar.style.display = 'inline-block';
-            if (moonIconSidebar) moonIconSidebar.style.display = 'none';
-         }
-
-        themeToggleButtonSidebar.addEventListener('click', () => {
-            const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme); // Chama a função global do theme.js
-
-             // Atualiza ícones DENTRO da sidebar
-            if (newTheme === 'light') {
-                if (sunIconSidebar) sunIconSidebar.style.display = 'none';
-                if (moonIconSidebar) moonIconSidebar.style.display = 'inline-block';
-            } else {
-                if (sunIconSidebar) sunIconSidebar.style.display = 'inline-block';
-                if (moonIconSidebar) moonIconSidebar.style.display = 'none';
-            }
-        });
-    }
-
 
 }); // Fim do DOMContentLoaded

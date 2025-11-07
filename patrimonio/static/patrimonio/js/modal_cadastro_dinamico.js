@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==================================================================
     //           INÍCIO DO HTML REFATORADO (SEM BOOTSTRAP)
     // ==================================================================
+    // Usamos as classes 'form-group', 'form-label', 'form-input',
+    // 'card-form-section', 'card-form-title', 'card-form-body', 'form-grid'
+    // definidas em forms.css
+    // ==================================================================
     const formularios = {
         'trabalhador_clt': `
             <div class="card-form-section">
@@ -274,9 +278,15 @@ document.addEventListener('DOMContentLoaded', function() {
         limparFormularios();
         if (formsContainer && formularios[subcategoria]) {
             formsContainer.innerHTML = formularios[subcategoria];
-            // Aplica estilos de forms.css aos novos inputs
-            // (Não é mais necessário se as classes .form-input, .form-label
-            // já estão no HTML e no forms.css)
+            // As classes já estão aplicadas no HTML acima,
+            // mas podemos adicionar '.form-input' e '.form-label'
+            // para garantir que o forms.css os pegue.
+            formsContainer.querySelectorAll('input, select').forEach(input => {
+                input.classList.add('form-input');
+            });
+            formsContainer.querySelectorAll('label').forEach(label => {
+                label.classList.add('form-label');
+            });
         }
     }
 
@@ -312,9 +322,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Limpar formulários quando o modal é fechado (usando observador, já que modals.js controla)
+    // Limpar formulários quando o modal é fechado (usando observador)
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
+            // Verifica se o atributo 'class' foi modificado E se a classe 'active' NÃO está presente
             if (mutation.attributeName === 'class' && !modal.classList.contains('active')) {
                 // Modal foi fechado
                 if(categoriaSelect) categoriaSelect.value = '';
@@ -325,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    // Inicia o observador para monitorar mudanças de atributos no modal
     observer.observe(modal, { attributes: true });
 
 });

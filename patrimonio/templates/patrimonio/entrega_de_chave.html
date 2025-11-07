@@ -59,7 +59,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for chave in chaves %}
+                {% for chave in page_obj %}
                 <tr
                     data-departamento="{{ chave.departamento|lower }}"
                     data-matricula="{{ chave.matricula_recebendo|lower }}"
@@ -224,6 +224,7 @@
             </tbody>
         </table>
     </div>
+    {% include 'patrimonio/includes/pagination.html' %}
 
     {# ----- Início Modal Cadastro (Entrega) ----- #}
     <div class="modal-overlay" id="modalCadastroChaveOverlay" aria-labelledby="modalCadastroChaveLabel" role="dialog" aria-modal="true">

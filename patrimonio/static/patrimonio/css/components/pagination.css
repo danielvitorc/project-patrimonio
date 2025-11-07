@@ -1,0 +1,112 @@
+/* project-patrimonio/patrimonio/static/patrimonio/css/components/pagination.css */
+
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--dark-border-color);
+    transition: border-color 0.3s ease;
+}
+html[data-theme='light'] .pagination-container {
+    border-top-color: var(--light-border-color);
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: var(--dark-secondary-text);
+}
+html[data-theme='light'] .pagination-info {
+    color: var(--light-secondary-text);
+}
+
+.pagination-nav .pagination-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.pagination-item .pagination-link,
+.pagination-item .pagination-disabled {
+    display: block;
+    padding: 0.5rem 0.9rem;
+    min-width: 38px; /* Largura mínima */
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid var(--dark-border-color);
+    color: var(--dark-link);
+    background-color: var(--dark-primary-bg);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.3s ease;
+}
+html[data-theme='light'] .pagination-item .pagination-link,
+html[data-theme='light'] .pagination-item .pagination-disabled {
+    border-color: var(--light-border-color);
+    color: var(--light-link);
+    background-color: var(--light-primary-bg);
+}
+
+.pagination-item .pagination-link:hover {
+    background-color: var(--dark-accent-bg);
+    color: var(--dark-primary-text);
+    border-color: var(--dark-link);
+    text-decoration: none;
+}
+html[data-theme='light'] .pagination-item .pagination-link:hover {
+    background-color: var(--light-secondary-bg);
+    color: var(--light-link-hover);
+    border-color: var(--light-link);
+}
+
+/* Estado Ativo (Página Atual) */
+.pagination-item.active .pagination-link {
+    z-index: 2;
+    background-color: var(--dark-highlight);
+    border-color: var(--dark-highlight);
+    color: var(--dark-accent-bg);
+    font-weight: 600;
+}
+html[data-theme='light'] .pagination-item.active .pagination-link {
+    background-color: var(--light-link);
+    border-color: var(--light-link);
+    color: var(--light-primary-bg);
+}
+
+/* Estado Desabilitado */
+.pagination-item.disabled .pagination-disabled {
+    color: var(--dark-disabled);
+    background-color: var(--dark-primary-bg);
+    border-color: var(--dark-border-color);
+    opacity: 0.6;
+    pointer-events: none;
+}
+html[data-theme='light'] .pagination-item.disabled .pagination-disabled {
+     color: var(--light-disabled);
+     background-color: var(--light-secondary-bg);
+     border-color: var(--light-border-color);
+}
+
+/* Responsividade para Celular */
+@media (max-width: 576px) {
+    .pagination-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .pagination-nav .pagination-list {
+        gap: 0.2rem;
+    }
+    .pagination-item .pagination-link,
+    .pagination-item .pagination-disabled {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        min-width: 30px;
+    }
+    /* Opcional: Esconder números e deixar só "Anterior/Próximo" */
+    .pagination-item.page-number {
+        display: none;
+    }
+}

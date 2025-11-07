@@ -11,27 +11,31 @@
                 </div>
 
                 <div class="modal-body" style="max-height: 70vh;">
-                    <div class="form-section">
-                        <h3 class="form-section-title">Tipo de Cadastro</h3>
-                        <div class="form-grid">
-                            <div class="form-group grid-col-2">
-                                <label for="categoria" class="form-label">Categoria:</label>
-                                <select name="categoria" id="categoria" class="form-input" required>
-                                    <option value="">Selecione uma categoria</option>
-                                    <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
-                                </select>
-                            </div>
-                            <div class="form-group grid-col-2" id="subcategoria-container" style="display: none;">
-                                <label for="subcategoria" class="form-label">Subcategoria:</label>
-                                <select name="subcategoria" id="subcategoria" class="form-input">
-                                    <option value="">Selecione uma subcategoria</option>
-                                    <option value="trabalhador_clt">Trabalhador CLT</option>
-                                    <option value="pessoa_juridica">Pessoa Jurídica (PJ)</option>
-                                    <option value="mei">Microempreendedor Individual (MEI)</option>
-                                    <option value="autonomo">Autônomo</option>
-                                    <option value="associado">Associado</option>
-                                </select>
-                            </div>
+                    <div class="card-form-section">
+                        <h3 class="card-form-title">Tipo de Cadastro</h3>
+                        <div class="card-form-body">
+                             <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="categoria" class="form-label">Categoria:</label>
+                                    <select name="categoria" id="categoria" class="form-input" required>
+                                        <option value="">Selecione uma categoria</option>
+                                        <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
+                                        {# Adicionar VISITANTE se a view de cadastro for unificada #}
+                                        {# <option value="VISITANTE">Visitante</option> #}
+                                    </select>
+                                </div>
+                                <div class="form-group" id="subcategoria-container" style="display: none;">
+                                    <label for="subcategoria" class="form-label">Subcategoria:</label>
+                                    <select name="subcategoria" id="subcategoria" class="form-input">
+                                        <option value="">Selecione uma subcategoria</option>
+                                        <option value="trabalhador_clt">Trabalhador CLT</option>
+                                        <option value="pessoa_juridica">Pessoa Jurídica (PJ)</option>
+                                        <option value="mei">Microempreendedor Individual (MEI)</option>
+                                        <option value="autonomo">Autônomo</option>
+                                        <option value="associado">Associado</option>
+                                    </select>
+                                </div>
+                             </div>
                         </div>
                     </div>
 

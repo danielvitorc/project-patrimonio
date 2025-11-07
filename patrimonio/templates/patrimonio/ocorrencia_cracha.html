@@ -1,12 +1,10 @@
-{# patrimonio/templates/patrimonio/ocorrencia_cracha.html (Refatorado) #}
 {% extends 'patrimonio/base.html' %} {# Herda do base.html #}
 {% load static %}
 
 {% block title %}Ocorrências Crachá{% endblock %}
 
-{# CSS específico pode ser adicionado aqui se necessário #}
 {% block extra_css %}
-    {# <link rel="stylesheet" href="{% static 'patrimonio/css/ocorrencia_cracha_specific.css' %}"> #}
+    {# O forms.css já está no base.html #}
 {% endblock %}
 
 {# Cabeçalho da página #}
@@ -51,17 +49,20 @@
                     <th>Motivo</th>
                 </tr>
             </thead>
-            <tbody id="tabelaRegistros"> {# ID mantido para o JS #}
-                {% for registro in registros %} {# Variável loop corrigida #}
-                <tr>
-                    <td>{{ registro.matricula }}</td>
-                    <td>{{ registro.colaborador }}</td>
-                    <td>{{ registro.departamento }}</td>
-                    <td>{{ registro.data|date:"d/m/Y" }}</td>
-                    <td>{{ registro.motivo }}</td>
+            <tbody id="tabelaRegistros">
+                
+                {# --- 1. ALTERADO AQUI (de 'registros' para 'page_obj') --- #}
+                {% for registro in page_obj %}
+                <tr class="data-row"> {# Classe para responsividade #}
+                    {# --- 2. ADICIONADO data-label --- #}
+                    <td data-label="Matrícula">{{ registro.matricula }}</td>
+                    <td data-label="Colaborador">{{ registro.colaborador }}</td>
+                    <td data-label="Departamento">{{ registro.departamento }}</td>
+                    <td data-label="Data">{{ registro.data|date:"d/m/Y" }}</td>
+                    <td data-label="Motivo" style="white-space: pre-wrap;">{{ registro.motivo }}</td>
                 </tr>
                 {% empty %}
-                <tr>
+                <tr class="empty-row">
                     <td colspan="5" style="text-align: center; padding: 2rem; color: var(--dark-disabled);">Nenhuma ocorrência registrada.</td>
                 </tr>
                 {% endfor %}
@@ -69,25 +70,25 @@
         </table>
     </div>
 
+    {# --- 3. ADICIONADO INCLUDE DE PAGINAÇÃO --- #}
+    {% include "patrimonio/includes/pagination.html" %}
+
+
     {# ----- Início Modal Nova Ocorrência ----- #}
-    {# ID do Overlay atualizado para corresponder ao data-modal-target #}
     <div class="modal-overlay" id="modalOcorrenciaOverlay" aria-labelledby="modalOcorrenciaLabel" role="dialog" aria-modal="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                 {# Formulário do CrachaForm #}
-                <form method="post"> {# Action default é a própria URL #}
+                <form method="post">
                     {% csrf_token %}
                     <div class="modal-header">
                         <h2 class="modal-title" id="modalOcorrenciaLabel">Nova Ocorrência de Crachá</h2>
                         <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                     </div>
                     <div class="modal-body">
-                         {# Renderiza campos manualmente usando estilos de forms.css #}
-                         {% for field in form_cracha %}
+                        {# Renderiza campos manualmente usando estilos de forms.css #}
+                        {% for field in form_cracha %}
                             <div class="form-group">
                                 <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                                {# O widget já deve ter a classe form-control do __init__ do form #}
-                                {# Se não tiver, adicione manualmente: {{ field.as_widget(attrs={'class':'form-control'}) }} #}
                                 {{ field }}
                                 {% if field.errors %}
                                     <div class="field-errors">
@@ -99,14 +100,6 @@
                                 {% endif %}
                             </div>
                         {% endfor %}
-                         {# Mensagens de erro não relacionadas a campos específicos #}
-                         {% if form_cracha.non_field_errors %}
-                            <div class="form-errors">
-                                {% for error in form_cracha.non_field_errors %}
-                                    <p class="error-message">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
@@ -121,7 +114,6 @@
 {% endblock %}
 
 {% block extra_js %}
-    {# Adiciona a referência ao JS específico da página #}
+    {# O JS de filtros (ocorrencia_cracha.js) continua o mesmo #}
     <script src="{% static 'patrimonio/js/ocorrencia_cracha.js' %}"></script>
-    
 {% endblock %}

@@ -1,13 +1,14 @@
 // project-patrimonio/patrimonio/static/patrimonio/js/modal_edicao_webcam.js
-// Refatorado para remover jQuery e Bootstrap JS.
+// Refatorado para remover jQuery, Bootstrap JS, e usar o sistema de modal customizado.
 
 // ===================================================================
 // ESCOPO GLOBAL DO SCRIPT
 // ===================================================================
 
 // Variáveis de stream da Webcam
-let webcamVisitanteStream = null;
-let webcamRepresentanteStream = null;
+let webcamVisitanteEdicaoStream = null;
+let webcamRepresentanteEdicaoStream = null;
+let currentEditId = null; // Armazena o ID do fornecedor sendo editado
 
 // Helper: Pega o CSRF token
 function getCookie(name) {
@@ -24,11 +25,11 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-const csrfToken = getCookie('csrftoken');
+// Usa a variável global definida no HTML (preferencial) ou pega do cookie
+const csrfToken = window.csrfToken || getCookie('csrftoken'); 
 
 // ===================================================================
-// FUNÇÕES DE CONTROLE DA WEBCAM
-// (Abstraídas para aceitar seletores)
+// FUNÇÕES DE CONTROLE DA WEBCAM (Abstraídas)
 // ===================================================================
 
 /**
@@ -37,11 +38,18 @@ const csrfToken = getCookie('csrftoken');
  * @param {HTMLSpanElement} statusEl - O span de status
  * @param {HTMLButtonElement} btnCapturar - O botão de capturar
  * @param {HTMLButtonElement} btnParar - O botão de parar
- * @returns {Promise<MediaStream>} - A stream
+ * @returns {Promise<MediaStream | null>} - A stream
  */
 async function iniciarWebcam(videoEl, statusEl, btnCapturar, btnParar) {
-    if (!videoEl || !statusEl || !btnCapturar || !btnParar) return null;
-    if (videoEl.srcObject) return videoEl.srcObject; // Já está ativa
+    if (!videoEl || !statusEl || !btnCapturar || !btnParar) {
+        console.warn("Elementos da webcam faltando.");
+        return null;
+    }
+    
+    // Para qualquer stream anterior (caso haja)
+    if (videoEl.srcObject) {
+        videoEl.srcObject.getTracks().forEach(track => track.stop());
+    }
 
     statusEl.textContent = "Iniciando...";
     statusEl.className = 'webcam-status-badge status-info';
@@ -66,16 +74,23 @@ async function iniciarWebcam(videoEl, statusEl, btnCapturar, btnParar) {
 
 /**
  * Captura uma foto da stream
- * @param {MediaStream} stream - A stream da webcam
  * @param {HTMLVideoElement} videoEl - O elemento <video>
  * @param {HTMLCanvasElement} canvasEl - O elemento <canvas>
  * @param {HTMLInputElement} inputEl - O <input type="hidden">
  * @param {HTMLElement} previewEl - O container <div> do preview
  * @param {HTMLImageElement} imgPreviewEl - A <img> de preview
  */
-function capturarFoto(stream, videoEl, canvasEl, inputEl, previewEl, imgPreviewEl) {
-    if (!stream || !videoEl || !canvasEl || !inputEl || !previewEl || !imgPreviewEl) return;
+function capturarFoto(videoEl, canvasEl, inputEl, previewEl, imgPreviewEl) {
+    if (!videoEl || !canvasEl || !inputEl || !previewEl || !imgPreviewEl) {
+         console.warn("Elementos de captura de foto faltando.");
+         return;
+    }
     
+    if (!videoEl.videoWidth) {
+        console.warn("Webcam não está pronta para capturar (videoWidth=0).");
+        return;
+    }
+
     canvasEl.width = videoEl.videoWidth;
     canvasEl.height = videoEl.videoHeight;
     canvasEl.getContext("2d").drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
@@ -84,9 +99,6 @@ function capturarFoto(stream, videoEl, canvasEl, inputEl, previewEl, imgPreviewE
     inputEl.value = imageData;
     imgPreviewEl.src = imageData;
     previewEl.style.display = "block";
-    
-    // Para a webcam após a captura
-    pararWebcam(stream, videoEl, null, null, null); // Passa null para os que não precisamos
 }
 
 /**
@@ -133,29 +145,33 @@ function removerFoto(inputEl, previewEl, imgPreviewEl) {
  * Mostra/Esconde campos do formulário com base na categoria/subcategoria
  */
 function mostrarCamposCategoriaEdicao() {
-    const categoria = document.getElementById("categoria_edicao")?.value;
-    const subcategoria = document.getElementById("subcategoria_edicao")?.value;
+    // Seleciona os elementos dentro do modal de edição
+    const modal = document.getElementById('modalEditarFornecedorOverlay');
+    if (!modal) return;
+
+    const categoria = modal.querySelector("#categoria_edicao")?.value;
+    const subcategoria = modal.querySelector("#subcategoria_edicao")?.value;
 
     // Esconde todos os containers
-    document.getElementById("campos_visitante_edicao")?.style.setProperty('display', 'none');
-    document.getElementById("campos_fornecedor_edicao")?.style.setProperty('display', 'none');
-    document.getElementById("campos_representante_edicao")?.style.setProperty('display', 'none');
-    document.getElementById("subcategoria_container_edicao")?.style.setProperty('display', 'none');
+    modal.querySelector("#campos_visitante_edicao")?.style.setProperty('display', 'none');
+    modal.querySelector("#campos_fornecedor_edicao")?.style.setProperty('display', 'none');
+    modal.querySelector("#campos_representante_edicao")?.style.setProperty('display', 'none');
+    modal.querySelector("#subcategoria_container_edicao")?.style.setProperty('display', 'none');
     
     // Esconde todos os sub-campos
-    document.querySelectorAll('.sub-fields').forEach(el => el.style.setProperty('display', 'none'));
+    modal.querySelectorAll('.sub-fields').forEach(el => el.style.setProperty('display', 'none'));
 
     // Mostra baseado na Categoria
     if (categoria === "VISITANTE") {
-        document.getElementById("campos_visitante_edicao")?.style.setProperty('display', 'block');
+        modal.querySelector("#campos_visitante_edicao")?.style.setProperty('display', 'block');
     } else if (categoria === "FORNECEDOR") {
-        document.getElementById("subcategoria_container_edicao")?.style.setProperty('display', 'block');
-        document.getElementById("campos_fornecedor_edicao")?.style.setProperty('display', 'block');
-        document.getElementById("campos_representante_edicao")?.style.setProperty('display', 'block');
+        modal.querySelector("#subcategoria_container_edicao")?.style.setProperty('display', 'block');
+        modal.querySelector("#campos_fornecedor_edicao")?.style.setProperty('display', 'block');
+        modal.querySelector("#campos_representante_edicao")?.style.setProperty('display', 'block');
 
         // Mostra sub-campo baseado na Subcategoria
         if (subcategoria) {
-            const subCampoEl = document.getElementById(`campos_${subcategoria.toLowerCase()}_edicao`);
+            const subCampoEl = modal.querySelector(`#campos_${subcategoria.toLowerCase()}_edicao`);
             if (subCampoEl) {
                 subCampoEl.style.setProperty('display', 'block');
             }
@@ -167,41 +183,50 @@ function mostrarCamposCategoriaEdicao() {
  * Preenche os campos do formulário com os dados carregados do 'data.dados'
  */
 function inicializarCamposModalEdicao(data) {
+    const modal = document.getElementById('modalEditarFornecedorOverlay');
+    if (!modal || !data.dados) {
+        console.error("Falha ao inicializar campos: modal ou 'data.dados' não encontrados.");
+        return;
+    }
+
     const dados = data.dados;
-    if (!dados) return;
 
     // Preenche campos básicos
-    document.getElementById("categoria_edicao").value = dados.categoria || "";
-    document.getElementById("subcategoria_edicao").value = dados.subcategoria || "";
-    document.getElementById("validade_meses_edicao").value = dados.validade_meses || "";
-    document.getElementById("status_edicao").value = dados.status || "";
+    const selCategoria = modal.querySelector("#categoria_edicao");
+    const selSubcategoria = modal.querySelector("#subcategoria_edicao");
+    const inputValidade = modal.querySelector("#validade_meses_edicao");
+    const selStatus = modal.querySelector("#status_edicao");
+
+    if (selCategoria) selCategoria.value = dados.categoria || "";
+    if (selSubcategoria) selSubcategoria.value = dados.subcategoria || "";
+    if (inputValidade) inputValidade.value = dados.validade_meses || "";
+    if (selStatus) selStatus.value = dados.status || "";
     
     // Preenche campos de Visitante
     if (dados.categoria === "VISITANTE" && dados.visitante) {
-        document.getElementById("nome_visitante_edicao").value = dados.visitante.nome || "";
-        document.getElementById("documento_visitante_edicao").value = dados.visitante.documento || "";
-        document.getElementById("motivo_visita_edicao").value = dados.visitante.motivo_visita || "";
+        modal.querySelector("#nome_visitante_edicao").value = dados.visitante.nome || "";
+        modal.querySelector("#documento_visitante_edicao").value = dados.visitante.documento || "";
+        modal.querySelector("#motivo_visita_edicao").value = dados.visitante.motivo_visita || "";
         if (dados.visitante.foto_visitante) {
-            document.getElementById("img-preview-visitante-edicao").src = dados.visitante.foto_visitante;
-            document.getElementById("preview-foto-visitante-edicao").style.display = "block";
+            modal.querySelector("#img-preview-visitante-edicao").src = dados.visitante.foto_visitante;
+            modal.querySelector("#preview-foto-visitante-edicao").style.display = "block";
         }
     }
     
     // Preenche campos de Fornecedor
     if (dados.categoria === "FORNECEDOR") {
         if (dados.fornecedor_servico) {
-            document.getElementById("nome_empresa_edicao").value = dados.fornecedor_servico.nome_empresa || "";
-            document.getElementById("atividade_servico_edicao").value = dados.fornecedor_servico.atividade_servico || "";
+            modal.querySelector("#nome_empresa_edicao").value = dados.fornecedor_servico.nome_empresa || "";
+            modal.querySelector("#atividade_servico_edicao").value = dados.fornecedor_servico.atividade_servico || "";
         }
         if (dados.trabalhador_relacionado) {
-            document.getElementById("nome_representante_edicao").value = dados.trabalhador_relacionado.nome_representante || "";
+            modal.querySelector("#nome_representante_edicao").value = dados.trabalhador_relacionado.nome_representante || "";
             if (dados.trabalhador_relacionado.foto_representante) {
-                document.getElementById("img-preview-representante-edicao").src = dados.trabalhador_relacionado.foto_representante;
-                document.getElementById("preview-foto-representante-edicao").style.display = "block";
+                modal.querySelector("#img-preview-representante-edicao").src = dados.trabalhador_relacionado.foto_representante;
+                modal.querySelector("#preview-foto-representante-edicao").style.display = "block";
             }
-            // Preenche sub-campos
-            if (dados.subcategoria === "CLT") {
-                document.getElementById("descricao_cargo_edicao").value = dados.trabalhador_relacionado.descricao_cargo || "";
+            if (dados.subcategoria === "CLT" && dados.trabalhador_relacionado.descricao_cargo) {
+                modal.querySelector("#descricao_cargo_edicao").value = dados.trabalhador_relacionado.descricao_cargo;
             }
             // ... (adicionar preenchimento para outros campos de subcategoria se necessário) ...
         }
@@ -210,9 +235,10 @@ function inicializarCamposModalEdicao(data) {
     // Mostra os campos corretos
     mostrarCamposCategoriaEdicao();
     
-    // Adiciona listener para o select de subcategoria
-    // (O select de categoria é 'disabled', então não precisa de listener)
-    document.getElementById("subcategoria_edicao").addEventListener("change", mostrarCamposCategoriaEdicao);
+    // Adiciona listener para o select de subcategoria (se ele for habilitado no futuro)
+    if (selSubcategoria) {
+        selSubcategoria.addEventListener("change", mostrarCamposCategoriaEdicao);
+    }
     
     // Adiciona listeners aos botões da webcam
     adicionarListenersWebcam();
@@ -220,55 +246,59 @@ function inicializarCamposModalEdicao(data) {
 
 /**
  * Adiciona todos os event listeners para as webcams no modal de edição
+ * Esta função é chamada DEPOIS que o HTML é injetado.
  */
 function adicionarListenersWebcam() {
+    const modal = document.getElementById('modalEditarFornecedorOverlay');
+    if (!modal) return;
+
     // --- Webcam Visitante ---
-    const visVideo = document.getElementById("webcam-visitante-edicao");
-    const visStatus = document.getElementById("webcam-status-visitante");
-    const visCanvas = document.getElementById("canvas-visitante-edicao");
-    const visInput = document.getElementById("foto_visitante_base64_edicao");
-    const visPreview = document.getElementById("preview-foto-visitante-edicao");
-    const visImgPreview = document.getElementById("img-preview-visitante-edicao");
-    const visBtnIniciar = document.getElementById("btn-iniciar-visitante");
-    const visBtnCapturar = document.getElementById("btn-capturar-visitante");
-    const visBtnParar = document.getElementById("btn-parar-visitante");
-    const visBtnRemover = document.getElementById("btn-remover-visitante");
+    const visVideo = modal.querySelector("#webcam-visitante-edicao");
+    const visStatus = modal.querySelector("#webcam-status-visitante");
+    const visCanvas = modal.querySelector("#canvas-visitante-edicao");
+    const visInput = modal.querySelector("#foto_visitante_base64_edicao");
+    const visPreview = modal.querySelector("#preview-foto-visitante-edicao");
+    const visImgPreview = modal.querySelector("#img-preview-visitante-edicao");
+    const visBtnIniciar = modal.querySelector("#btn-iniciar-visitante-edicao");
+    const visBtnCapturar = modal.querySelector("#btn-capturar-visitante-edicao");
+    const visBtnParar = modal.querySelector("#btn-parar-visitante-edicao");
+    const visBtnRemover = modal.querySelector("#btn-remover-visitante-edicao");
 
     visBtnIniciar?.addEventListener('click', async () => {
-        webcamVisitanteStream = await iniciarWebcam(visVideo, visStatus, visBtnCapturar, visBtnParar);
+        webcamVisitanteEdicaoStream = await iniciarWebcam(visVideo, visStatus, visBtnCapturar, visBtnParar);
     });
     visBtnCapturar?.addEventListener('click', () => {
-        capturarFoto(webcamVisitanteStream, visVideo, visCanvas, visInput, visPreview, visImgPreview);
-        webcamVisitanteStream = pararWebcam(webcamVisitanteStream, visVideo, visStatus, visBtnCapturar, visBtnParar);
+        capturarFoto(visVideo, visCanvas, visInput, visPreview, visImgPreview);
+        webcamVisitanteEdicaoStream = pararWebcam(webcamVisitanteEdicaoStream, visVideo, visStatus, visBtnCapturar, visBtnParar);
     });
     visBtnParar?.addEventListener('click', () => {
-        webcamVisitanteStream = pararWebcam(webcamVisitanteStream, visVideo, visStatus, visBtnCapturar, visBtnParar);
+        webcamVisitanteEdicaoStream = pararWebcam(webcamVisitanteEdicaoStream, visVideo, visStatus, visBtnCapturar, visBtnParar);
     });
     visBtnRemover?.addEventListener('click', () => {
         removerFoto(visInput, visPreview, visImgPreview);
     });
 
     // --- Webcam Representante ---
-    const repVideo = document.getElementById("webcam-representante-edicao");
-    const repStatus = document.getElementById("webcam-status-representante");
-    const repCanvas = document.getElementById("canvas-representante-edicao");
-    const repInput = document.getElementById("foto_representante_base64_edicao");
-    const repPreview = document.getElementById("preview-foto-representante-edicao");
-    const repImgPreview = document.getElementById("img-preview-representante-edicao");
-    const repBtnIniciar = document.getElementById("btn-iniciar-representante");
-    const repBtnCapturar = document.getElementById("btn-capturar-representante");
-    const repBtnParar = document.getElementById("btn-parar-representante");
-    const repBtnRemover = document.getElementById("btn-remover-representante");
+    const repVideo = modal.querySelector("#webcam-representante-edicao");
+    const repStatus = modal.querySelector("#webcam-status-representante");
+    const repCanvas = modal.querySelector("#canvas-representante-edicao");
+    const repInput = modal.querySelector("#foto_representante_base64_edicao");
+    const repPreview = modal.querySelector("#preview-foto-representante-edicao");
+    const repImgPreview = modal.querySelector("#img-preview-representante-edicao");
+    const repBtnIniciar = modal.querySelector("#btn-iniciar-representante-edicao");
+    const repBtnCapturar = modal.querySelector("#btn-capturar-representante-edicao");
+    const repBtnParar = modal.querySelector("#btn-parar-representante-edicao");
+    const repBtnRemover = modal.querySelector("#btn-remover-representante-edicao");
     
     repBtnIniciar?.addEventListener('click', async () => {
-        webcamRepresentanteStream = await iniciarWebcam(repVideo, repStatus, repBtnCapturar, repBtnParar);
+        webcamRepresentanteEdicaoStream = await iniciarWebcam(repVideo, repStatus, repBtnCapturar, repBtnParar);
     });
     repBtnCapturar?.addEventListener('click', () => {
-        capturarFoto(webcamRepresentanteStream, repVideo, repCanvas, repInput, repPreview, repImgPreview);
-        webcamRepresentanteStream = pararWebcam(webcamRepresentanteStream, repVideo, repStatus, repBtnCapturar, repBtnParar);
+        capturarFoto(repVideo, repCanvas, repInput, repPreview, repImgPreview);
+        webcamRepresentanteEdicaoStream = pararWebcam(webcamRepresentanteEdicaoStream, repVideo, repStatus, repBtnCapturar, repBtnParar);
     });
     repBtnParar?.addEventListener('click', () => {
-        webcamRepresentanteStream = pararWebcam(webcamRepresentanteStream, repVideo, repStatus, repBtnCapturar, repBtnParar);
+        webcamRepresentanteEdicaoStream = pararWebcam(webcamRepresentanteEdicaoStream, repVideo, repStatus, repBtnCapturar, repBtnParar);
     });
     repBtnRemover?.addEventListener('click', () => {
         removerFoto(repInput, repPreview, repImgPreview);
@@ -276,7 +306,7 @@ function adicionarListenersWebcam() {
 }
 
 // ===================================================================
-// EVENT LISTENERS PRINCIPAIS (nível do documento)
+// EVENT LISTENERS PRINCIPAIS (Carregados quando a página abre)
 // ===================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -286,33 +316,42 @@ document.addEventListener('DOMContentLoaded', () => {
          return; // Sai se o modal principal não existir
     }
     
-    let currentEditId = null; // Armazena o ID do fornecedor sendo editado
-    const modalBody = modalEditar.querySelector('#modal-body-content');
+    const modalBodyWrapper = modalEditar.querySelector('#modal-body-content-wrapper'); // Wrapper do body
+    if (!modalBodyWrapper) {
+         console.error("#modal-body-content-wrapper não encontrado!");
+         return;
+    }
 
     // Função para carregar o conteúdo do modal
     const carregarDadosFornecedor = (fornecedorId) => {
-        if (!modalBody) return;
-        modalBody.innerHTML = `<p class="loading-text">Carregando dados...</p>`; // Estado de loading
+        modalBodyWrapper.innerHTML = `<div class="modal-body"><p style="text-align: center; padding: 2rem; color: var(--dark-disabled);">Carregando dados...</p></div>`; // Estado de loading
 
-        fetch(`/fornecedor/${fornecedorId}/dados/`)
-            .then(response => response.json())
+        // URL para buscar o HTML do formulário de edição
+        const url = `/fornecedor/${fornecedorId}/dados/`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`Erro ${response.status} ao buscar dados.`);
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    modalBody.innerHTML = data.form_html; // Injeta o HTML
+                    modalBodyWrapper.innerHTML = data.form_html; // Injeta o HTML (que agora contém o <form>)
                     // Agora que o HTML existe, inicializa os campos e a lógica
                     inicializarCamposModalEdicao(data);
                 } else {
-                     modalBody.innerHTML = `<p style="color: var(--danger-color);">Erro: ${data.error}</p>`;
+                     modalBodyWrapper.innerHTML = `<div class="modal-body"><p style="color: var(--danger-color);">Erro: ${data.error}</p></div>`;
                 }
             })
             .catch(error => {
                 console.error("Erro na requisição AJAX:", error);
-                 modalBody.innerHTML = `<p style="color: var(--danger-color);">Ocorreu um erro ao carregar os dados.</p>`;
+                 modalBodyWrapper.innerHTML = `<div class="modal-body"><p style="color: var(--danger-color);">Ocorreu um erro ao carregar os dados.</p></div>`;
             });
     };
 
     // Observa o modal de edição para carregar o conteúdo quando ele for aberto
     // e parar as webcams quando for fechado.
+    // Isso substitui os eventos 'show.bs.modal' e 'hide.bs.modal'
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.attributeName === 'class') {
@@ -323,20 +362,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Usamos um truque: o listener 'click' abaixo adiciona a classe 'active-trigger'
                     const editTrigger = document.querySelector('.active-trigger[data-modal-target="#modalEditarFornecedorOverlay"]');
                     if (editTrigger) {
-                        currentEditId = editTrigger.getAttribute('data-id');
+                        currentEditId = editTrigger.getAttribute('data-id'); // Pega o ID do fornecedor
                         if (currentEditId) {
-                            // Atualiza a action do formulário (que será carregado)
-                            // O form ID é 'formEditarFornecedor'
-                            // (A action será setada no listener de submit)
                             carregarDadosFornecedor(currentEditId);
                         }
                         editTrigger.classList.remove('active-trigger'); // Limpa o gatilho
                     }
                 } else {
                     // Modal foi fechado
-                    webcamVisitanteStream = pararWebcam(webcamVisitanteStream, document.getElementById("webcam-visitante-edicao"), document.getElementById("webcam-status-visitante"), document.getElementById("btn-capturar-visitante"), document.getElementById("btn-parar-visitante"));
-                    webcamRepresentanteStream = pararWebcam(webcamRepresentanteStream, document.getElementById("webcam-representante-edicao"), document.getElementById("webcam-status-representante"), document.getElementById("btn-capturar-representante"), document.getElementById("btn-parar-representante"));
-                    if (modalBody) modalBody.innerHTML = ""; // Limpa o conteúdo
+                    // Para as duas webcams
+                    webcamVisitanteEdicaoStream = pararWebcam(
+                        webcamVisitanteEdicaoStream, 
+                        modalEditar.querySelector("#webcam-visitante-edicao"), 
+                        modalEditar.querySelector("#webcam-status-visitante"), 
+                        modalEditar.querySelector("#btn-capturar-visitante-edicao"), 
+                        modalEditar.querySelector("#btn-parar-visitante-edicao")
+                    );
+                    webcamRepresentanteEdicaoStream = pararWebcam(
+                        webcamRepresentanteEdicaoStream, 
+                        modalEditar.querySelector("#webcam-representante-edicao"), 
+                        modalEditar.querySelector("#webcam-status-representante"), 
+                        modalEditar.querySelector("#btn-capturar-representante-edicao"), 
+                        modalEditar.querySelector("#btn-parar-representante-edicao")
+                    );
+                    // Limpa o conteúdo para a próxima abertura
+                    modalBodyWrapper.innerHTML = `<div class="modal-body"><p style="text-align: center; padding: 2rem; color: var(--dark-disabled);">Carregando...</p></div>`;
+                    currentEditId = null; // Reseta o ID
                 }
             }
         });
@@ -356,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // 2. Listener para o SUBMIT do formulário de edição (delegado ao modal)
+    // Isso substitui o $('#formEditarFornecedor').on('submit', ...)
     modalEditar.addEventListener('submit', (e) => {
         const form = e.target.closest('#formEditarFornecedor');
         if (!form) return; // Não é o submit que procuramos
@@ -383,11 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Fornecedor atualizado com sucesso!");
                 location.reload(); // Recarregar a página para mostrar as alterações
             } else {
-                alert("Erro ao atualizar fornecedor: " + (data.error || "Erro desconhecido"));
+                alert("Erro ao atualizar: " + (data.error || "Verifique os campos."));
                 // Se a view retornar form_html com erros, podemos re-injetá-lo
                 if (data.form_html) {
-                    if (modalBody) {
-                        modalBody.innerHTML = data.form_html;
+                    if (modalBodyWrapper) {
+                        modalBodyWrapper.innerHTML = data.form_html;
                         // Re-inicializar campos após re-renderização do formulário com erros
                         inicializarCamposModalEdicao(data); // 'data' contém 'data.dados'
                     }
@@ -396,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error("Erro no fetch:", error);
-            alert("Erro ao processar solicitação.");
+            alert("Erro ao processar solicitação. Tente novamente.");
         });
     });
 });

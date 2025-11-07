@@ -215,6 +215,105 @@ html[data-theme='light'] .data-table .photo-placeholder {
 
 
 /* ===================================================================
-   RESPONSIVIDADE PARA TABELAS (Scroll Horizontal)
+   RESPONSIVIDADE "CARD-STACK" (Telas Pequenas)
    =================================================================*/
-/* O wrapper `.data-table-wrapper` com `overflow-x: auto;` já cuida disso. */
+@media screen and (max-width: 768px) {
+    .data-table-wrapper {
+        border: none; /* Remove a borda/sombra do wrapper em mobile */
+        box-shadow: none;
+        overflow-x: hidden; /* Desliga o scroll horizontal */
+    }
+
+    .data-table {
+        border: none;
+        box-shadow: none;
+        min-width: 100%;
+    }
+
+    .data-table thead {
+        /* Esconde o cabeçalho original */
+        display: none;
+    }
+
+    .data-table tbody,
+    .data-table tr,
+    .data-table td {
+        display: block; /* Faz tudo empilhar */
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .data-table tr.data-row, /* Seleciona apenas as linhas com dados */
+    .data-table tr:not(.empty-row) { /* Ou todas, exceto a linha "vazio" */
+        background-color: var(--dark-primary-bg);
+        border: 1px solid var(--dark-border-color);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    html[data-theme='light'] .data-table tr.data-row,
+    html[data-theme='light'] .data-table tr:not(.empty-row) {
+        background-color: var(--light-primary-bg);
+        border-color: var(--light-border-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* Esconde a linha de "nenhum registro" se não for a única */
+    .data-table tr.empty-row td {
+        background: transparent;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .data-table td {
+        border: none;
+        border-bottom: 1px dashed var(--dark-border-color); /* Linha entre os campos */
+        position: relative;
+        padding-left: 50%; /* Espaço para o "label" */
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        text-align: right; /* Alinha o valor à direita */
+        min-height: 2.5em; /* Garante altura mínima */
+    }
+    
+    html[data-theme='light'] .data-table td {
+        border-bottom-color: var(--light-border-color);
+    }
+
+    .data-table td:last-child {
+        border-bottom: none; /* Remove a última linha */
+    }
+
+    /* Cria o "Label" usando o atributo data-label */
+    .data-table td:before {
+        content: attr(data-label); /* Pega o texto do atributo data-label */
+        position: absolute;
+        left: 1rem;
+        width: 45%;
+        padding-right: 1rem;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark-primary-text); /* Label destacado */
+    }
+    
+    html[data-theme='light'] .data-table td:before {
+        color: var(--light-primary-text);
+    }
+    
+    /* Ajusta colunas de Ações e Foto */
+    .data-table td.td-actions,
+    .data-table td.td-photo {
+        padding-left: 1rem;
+        text-align: center;
+    }
+    .data-table td.td-actions:before,
+    .data-table td.td-photo:before {
+        display: none; /* Não mostra label para foto e ações */
+    }
+    
+    .data-table .action-buttons {
+        justify-content: center; /* Centraliza os botões de ação */
+    }
+}

@@ -1,34 +1,30 @@
-{# Modal de Edição (Casca) #}
-<div class="modal-overlay" id="modalEditarFornecedorOverlay" role="dialog" aria-modal="true">
-    <div class="modal-dialog modal-dialog--lg">
-        <div class="modal-content">
-            {# O formulário e o conteúdo (modal-body-content) são carregados via JS #}
-            <div class="modal-header">
-                <h2 class="modal-title">Editar Cadastro</h2>
-                <button type="button" class="modal-close-button" data-modal-dismiss></button>
-            </div>
-            <div class="modal-body" id="modal-body-content" style="max-height: 70vh;">
-                <p>Carregando...</p> {# Placeholder #}
-            </div>
-            <div class="modal-footer">
-                 <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
-                 {# O botão de submit está dentro do form carregado via JS #}
-            </div>
-        </div>
-    </div>
-</div>
+{# patrimoio/templates/patrimonio/includes/modals/modal_edicao_fornecedor.html #}
+{# Esta é apenas a "casca" do modal. O conteúdo é carregado via JS. #}
 
-{# Modal de Foto Expandida (Genérico) - CRIE ESTE NOVO ARQUIVO #}
-{# patrimonio/templates/patrimonio/includes/modals/modal_foto_expandida.html #}
-<div class="modal-overlay" id="modalFotoOverlay" aria-label="Foto Expandida" role="dialog" aria-modal="true">
-    <div class="modal-dialog modal-dialog--lg" style="background: none;">
-        <div class="modal-content" style="background: none; box-shadow: none;">
-            <div class="modal-body" style="padding: 0; text-align: center;">
-                <img src="" id="fotoExpandida" alt="Foto expandida" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px;">
+<div class="modal-overlay" id="modalEditarFornecedorOverlay" aria-labelledby="modalEditarFornecedorLabel" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog--lg"> {# Modal Largo #}
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalEditarFornecedorLabel">Editar Cadastro</h2>
+                <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
             </div>
-            <div class="modal-footer" style="border: none; justify-content: center;">
-                <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Fechar</button>
+
+            {# ========================================================== #}
+            {#      O ERRO ESTÁ AQUI. ESTE DIV ESTÁ FALTANDO NO SEU ARQUIVO #}
+            {#      Ele serve como o container para o conteúdo dinâmico. #}
+            {# ========================================================== #}
+            <div id="modal-body-content-wrapper">
+                {# O JS colocará o HTML de 'modal_edicao_fornecedor_form_content.html' aqui #}
+                <div class="modal-body">
+                    <p style="text-align: center; padding: 2rem; color: var(--dark-disabled);">Carregando...</p>
+                </div>
             </div>
+
+            {# O <form> é carregado dinamicamente, então o footer
+               está DENTRO do HTML carregado (form_content.html)
+               para que os botões façam parte do form.
+               Deixamos este aqui vazio. #}
         </div>
     </div>
 </div>

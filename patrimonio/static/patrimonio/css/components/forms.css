@@ -584,3 +584,236 @@ html[data-theme='light'] video.webcam-video {
     font-size: 0.9rem;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
+/* ===================================================================
+   ESTILOS PARA SEÇÕES E GRIDS DE FORMULÁRIO (Usado em modais)
+   =================================================================*/
+
+/* Substitui o .card */
+.card-form-section {
+    border: 1px solid var(--dark-border-color);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    background-color: var(--dark-primary-bg);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+html[data-theme='light'] .card-form-section {
+    border-color: var(--light-border-color);
+    background-color: var(--light-primary-bg);
+}
+
+/* Substitui o .card-header */
+.card-form-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--dark-border-color);
+    color: var(--dark-primary-text);
+    background-color: var(--dark-accent-bg);
+    border-radius: 8px 8px 0 0;
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+html[data-theme='light'] .card-form-title {
+    border-bottom-color: var(--light-border-color);
+    background-color: var(--light-secondary-bg);
+    color: var(--light-primary-text);
+}
+
+/* Substitui o .card-body */
+.card-form-body {
+    padding: 1.5rem;
+}
+
+
+/* Substitui o .row .g-3 */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Padrão de 2 colunas */
+    gap: 1rem 1.5rem; /* Espaçamento linha / coluna */
+}
+
+/* Modificador para 1 coluna */
+.form-grid--1-col {
+    grid-template-columns: 1fr;
+}
+
+/* Modificador para ocupar 2 colunas no grid */
+.form-group.grid-col-span-2 {
+    grid-column: 1 / -1; /* Ocupa todas as colunas */
+}
+
+/* Responsividade do grid */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr; /* Coluna única em telas pequenas */
+    }
+    /* Ignora o span em telas pequenas */
+    .form-group.grid-col-span-2 {
+        grid-column: auto;
+    }
+}
+
+/* ===================================================================
+   ESTILOS PARA LISTAS DE DETALHES (Usado no Modal de Detalhes)
+   =================================================================*/
+
+/* Substitui o .row para exibir pares de chave/valor */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem 0;
+}
+.info-grid .info-item {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed var(--dark-border-color);
+}
+.info-grid .info-item strong {
+    color: var(--dark-secondary-text);
+    margin-right: 0.5rem;
+}
+.info-grid .info-item span {
+    color: var(--dark-primary-text);
+}
+
+html[data-theme='light'] .info-grid .info-item {
+    border-bottom-color: var(--light-border-color);
+}
+html[data-theme='light'] .info-grid .info-item strong {
+    color: var(--light-secondary-text);
+}
+html[data-theme='light'] .info-grid .info-item span {
+    color: var(--light-primary-text);
+}
+
+
+/* Substitui o .list-group para a lista de documentos */
+.document-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.document-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--dark-border-color);
+}
+.document-list li:last-child {
+    border-bottom: none;
+}
+html[data-theme='light'] .document-list li {
+    border-bottom-color: var(--light-border-color);
+}
+
+.document-list .doc-name {
+    font-weight: 500;
+    color: var(--dark-secondary-text);
+}
+html[data-theme='light'] .document-list .doc-name {
+    color: var(--light-secondary-text);
+}
+
+.document-list .doc-link a {
+    text-decoration: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    background-color: var(--dark-accent-bg);
+    color: var(--dark-link);
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.document-list .doc-link a:hover {
+    background-color: var(--dark-highlight);
+    color: var(--dark-accent-bg);
+    text-decoration: none;
+}
+
+html[data-theme='light'] .document-list .doc-link a {
+    background-color: var(--light-accent-bg);
+    color: var(--light-link);
+}
+html[data-theme='light'] .document-list .doc-link a:hover {
+    background-color: var(--light-highlight);
+    color: var(--light-primary-bg);
+}
+
+.document-list .doc-status .badge {
+    font-size: 0.8rem;
+}
+/* ===================================================================
+   ESTILOS PARA A BARRA DE FILTROS (Grid Responsivo)
+   =================================================================*/
+
+/* O <form> que se torna um grid */
+.filter-form-grid {
+    display: grid;
+    /* Em telas grandes: 4 colunas para filtros, 1 para botões
+       (auto) (auto) (auto) (auto) (1fr - estica para preencher)
+    */
+    grid-template-columns: repeat(4, auto) 1fr;
+    gap: 1rem 1.5rem; /* Espaçamento linha / coluna */
+    align-items: end; /* Alinha todos os grupos na base */
+}
+
+.filter-group {
+     /* Ocupa uma célula do grid */
+     min-width: 180px; /* Largura mínima para cada filtro */
+}
+
+.filter-actions {
+    /* Alinha os botões à direita */
+    justify-self: end;  /* Alinha o container à direita da célula do grid */
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ===================================================================
+   ESTILOS PARA A BARRA DE FILTROS (Flexbox Responsivo)
+   =================================================================*/
+
+/* O <form> que se torna um container flex */
+.filter-form-grid {
+    display: flex;
+    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
+    gap: 1rem 1.5rem; /* Espaçamento linha / coluna */
+    align-items: flex-end; /* Alinha todos os grupos na base */
+}
+
+.filter-group {
+    flex-grow: 1; /* Permite que o item cresça */
+    flex-basis: 200px; /* Largura mínima antes de quebrar */
+    min-width: 200px; /* Garante largura mínima */
+}
+
+/* Container dos botões */
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-grow: 1; /* Permite crescer */
+    flex-basis: 200px; /* Tenta ter a mesma base dos outros */
+    justify-content: flex-end; /* Alinha botões à direita */
+}
+
+/* --- Responsividade (Já tratada pelo flex-wrap) --- */
+
+/* Ajuste fino para celulares, se necessário */
+@media (max-width: 768px) {
+    .filter-group,
+    .filter-actions {
+        /* Força todos os itens a ocupar 100% da largura no celular */
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    .filter-actions {
+        justify-content: flex-start; /* Alinha à esquerda no celular */
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Botões lado a lado */
+    }
+
+    .filter-actions .button {
+        width: 100%;
+        justify-content: center; /* Centraliza texto/ícone no botão */
+    }
+}

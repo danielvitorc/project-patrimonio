@@ -5,6 +5,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function() {
+            try {
+                // 1. Verifica o que está salvo no localStorage
+                var savedTheme = localStorage.getItem('theme');
+                // 2. Verifica a preferência do sistema operacional
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                // 3. Decide o tema: o salvo (se houver) ou a preferência do sistema
+                //    (Definimos 'dark' como padrão se nada estiver salvo e o sistema não preferir escuro)
+                var theme = savedTheme || (prefersDark ? 'dark' : 'light'); 
+                
+                // 4. Aplica o atributo data-theme ao <html> ANTES de a página carregar
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                // Fallback em caso de erro (ex: localStorage bloqueado)
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     {# Favicon #}
     <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
 
@@ -14,16 +34,16 @@
     {# Ícones (Font Awesome) #}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-    {# CSS Global e Componentes #}
+{# CSS Global e Componentes #}
     <link rel="stylesheet" href="{% static 'patrimonio/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/tables.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/modals.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/buttons.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/forms.css' %}">
-    {# Adicione aqui outros CSS de componentes globais, se houver (ex: forms.css) #}
+    <link rel="stylesheet" href="{% static 'patrimonio/css/components/dropdowns.css' %}">
+    <link rel="stylesheet" href="{% static 'patrimonio/css/components/pagination.css' %}">
 
-    {# Bloco para CSS específico da página filha #}
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -57,5 +77,6 @@
     <script src="{% static 'patrimonio/js/theme.js' %}"></script>
     <script src="{% static 'patrimonio/js/sidebar.js' %}"></script>
     <script src="{% static 'patrimonio/js/components/modals.js' %}"></script>
+    <script src="{% static 'patrimonio/js/components/dropdowns.js' %}"></script>
 </body>
 </html>

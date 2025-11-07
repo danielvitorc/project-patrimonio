@@ -4,6 +4,8 @@
 {% block title %}Cadastros{% endblock %}
 
 {% block extra_css %}
+    {# CSS do Select2 (se ainda for usar no futuro) #}
+    {# <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" /> #}
     {# O CSS antigo 'visitantes.css' foi removido #}
 {% endblock %}
 
@@ -15,8 +17,9 @@
                 <i class="fas fa-plus icon"></i> Novo Cadastro
             </button>
             
-            <div class="dropdown-container"> {# Substituto do dropdown Bootstrap #}
-                <button type="button" class="button button--secondary dropdown-toggle">
+            {# Dropdown customizado (requer CSS/JS simples se não usar lib) #}
+            <div class="dropdown-container" data-dropdown>
+                <button type="button" class="button button--secondary" data-dropdown-button>
                     <i class="fas fa-cog icon"></i> Ações <i class="fas fa-chevron-down icon-right"></i>
                 </button>
                 <ul class="dropdown-menu">
@@ -50,20 +53,22 @@
                 </tr>
             </thead>
             <tbody>
-                {% for fornecedor in fornecedores %}
-                <tr class="data-row">
+                {% for fornecedor in page_obj %}
+                <tr class="data-row" data-id="{{ fornecedor.id }}">
                     <td style="text-align: center;">
-                        {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante and fornecedor.visitante.foto_visitante %}
-                            <img src="{{ fornecedor.visitante.foto_visitante.url }}" alt="Foto" class="table-photo"
-                                 data-modal-target="#modalFotoOverlay"
-                                 data-foto="{{ fornecedor.visitante.foto_visitante.url }}">
-                        {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.trabalhador_relacionado and fornecedor.trabalhador_relacionado.foto_representante %}
-                            <img src="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}" alt="Foto" class="table-photo"
-                                 data-modal-target="#modalFotoOverlay"
-                                 data-foto="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}">
-                        {% else %}
-                            <span class="photo-placeholder"><i class="fas fa-camera"></i></span>
-                        {% endif %}
+                        {% with foto_url=None %}
+                            {% if fornecedor.categoria == 'VISITANTE' and fornecedor.visitante and fornecedor.visitante.foto_visitante %}
+                                <img src="{{ fornecedor.visitante.foto_visitante.url }}" alt="Foto" class="table-photo"
+                                     data-modal-target="#modalFotoOverlay"
+                                     data-foto="{{ fornecedor.visitante.foto_visitante.url }}">
+                            {% elif fornecedor.categoria == 'FORNECEDOR' and fornecedor.trabalhador_relacionado and fornecedor.trabalhador_relacionado.foto_representante %}
+                                <img src="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}" alt="Foto" class="table-photo"
+                                     data-modal-target="#modalFotoOverlay"
+                                     data-foto="{{ fornecedor.trabalhador_relacionado.foto_representante.url }}">
+                            {% else %}
+                                <span class="photo-placeholder"><i class="fas fa-camera"></i></span>
+                            {% endif %}
+                        {% endwith %}
                     </td>
                     <td>
                         {% if fornecedor.categoria == 'VISITANTE' %}
@@ -74,7 +79,7 @@
                     </td>
                     <td>
                         {% if fornecedor.categoria == "VISITANTE" and fornecedor.visitante %}
-                            <strong>{{ fornecedor.visitante.nome }}</strong>
+                            <strong>{{ fornecedor.visitante.nome|default:"-" }}</strong>
                         {% elif fornecedor.categoria == "FORNECEDOR" %}
                             {% if fornecedor.fornecedor_servico.nome_empresa %}
                                 <strong>{{ fornecedor.fornecedor_servico.nome_empresa }}</strong>
@@ -90,13 +95,24 @@
                             <span style="color: var(--dark-disabled);">-</span>
                         {% endif %}
                     </td>
-                    <td>{{ fornecedor.data_integracao_formatada }}</td>
-                    <td>{{ fornecedor.data_validade_formatada }}</td>
-                    <td>
+                    <td style="text-align: center;">{{ fornecedor.data_integracao_formatada }}</td>
+                    <td style="text-align: center;">
+                        <div class="validade-info">
+                            {% if fornecedor.ultima_integracao %}
+                                <strong>{{ fornecedor.ultima_integracao.validade_meses }} meses</strong>
+                                <br><small style="color: var(--dark-disabled);">{{ fornecedor.data_validade_formatada }}</small>
+                            {% else %}
+                                <span style="color: var(--dark-disabled);">-</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="text-align: center;">
                         {% if fornecedor.status == "Integrado" %}
                             <span class="badge badge-success">Integrado</span>
-                        {% else %}
+                        {% elif fornecedor.status == "Pendente" %}
                             <span class="badge badge-warning">Pendente</span>
+                        {% else %}
+                             <span class="badge badge-secondary">Sem Integração</span>
                         {% endif %}
                     </td>
                     <td>
@@ -110,7 +126,7 @@
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                             {# Botão Gerar Link #}
-                            {% if fornecedor.status == "Sem integração" or fornecedor.status == "Pendente" %}
+                            {% if fornecedor.categoria == 'FORNECEDOR' and fornecedor.status != "Integrado" %}
                                 <button type="button" class="btn-action btn-action-success" data-id="{{ fornecedor.id }}" data-modal-target="#modalValidadeOverlay{{ fornecedor.id }}">
                                     <i class="fas fa-link"></i>
                                 </button>
@@ -131,30 +147,29 @@
             </tbody>
         </table>
     </div>
-
+    {% include 'patrimonio/includes/pagination.html' %}
     {# Modais Globais (fora do loop) #}
     {% include 'patrimonio/includes/modals/modal_cadastro_fornecedor.html' %}
     {% include 'patrimonio/includes/modals/modal_edicao_fornecedor.html' %}
-    {% include 'patrimonio/includes/modals/modal_foto_expandida.html' %} {# (Novo include genérico para fotos) #}
+    {% include 'patrimonio/includes/modals/modal_foto_expandida.html' %}
 
 {% endblock %}
 
 
 {% block extra_js %}
-    {# Removemos a dependência do jQuery que estava aqui #}
-    
-    {# URLs Globais para o JavaScript #}
+{# URLs Globais para o JavaScript #}
     <script>
         window.csrfToken = '{{ csrf_token }}';
-    
         window.excluirFornecedorURL = "{% url 'excluir_fornecedor' %}";
-        let gerarLinkBaseUrl = "{% url 'gerar_link_integracao' 0 %}";
-        window.gerarLinkUrl = gerarLinkBaseUrl.substring(0, gerarLinkBaseUrl.length - 2) + '/'; // Remove '0/' e adiciona '/'
+        
+        {# CORREÇÃO: A URL global agora é a URL completa com o placeholder '0' #}
+        window.gerarLinkUrl = "{% url 'gerar_link_integracao' 0 %}"; 
+        {# Isso vai gerar: /gerar-link-integracao/0/ #}
     </script>
     
     {# Adiciona os 4 scripts separados #}
     <script src="{% static 'patrimonio/js/excluir_fornecedor.js' %}"></script>
     <script src="{% static 'patrimonio/js/integracao.js' %}"></script>
     <script src="{% static 'patrimonio/js/modal_cadastro_dinamico.js' %}"></script>
-    <script src="{% static 'patrimonio/js/modal_edicao_webcam.js' %}"></script> {# <-- ARQUIVO ADICIONADO/REFATORADO #}
+    <script src="{% static 'patrimonio/js/modal_edicao_webcam.js' %}"></script>
 {% endblock %}

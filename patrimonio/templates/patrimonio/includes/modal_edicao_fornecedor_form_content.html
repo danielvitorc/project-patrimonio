@@ -1,9 +1,11 @@
 {# patrimoio/templates/patrimonio/includes/modal_edicao_fornecedor_form_content.html #}
-{# Este HTML é carregado dinamicamente via Fetch #}
+{# Este HTML é carregado dinamicamente via Fetch/AJAX #}
 
+{# O <form> e o <modal-body> estão incluídos aqui para serem injetados juntos #}
 <form method="post" enctype="multipart/form-data" id="formEditarFornecedor">
     {% csrf_token %}
-    <div class="form-container">
+    
+    <div class="modal-body" id="modal-body-content" style="max-height: 70vh;">
         
         <div class="card-form-section">
             <h3 class="card-form-title"><i class="fas fa-info-circle icon"></i> Informações Básicas</h3>
@@ -27,7 +29,7 @@
                             <option value="ASSOCIADO">Associado</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="validade_container_edicao">
                         <label for="validade_meses_edicao" class="form-label">Validade (meses):</label>
                         <input type="number" id="validade_meses_edicao" name="validade_meses" class="form-input" min="1">
                     </div>
@@ -72,20 +74,20 @@
                         <input type="hidden" name="foto_visitante_base64" id="foto_visitante_base64_edicao">
                         
                         <div class="webcam-controls">
-                            <button type="button" class="button button--secondary button--sm" id="btn-iniciar-visitante">
+                            <button type="button" class="button button--secondary button--sm" id="btn-iniciar-visitante-edicao">
                                 <i class="fas fa-camera icon"></i>Abrir Câmera
                             </button>
-                            <button type="button" class="button button--success button--sm" id="btn-capturar-visitante" style="display: none;">
+                            <button type="button" class="button button--success button--sm" id="btn-capturar-visitante-edicao" style="display: none;">
                                 <i class="fas fa-check icon"></i>Capturar
                             </button>
-                            <button type="button" class="button button--secondary button--sm" id="btn-parar-visitante" style="display: none;">
+                            <button type="button" class="button button--secondary button--sm" id="btn-parar-visitante-edicao" style="display: none;">
                                 <i class="fas fa-stop icon"></i>Parar
                             </button>
                         </div>
                         
                         <div id="preview-foto-visitante-edicao" class="photo-preview-wrapper" style="display: none;">
                             <img id="img-preview-visitante-edicao" src="" alt="Preview">
-                            <button type="button" class="button button--danger button--sm" id="btn-remover-visitante" title="Remover Foto">
+                            <button type="button" class="button button--danger button--sm" id="btn-remover-visitante-edicao" title="Remover Foto">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -129,61 +131,156 @@
                         <input type="hidden" name="foto_representante_base64" id="foto_representante_base64_edicao">
                         
                         <div class="webcam-controls">
-                            <button type="button" class="button button--secondary button--sm" id="btn-iniciar-representante">
+                            <button type="button" class="button button--secondary button--sm" id="btn-iniciar-representante-edicao">
                                 <i class="fas fa-camera icon"></i>Abrir Câmera
                             </button>
-                            <button type="button" class="button button--success button--sm" id="btn-capturar-representante" style="display: none;">
+                            <button type="button" class="button button--success button--sm" id="btn-capturar-representante-edicao" style="display: none;">
                                 <i class="fas fa-check icon"></i>Capturar
                             </button>
-                            <button type="button" class="button button--secondary button--sm" id="btn-parar-representante" style="display: none;">
+                            <button type="button" class="button button--secondary button--sm" id="btn-parar-representante-edicao" style="display: none;">
                                 <i class="fas fa-stop icon"></i>Parar
                             </button>
                         </div>
                         
                         <div id="preview-foto-representante-edicao" class="photo-preview-wrapper" style="display: none;">
                             <img id="img-preview-representante-edicao" src="" alt="Preview">
-                            <button type="button" class="button button--danger button--sm" id="btn-remover-representante" title="Remover Foto">
+                            <button type="button" class="button button--danger button--sm" id="btn-remover-representante-edicao" title="Remover Foto">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
                 </div>
                 
-                {# ... (Campos específicos de subcategoria - CLT, PJ, etc.) ... #}
-                {# (O JS mostrará/esconderá este container baseado na subcategoria) #}
-                <div id="campos_clt_edicao" class="sub-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="descricao_cargo_edicao" class="form-label">Descrição do Cargo:</label>
-                        <input type="text" id="descricao_cargo_edicao" name="descricao_cargo" class="form-input">
+                {# Container para campos de subcategoria (CLT, PJ, etc.) #}
+                <div id="sub-fields-container">
+                    
+                    {# Campos CLT #}
+                    <div id="campos_clt_edicao" class="sub-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="descricao_cargo_edicao" class="form-label">Descrição do Cargo (CLT):</label>
+                            <input type="text" id="descricao_cargo_edicao" name="descricao_cargo" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="documento_identificacao_clt_edicao" class_form-label">Documento de Identificação:</label>
+                            <input type="file" id="documento_identificacao_clt_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="carteira_orgao_profissional_clt_edicao" class="form-label">Carteira Profissional:</label>
+                            <input type="file" id="carteira_orgao_profissional_clt_edicao" name="carteira_orgao_profissional" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="aso_clt_edicao" class="form-label">ASO:</label>
+                            <input type="file" id="aso_clt_edicao" name="aso" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="ordem_servico_clt_edicao" class="form-label">Ordem de Serviço:</label>
+                            <input type="file" id="ordem_servico_clt_edicao" name="ordem_servico" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="pgr_clt_edicao" class="form-label">PGR:</label>
+                            <input type="file" id="pgr_clt_edicao" name="pgr" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="pcmso_clt_edicao" class="form-label">PCMSO:</label>
+                            <input type="file" id="pcmso_clt_edicao" name="pcmso" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="certificados_treinamentos_clt_edicao" class="form-label">Certificados:</label>
+                            <input type="file" id="certificados_treinamentos_clt_edicao" name="certificados_treinamentos" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="cautela_epi_epc_clt_edicao" class="form-label">Cautela EPI/EPC:</label>
+                            <input type="file" id="cautela_epi_epc_clt_edicao" name="cautela_epi_epc" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="apr_pt_clt_edicao" class="form-label">APR/PT:</label>
+                            <input type="file" id="apr_pt_clt_edicao" name="apr_pt" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="documento_identificacao_clt_edicao" class="form-label">Documento de Identificação (CLT):</label>
-                        <input type="file" id="documento_identificacao_clt_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                    
+                    {# Campos PJ #}
+                    <div id="campos_pj_edicao" class="sub-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="documento_identificacao_pj_edicao" class="form-label">Documento de Identificação (PJ):</label>
+                            <input type="file" id="documento_identificacao_pj_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="carteira_orgao_profissional_pj_edicao" class="form-label">Carteira Profissional:</label>
+                            <input type="file" id="carteira_orgao_profissional_pj_edicao" name="carteira_orgao_profissional" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                         <div class="form-group">
+                            <label for="cnpj_edicao" class="form-label">CNPJ:</label>
+                            <input type="file" id="cnpj_edicao" name="cnpj" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="contrato_prestacao_servico_pj_edicao" class="form-label">Contrato de Prestação de Serviço:</label>
+                            <input type="file" id="contrato_prestacao_servico_pj_edicao" name="contrato_prestacao_servico" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
                     </div>
-                    {# ... (outros campos de arquivo para CLT) ... #}
-                </div>
-                
-                <div id="campos_pj_edicao" class="sub-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="documento_identificacao_pj_edicao" class="form-label">Documento de Identificação (PJ):</label>
-                        <input type="file" id="documento_identificacao_pj_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                    
+                    {# Campos MEI #}
+                    <div id="campos_mei_edicao" class="sub-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="documento_identificacao_mei_edicao" class="form-label">Documento de Identificação (MEI):</label>
+                            <input type="file" id="documento_identificacao_mei_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="carteira_orgao_profissional_mei_edicao" class="form-label">Carteira Profissional:</label>
+                            <input type="file" id="carteira_orgao_profissional_mei_edicao" name="carteira_orgao_profissional" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                         <div class="form-group">
+                            <label for="certificado_mei_edicao" class="form-label">Certificado MEI:</label>
+                            <input type="file" id="certificado_mei_edicao" name="certificado_mei" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="contrato_prestacao_servico_mei_edicao" class_form-label">Contrato de Prestação de Serviço:</label>
+                            <input type="file" id="contrato_prestacao_servico_mei_edicao" name="contrato_prestacao_servico" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
                     </div>
-                     <div class="form-group">
-                        <label for="cnpj_edicao" class="form-label">CNPJ:</label>
-                        <input type="file" id="cnpj_edicao" name="cnpj" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                    
+                    {# Campos Autonomo #}
+                    <div id="campos_autonomo_edicao" class="sub-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="documento_identificacao_autonomo_edicao" class="form-label">Documento de Identificação (Autônomo):</label>
+                            <input type="file" id="documento_identificacao_autonomo_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="carteira_orgao_profissional_autonomo_edicao" class="form-label">Carteira Profissional:</label>
+                            <input type="file" id="carteira_orgao_profissional_autonomo_edicao" name="carteira_orgao_profissional" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                         <div class="form-group">
+                            <label for="declaracao_autonomo_edicao" class="form-label">Declaração de Autônomo:</label>
+                            <input type="file" id="declaracao_autonomo_edicao" name="declaracao_autonomo" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="contrato_prestacao_servico_autonomo_edicao" class_form-label">Contrato de Prestação de Serviço:</label>
+                            <input type="file" id="contrato_prestacao_servico_autonomo_edicao" name="contrato_prestacao_servico" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
                     </div>
-                    {# ... (outros campos de arquivo para PJ) ... #}
-                </div>
-                
-                {# ... (Adicionar os outros divs: campos_mei_edicao, campos_autonomo_edicao, campos_associado_edicao) ... #}
+                    
+                    {# Campos Associado #}
+                     <div id="campos_associado_edicao" class_sub-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="documento_identificacao_associado_edicao" class="form-label">Documento de Identificação (Associado):</label>
+                            <input type="file" id="documento_identificacao_associado_edicao" name="documento_identificacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="carteira_orgao_profissional_associado_edicao" class="form-label">Carteira Profissional:</label>
+                            <input type="file" id="carteira_orgao_profissional_associado_edicao" name="carteira_orgao_profissional" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                         <div class="form-group">
+                            <label for="contrato_associacao_edicao" class="form-label">Contrato de Associação:</label>
+                            <input type="file" id="contrato_associacao_edicao" name="contrato_associacao" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                    </div>
 
+                </div> {# Fim de #sub-fields-container #}
             </div>
         </div>
 
     </div>
     
-    {# O modal-footer está no modal "casca", mas o botão de submit está AQUI
-       para ser incluído dinamicamente e fazer parte do <form> #}
+    {# O modal-footer é incluído dinamicamente para fazer parte do <form> #}
     <div class="modal-footer">
         <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
         <button type="submit" class="modal-button modal-button--success">

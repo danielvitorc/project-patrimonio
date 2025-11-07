@@ -1,0 +1,125 @@
+/* project-patrimonio/patrimonio/static/patrimonio/css/components/dropdowns.css */
+
+.dropdown-container {
+    position: relative; /* Contexto para o menu flutuante */
+    display: inline-block;
+}
+
+.dropdown-toggle .icon-right {
+    margin-left: 0.5em;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-container.active .dropdown-toggle .icon-right {
+    transform: rotate(180deg); /* Gira a seta para cima */
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%; /* Posiciona abaixo do botão */
+    right: 0; /* Alinha à direita */
+    z-index: 1000;
+    display: none; /* Escondido por padrão */
+    min-width: 220px; /* Largura mínima */
+    padding: 0.5rem 0;
+    margin: 0.125rem 0 0;
+    font-size: 0.95rem;
+    color: var(--dark-secondary-text);
+    background-color: var(--dark-accent-bg);
+    border: 1px solid var(--dark-border-color);
+    border-radius: 6px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+    list-style: none; /* Remove bullets da <ul> */
+}
+
+/* Mostra o menu quando o container está ativo */
+.dropdown-container.active .dropdown-menu {
+    display: block;
+}
+
+/* Estilos do Tema Claro */
+html[data-theme='light'] .dropdown-menu {
+    color: var(--light-secondary-text);
+    background-color: var(--light-primary-bg);
+    border-color: var(--light-border-color);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+
+/* Itens do Dropdown */
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    clear: both;
+    font-weight: 400;
+    color: var(--dark-secondary-text);
+    text-align: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    box-sizing: border-box; /* Garante que o padding não quebre o layout */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.dropdown-item .icon {
+    margin-right: 0.75rem;
+    width: 16px;
+    text-align: center;
+    color: var(--dark-disabled);
+    transition: color 0.2s ease;
+}
+
+html[data-theme='light'] .dropdown-item {
+    color: var(--light-secondary-text);
+}
+html[data-theme='light'] .dropdown-item .icon {
+    color: var(--light-disabled);
+}
+
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    color: var(--dark-primary-text);
+    background-color: var(--sidebar-hover-bg); /* Reusa a cor de hover da sidebar */
+    text-decoration: none;
+}
+.dropdown-item:hover .icon,
+.dropdown-item:focus .icon {
+    color: var(--dark-link); /* Destaca o ícone no hover */
+}
+
+html[data-theme='light'] .dropdown-item:hover,
+html[data-theme='light'] .dropdown-item:focus {
+    color: var(--light-primary-text);
+    background-color: var(--light-secondary-bg);
+}
+html[data-theme='light'] .dropdown-item:hover .icon,
+html[data-theme='light'] .dropdown-item:focus .icon {
+    color: var(--light-link);
+}
+
+
+/* Cabeçalho do Dropdown */
+.dropdown-header {
+    display: block;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0;
+    font-size: 0.8rem;
+    color: var(--dark-disabled);
+    white-space: nowrap;
+}
+html[data-theme='light'] .dropdown-header {
+    color: var(--light-disabled);
+}
+
+/* Divisor */
+.dropdown-divider {
+    height: 1px;
+    margin: 0.5rem 0;
+    overflow: hidden;
+    background-color: var(--dark-border-color);
+}
+html[data-theme='light'] .dropdown-divider {
+     background-color: var(--light-border-color);
+}
