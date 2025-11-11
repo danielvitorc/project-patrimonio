@@ -217,8 +217,8 @@ class Integracao(models.Model):
 
     def save(self, *args, **kwargs):
         """Define automaticamente a data de validade e atualiza o status do fornecedor."""
-        # ✅ Calcula a validade apenas se houver data_integracao
-        if self.data_integracao and not self.data_validade:
+        # ✅ Sempre recalcula a data_validade quando validade_meses ou data_integracao são alterados
+        if self.data_integracao and self.validade_meses:
             self.data_validade = self.data_integracao + relativedelta(months=self.validade_meses)
 
         super().save(*args, **kwargs)

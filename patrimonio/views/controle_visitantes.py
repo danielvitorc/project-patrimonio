@@ -373,26 +373,41 @@ def modal_editar_fornecedor_completo(request, pk):
         return carregar_dados_fornecedor(request, fornecedor)
 
 def processar_edicao_fornecedor(request, fornecedor):
-    """
-    Processa a edição do fornecedor via POST
-    """
     try:
         with transaction.atomic():
-            # Atualizar dados básicos do fornecedor
-            fornecedor.validade_meses = request.POST.get('validade_meses')
             fornecedor.status = request.POST.get('status')
             fornecedor.save()
             
+            validade_meses = request.POST.get('validade_meses')
+            data_validade_str = request.POST.get('data_validade')
+
+            if validade_meses or data_validade_str:
+                integracao, created = Integracao.objects.get_or_create(fornecedor=fornecedor)
+                
+                if validade_meses:
+                    integracao.validade_meses = int(validade_meses)
+                
+                # Se o usuário editar manualmente a data de validade
+                if data_validade_str:
+                    try:
+                        integracao.data_validade = datetime.strptime(data_validade_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        pass  # ignora formato inválido
+
+                # Se ainda não tiver data de integração, define agora
+                if not integracao.data_integracao:
+                    integracao.data_integracao = timezone.now().date()
+                
+                integracao.save()
+
             if fornecedor.categoria == 'VISITANTE':
                 return processar_edicao_visitante(request, fornecedor)
 
             elif fornecedor.categoria == 'FORNECEDOR':
-                # Atualiza apenas o que o modal permite alterar
                 trabalhador = fornecedor.trabalhador_relacionado
                 if trabalhador:
                     trabalhador.nome_representante = request.POST.get('nome_representante', trabalhador.nome_representante)
 
-                    # Processa foto do representante (se houver)
                     foto_base64 = request.POST.get('foto_representante_base64')
                     if foto_base64 and foto_base64.startswith('data:image'):
                         try:
@@ -415,12 +430,12 @@ def processar_edicao_fornecedor(request, fornecedor):
                     'message': 'Fornecedor atualizado com sucesso!'
                 })
 
-                
     except Exception as e:
         return JsonResponse({
-            'success': False, 
+            'success': False,
             'error': f'Erro ao processar edição: {str(e)}'
         })
+
 
 def processar_edicao_visitante(request, fornecedor):
     """
