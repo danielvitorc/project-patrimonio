@@ -192,9 +192,9 @@ def fornecedores_filtrados(request):
 
     if fornecedor_nome:
         fornecedores = fornecedores.filter(
-            Q(fornecedor_servico__nome_empresa__icontains=fornecedor_nome)
-            | Q(trabalhadores_clt__nome_representante__icontains=fornecedor_nome)
-            | Q(visitante__nome__icontains=fornecedor_nome)
+            Q(fornecedor_servico__nome_empresa__iexact=fornecedor_nome)
+            | Q(trabalhadores_clt__nome_representante__iexact=fornecedor_nome)
+            | Q(visitante__nome__iexact=fornecedor_nome)
         )
 
     if data_integracao:
