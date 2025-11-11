@@ -175,13 +175,12 @@ def fornecedores_filtrados(request):
 
     fornecedores = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
         'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'
-    )
+    ).order_by('id')
 
-    # Aplica os filtros conforme preenchido
+    # --- Filtros ---
     if categoria:
         fornecedores = fornecedores.filter(categoria__icontains=categoria)
 
-    #print(fornecedores.values_list('status', flat=True).distinct())
     if status:
         status = status.strip().lower()
         if status == "pendente":
@@ -191,12 +190,11 @@ def fornecedores_filtrados(request):
         else:
             fornecedores = fornecedores.filter(status__iexact=status)
 
-
     if fornecedor_nome:
         fornecedores = fornecedores.filter(
-            Q(fornecedor_servico__nome_empresa__icontains=fornecedor_nome) |
-            Q(trabalhadores_clt__nome_representante__icontains=fornecedor_nome) |
-            Q(visitante__nome__icontains=fornecedor_nome)
+            Q(fornecedor_servico__nome_empresa__icontains=fornecedor_nome)
+            | Q(trabalhadores_clt__nome_representante__icontains=fornecedor_nome)
+            | Q(visitante__nome__icontains=fornecedor_nome)
         )
 
     if data_integracao:
@@ -206,8 +204,15 @@ def fornecedores_filtrados(request):
         except ValueError:
             pass
 
+    # --- Paginação (como na view principal) ---
+    paginator = Paginator(fornecedores, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # --- Contexto igual ao da view principal ---
     context = {
-        "fornecedores": fornecedores,
+        "page_obj": page_obj,
+        "fornecedores": page_obj,
         "fornecedor_prestador_form": FornecedorPrestadorForm(),
         "fornecedor_servico_form": FornecedorServicoForm(),
         "clt_form": TrabalhadorCLTForm(),
@@ -215,6 +220,12 @@ def fornecedores_filtrados(request):
         "mei_form": MEIForm(),
         "autonomo_form": AutonomoForm(),
         "associado_form": AssociadoForm(),
+        "filtros": {
+            "categoria": categoria or "",
+            "status": status or "",
+            "fornecedor": fornecedor_nome or "",
+            "data_integracao": data_integracao or "",
+        },
     }
 
     return render(request, "patrimonio/fornecedores_cadastrados.html", context)
@@ -325,7 +336,7 @@ def fornecedores_cadastrados(request):
     # Lógica para GET (ou se o POST falhar)
     fornecedores_list = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
         'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'
-    ).all().order_by('id') # Adicionar um order_by é bom para paginação
+    ).all().order_by('-id') # Adicionar um order_by é bom para paginação
 
     # Aplicar paginação
     paginator = Paginator(fornecedores_list, 25) # 25 por página
