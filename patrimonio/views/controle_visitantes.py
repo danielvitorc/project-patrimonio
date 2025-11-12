@@ -1,5 +1,6 @@
 # project-patrimonio/patrimonio/views/controle_visitantes.py
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Value, Q
 from django.db.models.functions import Coalesce
@@ -92,7 +93,7 @@ def controle_visitantes(request):
                                     entrega.foto_caixa_entrega = img_file
                             
                             entrega.save()
-
+                        messages.success(request, "Visitante cadastrado com sucesso!")
                         return redirect('controle_visitantes')
 
         # Entrada
@@ -106,14 +107,19 @@ def controle_visitantes(request):
                 entrada.status = 'Em andamento'
                 entrada.usuario_registro = request.user
                 entrada.save()
+                messages.success(request, "Entrada registrada com sucesso!")
                 return redirect('controle_visitantes')
+            else:
+                messages.error(request, "Erro ao registrar entrada. Verifique os dados e tente novamente.")
 
         # Marcar saída (esta parte não precisa mudar)
         elif 'submit_saida' in request.POST:
             entrada_id = request.POST.get('entrada_id')
             entrada = get_object_or_404(EntradaFornecedor, id=entrada_id)
             entrada.status = 'Saiu'
+            entrada.horario_saida = timezone.now().time()
             entrada.save()
+            messages.success(request, "Saída registrada com sucesso!")
             return redirect('controle_visitantes')
             
 
@@ -159,7 +165,9 @@ def status_fornecedor(request, pk):
     entrada = get_object_or_404(EntradaFornecedor, pk=pk)
     entrada.status = "Saiu"
     entrada.save()
+    messages.success(request, 'Saída registrada com sucesso!')
     return redirect('controle_visitantes')
+
 
 # Em patrimonio/views.py
 

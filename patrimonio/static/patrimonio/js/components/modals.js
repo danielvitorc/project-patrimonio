@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalOverlay = document.getElementById(modalId);
         if (modalOverlay && modalOverlay.classList.contains('modal-overlay')) {
             modalOverlay.classList.add('active'); // Adiciona a classe para mostrar
+            document.body.classList.add('modal-open'); // Opcional: Impede scroll no fundo quando o modal está aberto
             // Opcional: Focar no primeiro elemento focável dentro do modal
             const focusableElement = modalOverlay.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
             if (focusableElement) {
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = (modalOverlay) => {
         if (modalOverlay && modalOverlay.classList.contains('modal-overlay')) {
             modalOverlay.classList.remove('active'); // Remove a classe para esconder
+            document.body.classList.remove('modal-open'); // Restaura scroll no fundo
         } else {
             console.warn("Attempted to close an element that is not a modal overlay:", modalOverlay);
         }

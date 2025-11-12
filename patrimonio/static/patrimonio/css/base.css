@@ -246,3 +246,82 @@ html[data-theme='light'] .modal-body form select:focus,
 html[data-theme='light'] .modal-body form textarea:focus {
     border-color: var(--light-highlight);
 }
+
+/* ===================================================================
+   ESTILOS PARA MENSAGENS/TOASTS GLOBAIS
+   =================================================================*/
+.messages-container {
+    position: fixed; /* Fica fixo na tela */
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1060; /* Fica acima da maioria dos elementos */
+    display: flex;
+    flex-direction: column; /* Mensagens empilhadas */
+    gap: 0.5rem;
+}
+
+.message-item {
+    background: var(--dark-accent-bg);
+    color: var(--dark-primary-text);
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--dark-border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    opacity: 1;
+    transform: translateX(0);
+    /* Transições para aparecer e desaparecer */
+    transition: opacity 0.5s ease, transform 0.5s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.message-item .icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+/* Cores das mensagens */
+.message-item.message-success {
+    background-color: rgba(25, 135, 84, 0.9); /* Verde */
+    border-color: var(--success-color);
+    color: white;
+}
+.message-item.message-error {
+    background-color: rgba(220, 53, 69, 0.9); /* Vermelho */
+    border-color: var(--danger-color);
+    color: white;
+}
+.message-item.message-warning {
+    background-color: rgba(255, 193, 7, 0.9); /* Amarelo */
+    border-color: var(--warning-color);
+    color: #333; /* Texto escuro para amarelo */
+}
+
+/* Tema Claro */
+html[data-theme='light'] .message-item {
+    background: var(--light-primary-bg);
+    color: var(--light-primary-text);
+    border-color: var(--light-border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+html[data-theme='light'] .message-item.message-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+html[data-theme='light'] .message-item.message-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #842029;
+}
+ html[data-theme='light'] .message-item.message-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+}
+
+/* Estado de "saindo" que o JS vai adicionar */
+.message-item.fading-out {
+    opacity: 0;
+    transform: translateX(calc(100% + 1rem)); /* Desliza para a direita */
+}

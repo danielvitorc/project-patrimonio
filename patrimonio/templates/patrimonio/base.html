@@ -43,6 +43,9 @@
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/forms.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/dropdowns.css' %}">
     <link rel="stylesheet" href="{% static 'patrimonio/css/components/pagination.css' %}">
+    <link rel="stylesheet" href="{% static 'patrimonio/css/components/select2-custom.css' %}">
+
+    {# Bloco para CSS Extra nas Páginas Filhas #}
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -69,6 +72,27 @@
 
     </main> {# Fim de .main-content #}
 
+    {# ========================================================== #}
+    {#      MOVA O BLOCO DE MENSAGENS PARA AQUI                #}
+    {# ========================================================== #}
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="message-item message-{{ message.tags }}">
+            <span class="icon">
+                {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>{% endif %}
+                {% if message.tags == 'error' %}<i class="fas fa-times-circle"></i>{% endif %}
+                {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle"></i>{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {# ========================================================== #}
+    {#               FIM DO BLOCO DE MENSAGENS                    #}
+    {# ========================================================== #}
+
 {# ... (bloco extra_js) ... #}
     {% block extra_js %}{% endblock %}
 
@@ -78,5 +102,8 @@
     <script src="{% static 'patrimonio/js/sidebar.js' %}"></script>
     <script src="{% static 'patrimonio/js/components/modals.js' %}"></script>
     <script src="{% static 'patrimonio/js/components/dropdowns.js' %}"></script>
+
+
+{# ========================================================== #}
 </body>
 </html>

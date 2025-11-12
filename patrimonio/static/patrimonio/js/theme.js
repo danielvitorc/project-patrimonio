@@ -63,7 +63,23 @@ document.addEventListener('DOMContentLoaded', () => {
             applyTheme(newTheme);
         });
     });
+    // 4. Lógica para auto-esconder mensagens (toasts)
+    const allMessages = document.querySelectorAll('.message-item');
+    allMessages.forEach((message, index) => {
+        // 5 segundos para a primeira mensagem, 5.5s para a segunda, etc.
+        const delay = 5000 + (index * 500); 
 
+        setTimeout(() => {
+            // Adiciona a classe que dispara a animação CSS
+            message.classList.add('fading-out');
+
+            // Remove o elemento do DOM após a transição
+            // (O tempo da transição é 500ms, definido no base.css)
+            setTimeout(() => {
+                message.remove();
+            }, 550); // 50ms de buffer
+        }, delay);
+    });
     // 3. Ouve mudanças na preferência do sistema (opcional, mas bom)
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         // Só muda se o usuário não definiu manualmente um tema

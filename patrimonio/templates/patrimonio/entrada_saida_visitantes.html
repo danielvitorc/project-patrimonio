@@ -6,7 +6,6 @@
 {% block extra_css %}
     {# Carrega CSS do Select2 (se ainda for usar) #}
     {{ form_entrada.media.css }}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     {# O CSS antigo 'visitantes.css' foi removido #}
 {% endblock %}
 
@@ -283,6 +282,7 @@
                 </div>
 
                 {# ----- MODAL DETALHES DA ENTRADA ----- #}
+                {# ----- MODAL DETALHES DA ENTRADA (Refatorado) ----- #}
                 <div class="modal-overlay" id="modalDetalhesEntradaOverlay{{ entrada.id }}" aria-labelledby="modalDetalhesLabel{{ entrada.id }}" role="dialog" aria-modal="true">
                     <div class="modal-dialog modal-dialog--lg">
                         <div class="modal-content">
@@ -292,34 +292,46 @@
                                 </h2>
                                 <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                             </div>
-                            <div class="modal-body">
-                                {/* ... (O conteúdo do modal de detalhes (modal_detalhes_fornecedor.html) é complexo) ... */}
-                                {/* ... (Vamos simplificar por agora e focar na estrutura) ... */}
-                                <h4>Informações Gerais da Entrada</h4>
-                                <p><strong>Data:</strong> {{ entrada.data|date:"d/m/Y" }}</p>
-                                <p><strong>Entrada:</strong> {{ entrada.horario_entrada|time:"H:i" }}</p>
-                                <p><strong>Saída:</strong> {{ entrada.horario_saida|time:"H:i"|default:"-" }}</p>
-                                <p><strong>Base:</strong> {{ entrada.base }}</p>
-                                <p><strong>Status:</strong> {{ entrada.status }}</p>
-                                <hr>
-                                <h4>Detalhes do {{ entrada.fornecedor.get_categoria_display }}</h4>
-                                {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante %}
-                                    <p><strong>Nome:</strong> {{ entrada.fornecedor.visitante.nome }}</p>
-                                    <p><strong>Documento:</strong> {{ entrada.fornecedor.visitante.documento }}</p>
-                                    <p><strong>Motivo da Visita:</strong> {{ entrada.fornecedor.visitante.motivo_visita }}</p>
-                                    <hr>
-                                    <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
-                                    <p><strong>Responsável Autorizante:</strong> {{ entrada.responsavel_autorizante|default:"-" }}</p>
-                                    <p><strong>Veículo:</strong> {{ entrada.modelo_veiculo|default:"-" }} / {{ entrada.placa_veiculo|default:"-" }}</p>
-                                {% elif entrada.fornecedor.categoria == 'FORNECEDOR' and entrada.fornecedor.trabalhador_relacionado %}
-                                     <p><strong>Empresa:</strong> {{ entrada.fornecedor.fornecedor_servico.nome_empresa|default:"-" }}</p>
-                                     <p><strong>Representante:</strong> {{ entrada.fornecedor.trabalhador_relacionado.nome_representante }}</p>
-                                     <p><strong>Atividade:</strong> {{ entrada.fornecedor.fornecedor_servico.atividade_servico|default:"-" }}</p>
-                                     <hr>
-                                    <p><strong>Setor de Destino:</strong> {{ entrada.setor_destino }}</p>
-                                    <p><strong>Responsável Autorizante:</strong> {{ entrada.responsavel_autorizante|default:"-" }}</p>
-                                    <p><strong>Veículo:</strong> {{ entrada.modelo_veiculo|default:"-" }} / {{ entrada.placa_veiculo|default:"-" }}</p>
-                                {% endif %}
+
+                            {# Adicionamos o max-height para habilitar o scroll (do modals.css) #}
+                            <div class="modal-body" style="max-height: 70vh;">
+                                
+                                <div class="card-form-section">
+                                    <h3 class="card-form-title">Informações Gerais da Entrada</h3>
+                                    <div class="card-form-body info-grid"> {# Usando info-grid do forms.css #}
+                                        <div class="info-item"><strong>Data:</strong> <span>{{ entrada.data|date:"d/m/Y" }}</span></div>
+                                        <div class="info-item"><strong>Entrada:</strong> <span>{{ entrada.horario_entrada|time:"H:i" }}</span></div>
+                                        <div class="info-item"><strong>Saída:</strong> <span>{{ entrada.horario_saida|time:"H:i"|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Base:</strong> <span>{{ entrada.base }}</span></div>
+                                        <div class="info-item"><strong>Status:</strong> <span>{{ entrada.status }}</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-form-section">
+                                    <h3 class="card-form-title">Detalhes do {{ entrada.fornecedor.get_categoria_display }}</h3>
+                                    <div class="card-form-body info-grid">
+                                        {% if entrada.fornecedor.categoria == 'VISITANTE' and entrada.fornecedor.visitante %}
+                                            <div class="info-item"><strong>Nome:</strong> <span>{{ entrada.fornecedor.visitante.nome }}</span></div>
+                                            <div class="info-item"><strong>Documento:</strong> <span>{{ entrada.fornecedor.visitante.documento }}</span></div>
+                                            <div class="info-item grid-col-span-2"><strong>Motivo:</strong> <span>{{ entrada.fornecedor.visitante.motivo_visita }}</span></div>
+                                        {% elif entrada.fornecedor.categoria == 'FORNECEDOR' %}
+                                            <div class="info-item"><strong>Empresa:</strong> <span>{{ entrada.fornecedor.fornecedor_servico.nome_empresa|default:"-" }}</span></div>
+                                            <div class="info-item"><strong>Representante:</strong> <span>{{ entrada.fornecedor.trabalhador_relacionado.nome_representante|default:"-" }}</span></div>
+                                            <div class="info-item grid-col-span-2"><strong>Atividade:</strong> <span>{{ entrada.fornecedor.fornecedor_servico.atividade_servico|default:"-" }}</span></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="card-form-section">
+                                    <h3 class="card-form-title">Detalhes da Autorização</h3>
+                                    <div class="card-form-body info-grid">
+                                        <div class="info-item"><strong>Setor de Destino:</strong> <span>{{ entrada.setor_destino }}</span></div>
+                                        <div class="info-item"><strong>Autorizante:</strong> <span>{{ entrada.responsavel_autorizante|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Veículo:</strong> <span>{{ entrada.modelo_veiculo|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Placa:</strong> <span>{{ entrada.placa_veiculo|default:"-" }}</span></div>
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Fechar</button>
@@ -356,24 +368,19 @@
 
 {% block extra_js %}
     {# Carrega JS do Select2 (se ainda for usar) #}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+            $(document).ready(function() {
+                $('#dFornecedor').select2({
+                    // theme: 'bootstrap-5', <-- REMOVIDO
+                    dropdownParent: $('#modalEntradaFornecedorOverlay .modal-content'),
+                    width: '100%',
+                    placeholder: "Selecione um fornecedor"
+                });
+                // ...
+            });
+        </script>
     {{ form_entrada.media.js }}
     
     {# Adiciona o JS específico desta página #}
     <script src="{% static 'patrimonio/js/entrada_saida_visitantes.js' %}"></script>
-    
-    {# Script para inicializar o Select2 (se ainda for usar) #}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializa o Select2
-            // O ID do campo é 'id_fornecedor' (padrão do Django)
-            const $select2 = $('#id_fornecedor');
-            if ($select2.length) {
-                $select2.select2({
-                    theme: 'bootstrap-5', // Tenta usar o tema
-                    dropdownParent: $('#modalEntradaFornecedorOverlay') // Anexa o dropdown ao overlay do modal
-                });
-            }
-        });
-    </script>
 {% endblock %}

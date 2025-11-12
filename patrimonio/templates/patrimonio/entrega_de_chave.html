@@ -105,24 +105,49 @@
                                 <h2 class="modal-title" id="modalDetalhesLabel{{ chave.id }}">Detalhes da Chave</h2>
                                 <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                             </div>
-                            <div class="modal-body">
-                                <p><strong>Base:</strong> {{ chave.base }}</p>
-                                <p><strong>Matrícula Entregou:</strong> {{ chave.matricula_recebendo }}</p>
-                                <p><strong>Colaborador Entregou:</strong> {{ chave.colaborador_recebendo }}</p>
-                                <p><strong>Departamento:</strong> {{ chave.departamento }}</p>
-                                <p><strong>Chave:</strong> {{ chave.chave.nome }}</p>
-                                <p><strong>Data Saída:</strong> {{ chave.data_saida|date:"d/m/Y H:i" }}</p>
-                                {% if chave.foto_entrega %}
-                                    <p><strong>Foto Entrega:</strong><br><img src="{{ chave.foto_entrega.url }}" alt="Foto Entrega" style="max-width: 300px; border-radius: 6px;"></p>
-                                {% endif %}
-                                <hr style="border-color: var(--dark-border-color);">
-                                <p><strong>Matrícula Devolveu:</strong> {{ chave.matricula_devolveu|default:"-" }}</p>
-                                <p><strong>Colaborador Devolveu:</strong> {{ chave.colaborador_devolveu|default:"-" }}</p>
-                                <p><strong>Data Devolução:</strong> {{ chave.data_devolucao|date:"d/m/Y H:i"|default:"-" }}</p>
-                                {% if chave.foto_devolucao %}
-                                    <p><strong>Foto Devolução:</strong><br><img src="{{ chave.foto_devolucao.url }}" alt="Foto Devolução" style="max-width: 300px; border-radius: 6px;"></p>
-                                {% endif %}
+                        {# O max-height ativa o overflow-y: auto do modals.css #}
+                        <div class="modal-body" style="max-height: 70vh;">
+                            
+                            <div class="card-form-section">
+                                <h3 class="card-form-title">Dados da Entrega</h3>
+                                <div class="card-form-body">
+                                    <div class="info-grid"> {# Grid de informações #}
+                                        <div class="info-item"><strong>Base:</strong> <span>{{ chave.base }}</span></div>
+                                        <div class="info-item"><strong>Matrícula:</strong> <span>{{ chave.matricula_recebendo }}</span></div>
+                                        <div class="info-item"><strong>Colaborador:</strong> <span>{{ chave.colaborador_recebendo }}</span></div>
+                                        <div class="info-item"><strong>Departamento:</strong> <span>{{ chave.departamento }}</span></div>
+                                        <div class="info-item"><strong>Chave:</strong> <span>{{ chave.chave.nome }}</span></div>
+                                        <div class="info-item"><strong>Data Saída:</strong> <span>{{ chave.data_saida|date:"d/m/Y H:i" }}</span></div>
+                                    </div>
+                                    
+                                    {% if chave.foto_entrega %}
+                                        <div class="form-group" style="margin-top: 1rem;">
+                                            <label class="form-label">Foto da Entrega:</label>
+                                            <img src="{{ chave.foto_entrega.url }}" alt="Foto Entrega" style="width: 100%; max-width: 400px; border-radius: 6px; border: 1px solid var(--dark-border-color);">
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
+
+                            <div class="card-form-section">
+                                <h3 class="card-form-title">Dados da Devolução</h3>
+                                <div class="card-form-body">
+                                    <div class="info-grid">
+                                        <div class="info-item"><strong>Matrícula:</strong> <span>{{ chave.matricula_devolveu|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Colaborador:</strong> <span>{{ chave.colaborador_devolveu|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Data Devolução:</strong> <span>{{ chave.data_devolucao|date:"d/m/Y H:i"|default:"-" }}</span></div>
+                                    </div>
+                                    
+                                     {% if chave.foto_devolucao %}
+                                        <div class="form-group" style="margin-top: 1rem;">
+                                            <label class="form-label">Foto da Devolução:</label>
+                                            <img src="{{ chave.foto_devolucao.url }}" alt="Foto Devolução" style="width: 100%; max-width: 400px; border-radius: 6px; border: 1px solid var(--dark-border-color);">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
                             <div class="modal-footer">
                                 <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Fechar</button>
                             </div>
@@ -267,18 +292,6 @@
         </div>
     </div>
     {# ----- Fim Modal Cadastro ----- #}
-
-    {# Exibição de Mensagens (Toasts) #}
-    {% if messages %}
-        <div class="messages-container" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 1060;">
-            {% for message in messages %}
-                <div class="message-item message-{{ message.tags|lower }}" role="alert" style="background: var(--dark-accent-bg); padding: 1rem; border-radius: 6px; margin-top: 0.5rem; border: 1px solid var(--dark-border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} icon"></i>
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
 
 {% endblock %}
 

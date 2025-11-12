@@ -230,14 +230,15 @@ class EntradaFornecedorForm(forms.ModelForm):
     # 1. Defina o campo 'fornecedor' aqui, fora do Meta.
     #    Isso nos dá controle total sobre ele.
     fornecedor = forms.ModelChoiceField(
-        queryset=Fornecedor.objects.none(),  # Começa com um queryset vazio. A view fornecerá o correto.
+        queryset=Fornecedor.objects.none(),
         label="Fornecedor",
         widget=Select2Widget(attrs={
-            'class': 'form-control',
-            'data-theme': 'bootstrap-5',
-            'data-dropdown-parent': '#entradafornecedorModal' # Essencial para o Select2 funcionar dentro de um modal Bootstrap
+            'class': 'form-input', # 1. Usa nossa classe (opcional, mas bom)
+            # 2. 'data-theme' FOI REMOVIDO
+            'data-dropdown-parent': '#modalEntradaFornecedorOverlay' # 3. ID do modal CORRETO
         })
     )
+#
 
     class Meta:
         model = EntradaFornecedor
