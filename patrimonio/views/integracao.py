@@ -118,12 +118,22 @@ def pagina_integracao_externa(request, uuid_link):
             q2_ok = form.cleaned_data['questao2'] == CORRECT_ANSWERS['questao2']
             q3_ok = form.cleaned_data['questao3'] == CORRECT_ANSWERS['questao3']
 
-            questionario = QuestionarioIntegracao(
+            questionario, criado = QuestionarioIntegracao.objects.get_or_create(
                 integracao=integracao,
-                questao1=q1_ok,
-                questao2=q2_ok,
-                questao3=q3_ok
+                defaults={
+                    'questao1': q1_ok,
+                    'questao2': q2_ok,
+                    'questao3': q3_ok,
+                }
             )
+
+            # Se quiser atualizar os valores caso já exista
+            if not criado:
+                questionario.questao1 = q1_ok
+                questionario.questao2 = q2_ok
+                questionario.questao3 = q3_ok
+                questionario.save(update_fields=['questao1', 'questao2', 'questao3'])
+                
             questionario.save()
 
             # Invalida token após uso

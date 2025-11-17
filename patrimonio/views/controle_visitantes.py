@@ -3,8 +3,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Value, Q
+from django.db.models import F, Q, Max, Subquery, OuterRef
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse      
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.urls import reverse
@@ -341,6 +342,18 @@ def fornecedores_cadastrados(request):
             elif subcategoria_slug == "associado": associado_form = trabalhador_form
             
 
+    hoje = timezone.now().date()
+
+    # pega a data da última integração de cada fornecedor
+    fornecedores_para_verificar = Fornecedor.objects.filter(
+        integracoes__data_validade=hoje
+    ).distinct()
+
+    if not fornecedores_para_verificar.exists():
+        print("⚠️ Nenhum fornecedor com validade hoje encontrado!")
+    else:
+        for fornecedor in fornecedores_para_verificar:
+            fornecedor.verificar_validade()
     # Lógica para GET (ou se o POST falhar)
     fornecedores_list = Fornecedor.objects.select_related('visitante', 'fornecedor_servico').prefetch_related(
         'trabalhadores_clt', 'pessoas_juridicas', 'meis', 'autonomos', 'associados'

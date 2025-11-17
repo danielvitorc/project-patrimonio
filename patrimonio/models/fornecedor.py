@@ -34,6 +34,21 @@ class Fornecedor(models.Model):
     subcategoria = models.CharField(max_length=20, choices=SUBCATEGORIAS, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Sem integração')
     data_cadastro = models.DateTimeField(auto_now_add=True)
+    
+    def verificar_validade(self):
+        """
+        Verifica se a data de validade da última integração é igual à data atual.
+        Se for, o status é alterado para 'Pendente'.
+        """
+        ultima_integracao = self.integracoes.order_by('-data_integracao').first()
+        if ultima_integracao and ultima_integracao.data_validade:
+            hoje = timezone.now().date()
+            if ultima_integracao.data_validade == hoje:
+                if self.status != 'Pendente':
+                    self.status = 'Pendente'
+                    self.save(update_fields=['status'])
+                    return True  # indicativo de alteração
+        return False  # nada alterado
 
     def atualizar_status(self):
         ultima_integracao = self.integracoes.order_by('-data_integracao').first()
