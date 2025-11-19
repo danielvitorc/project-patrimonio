@@ -1,39 +1,64 @@
 from django.urls import path
-from . import views
+from .views import auth, adm, home, controle_visitantes, chave, cracha, ocorrencias, export_excel, integracao 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 
 urlpatterns = [
-    path('', views.login_usuario, name='login'),
-    path('home/', views.home, name='home'),
-    path('logout/', views.logout_usuario, name='logout'),
-    path('livro_de_ocorrencia/', views.livro_de_ocorrencia, name='livro_de_ocorrencia'),
-    path('ocorrencia_cracha/', views.ocorrencia_cracha, name='ocorrencia_cracha'),
-    path('exportar_excel/', views.exportar_ocorrencias_excel, name='exportar_ocorrencias_excel'),
-    path('excluir_chave/<int:chave_id>/', views.excluir_chave, name='excluir_chave'),
-    path('devolver_chave/<int:pk>/', views.devolver_chave, name='devolver_chave'),
-    path('entrega_de_chave/', views.entrega_de_chave, name='entrega_de_chave'),
-    path('buscar_colaborador/', views.buscar_colaborador_por_matricula, name='buscar_colaborador'),
-    path('devolver_chave/<int:pk>/', views.devolver_chave, name='devolver_chave'),
-    path('chave/excluir/<int:id>/', views.excluir_chave, name='excluir_chave'),
-    path('controle_visitantes/', views.controle_visitantes, name='controle_visitantes'),
-    path('fornecedores-cadastrados/', views.fornecedores_cadastrados, name='fornecedores-cadastrados'),
-    path('status_fornecedor/<int:pk>/', views.status_fornecedor, name='status_fornecedor'),
-    path('entrada/<int:pk>/excluir/', views.excluir_entrada, name='excluir_entrada'),
-    path('fornecedor/modal_editar/<int:pk>/', views.modal_editar_fornecedor, name='modal_editar_fornecedor'),
-    path('fornecedor/excluir/<int:pk>/', views.excluir_fornecedor, name='excluir_fornecedor'),
-    path('exportar-fornecedores-excel/', views.exportar_fornecedores_excel, name='exportar_fornecedores_excel'),
-    path('exportar-fornecedores-servico-excel/', views.exportar_fornecedores_servico_excel, name='exportar_fornecedores_servico_excel'),
-    path('exportar-visitantes-excel/', views.exportar_visitantes_excel, name='exportar_visitantes_excel'),
+    # Urls de Auth
+    path('', lambda request: redirect('login', permanent=False)),
+    path('login/', auth.login_usuario, name='login'),
+    path('logout/', auth.logout_usuario, name='logout'),
+
+    # Urls de Home
+    path('home/', home.home, name='home'),
+
+    # Urls de Controle de Visitantes
+    path('controle_visitantes/', controle_visitantes.controle_visitantes, name='controle_visitantes'),
+    path('fornecedor/excluir/<int:pk>/', controle_visitantes.excluir_fornecedor, name='excluir_fornecedor'),
+    path('status_fornecedor/<int:pk>/', controle_visitantes.status_fornecedor, name='status_fornecedor'),
+    path('fornecedores-cadastrados/', controle_visitantes.fornecedores_cadastrados, name='fornecedores-cadastrados'),
+    path("fornecedor/<int:pk>/editar/", controle_visitantes.modal_editar_fornecedor_completo, name="modal_editar_fornecedor_completo"),
+    path("fornecedor/<int:pk>/dados/", controle_visitantes.carregar_dados_fornecedor, name="carregar_dados_fornecedor"),
+    path('fornecedores/excluir/', controle_visitantes.excluir_fornecedor, name='excluir_fornecedor'),
+    path('entrada/<int:pk>/excluir/', controle_visitantes.excluir_entrada, name='excluir_entrada'),
+    path('gerar-link-integracao/<int:fornecedor_id>/', integracao.gerar_link_integracao, name='gerar_link_integracao'),
+    path('integracao/<uuid:uuid_link>/', integracao.token_login, name='token_login'),
+    path('integracao/<uuid:uuid_link>/orientacoes/', integracao.integracao_orientacoes, name='integracao_orientacoes'),
+    path('integracao/<uuid:uuid_link>/formulario/', integracao.pagina_integracao_externa, name='pagina_integracao_externa'),
+    path('integracao/<uuid:uuid_link>/video/', integracao.integracao_video, name='integracao_video'),
+    path('integracao/<int:integracao_id>/sucesso/', integracao.integracao_sucesso, name='integracao_sucesso'),
+    path('integracao/<int:integracao_id>/certificado/', integracao.gerar_certificado_integracao, name='gerar_certificado_integracao'),
+
+    path("fornecedores/", controle_visitantes.fornecedores_cadastrados, name="fornecedores_cadastrados"),
+    path("fornecedores/filtrar/", controle_visitantes.fornecedores_filtrados, name="fornecedores_filtrados"),
+
+    # Urls de Chaves
+    path('entrega_de_chave/', chave.entrega_de_chave, name='entrega_de_chave'),
+    path('chave/excluir/<int:id>/', chave.excluir_chave, name='excluir_chave'),
+    path('devolver_chave/<int:pk>/', chave.devolver_chave, name='devolver_chave'),
+    path('buscar_colaborador/', chave.buscar_colaborador_por_matricula, name='buscar_colaborador'),
+
+    # Urls de Crachá
+    path('ocorrencia_cracha/', cracha.ocorrencia_cracha, name='ocorrencia_cracha'),
+    path('exportar_excel/', cracha.exportar_ocorrencias_excel, name='exportar_ocorrencias_excel'),
+
+    # Urls de Ocorrências
+    path('livro_de_ocorrencia/', ocorrencias.livro_de_ocorrencia, name='livro_de_ocorrencia'),
+    
+    # Urls de Exportação excel
+    path('exportar-fornecedores-excel/', export_excel.exportar_fornecedores_excel, name='exportar_fornecedores_excel'),
+    path('exportar-fornecedores-servico-excel/', export_excel.exportar_fornecedores_servico_excel, name='exportar_fornecedores_servico_excel'),
+    path('exportar-visitantes-excel/', export_excel.exportar_visitantes_excel, name='exportar_visitantes_excel'),
     
     # URLs de Administração
-    path("dashboard/", views.admin_dashboard, name="admin_dashboard"),
-    path("usuarios/", views.admin_usuarios, name="admin_usuarios"),
-    path("usuarios/criar/", views.admin_criar_usuario, name="admin_criar_usuario"),
-    path("usuarios/<int:user_id>/editar/", views.admin_editar_usuario, name="admin_editar_usuario"),
-    path("usuarios/<int:user_id>/trocar-senha/", views.admin_trocar_senha, name="admin_trocar_senha"),
-    path("usuarios/<int:user_id>/bloquear/", views.admin_bloquear_usuario, name="admin_bloquear_usuario"),
-    path("usuarios/<int:user_id>/excluir/", views.admin_excluir_usuario, name="admin_excluir_usuario"),
+    path("dashboard/", adm.admin_dashboard, name="admin_dashboard"),
+    path("usuarios/", adm.admin_usuarios, name="admin_usuarios"),
+    path("usuarios/criar/", adm.admin_criar_usuario, name="admin_criar_usuario"),
+    path("usuarios/<int:user_id>/editar/", adm.admin_editar_usuario, name="admin_editar_usuario"),
+    path("usuarios/<int:user_id>/trocar-senha/", adm.admin_trocar_senha, name="admin_trocar_senha"),
+    path("usuarios/<int:user_id>/bloquear/", adm.admin_bloquear_usuario, name="admin_bloquear_usuario"),
+    path("usuarios/<int:user_id>/excluir/", adm.admin_excluir_usuario, name="admin_excluir_usuario"),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,327 @@
+/* project-patrimonio/patrimonio/static/patrimonio/css/base.css */
+
+/* ===================================================================
+   VARIÁVEIS DE COR
+   =================================================================*/
+
+:root {
+    /* ----- Paleta Escura (Padrão) ----- */
+    --dark-primary-bg: #011140;        /* Cor principal de fundo (mais escura) */
+    --dark-secondary-bg: #010A26;    /* Cor secundária de fundo (ainda mais escura) */
+    --dark-accent-bg: #011640;       /* Cor de destaque para elementos (ex: headers, sidebars) */
+    --dark-primary-text: #FFFFFF;     /* Cor principal do texto */
+    --dark-secondary-text: #E0E0E0;   /* Cor secundária do texto (um pouco mais suave) */
+    --dark-border-color: #34495E;    /* Cor para bordas sutis */
+    --dark-highlight: #FFD700;       /* Cor dourada para destaques importantes (mantida das suas outras CSS) */
+    --dark-link: #5DADE2;           /* Cor para links */
+    --dark-link-hover: #85C1E9;      /* Cor para links ao passar o mouse */
+    --dark-disabled: #6C757D;       /* Cor para elementos desabilitados */
+    --button-focus-ring-rgb: 255, 215, 0; /* RGB do dourado para focus ring */
+
+    /* ----- Paleta Clara ----- */
+    --light-primary-bg: #FFFFFF;      /* Fundo principal branco */
+    --light-secondary-bg: #F8F9FA;    /* Fundo secundário (cinza muito claro) */
+    --light-accent-bg: #E9ECEF;      /* Fundo de destaque (cinza claro) */
+    --light-primary-text: #212529;     /* Texto principal (preto/cinza escuro) */
+    --light-secondary-text: #495057;   /* Texto secundário (cinza médio) */
+    --light-border-color: #DEE2E6;    /* Cor para bordas (cinza claro) */
+    --light-highlight: #0D6EFD;       /* Destaque em azul (padrão Bootstrap) */
+    --light-link: #0D6EFD;           /* Cor para links (azul) */
+    --light-link-hover: #0B5ED7;      /* Cor para links ao passar o mouse (azul mais escuro) */
+    --light-disabled: #ADB5BD;       /* Cor para elementos desabilitados (cinza claro) */
+    /* --button-focus-ring-rgb definido dentro de html[data-theme='light'] mais abaixo */
+
+
+    /* ----- Cores Semânticas (Podem ser usadas em ambos os temas ou adaptadas) ----- */
+    --success-color: #198754;         /* Verde para sucesso */
+    --danger-color: #DC3545;          /* Vermelho para perigo/erro */
+    --warning-color: #FFC107;         /* Amarelo para aviso */
+    --info-color: #0DCAF0;           /* Azul claro para informação */
+}
+
+/* Define o focus ring para o tema claro */
+html[data-theme='light'] {
+     --button-focus-ring-rgb: 13, 110, 253; /* RGB do azul para focus ring no tema claro */
+}
+
+
+/* ===================================================================
+   ESTILOS GLOBAIS BÁSICOS
+   =================================================================*/
+
+body {
+    background-color: var(--dark-secondary-bg);
+    color: var(--dark-primary-text);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transição suave de tema */
+}
+
+html[data-theme='light'] body {
+    background-color: var(--light-secondary-bg); /* Fundo base claro */
+    color: var(--light-primary-text);
+}
+
+
+a {
+    color: var(--dark-link);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+    color: var(--dark-link-hover);
+    text-decoration: underline;
+}
+
+html[data-theme='light'] a {
+    color: var(--light-link);
+}
+
+html[data-theme='light'] a:hover {
+    color: var(--light-link-hover);
+}
+
+/* ===================================================================
+   ESTILOS PARA CABEÇALHO DE PÁGINA (dentro de .main-content)
+   =================================================================*/
+
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dark-border-color);
+    transition: border-color 0.3s ease;
+}
+
+html[data-theme='light'] .page-header {
+    border-bottom-color: var(--light-border-color);
+}
+
+.page-header .header-content {
+    display: flex;
+    justify-content: space-between; /* Alinha título à esquerda e ações à direita */
+    align-items: center; /* Alinha verticalmente */
+    flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+    gap: 1rem; /* Espaço entre título e ações */
+}
+
+.page-title {
+    font-size: 1.8rem; /* Ajuste conforme necessário */
+    font-weight: 600;
+    color: var(--dark-primary-text);
+    margin: 0; /* Remove margem padrão do h1 */
+    transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .page-title {
+    color: var(--light-primary-text);
+}
+
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--dark-secondary-text);
+    margin-top: 0.5rem; /* Espaço abaixo do título, se existir */
+    margin-bottom: 0;
+    transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .page-subtitle {
+    color: var(--light-secondary-text);
+}
+
+/* Container para botões/ações no cabeçalho */
+.header-actions {
+    display: flex;
+    gap: 0.75rem; /* Espaço entre os botões */
+    flex-wrap: wrap; /* Permite quebrar linha */
+}
+
+
+/* ===================================================================
+   ESTILOS PARA LAYOUT PRINCIPAL (main-content)
+   =================================================================*/
+.main-content {
+    margin-left: var(--sidebar-width-expanded); /* Definido no sidebar.css */
+    padding: 2rem;
+    transition: margin-left var(--sidebar-transition-duration) ease, background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    background-color: var(--dark-primary-bg); /* Fundo da área de conteúdo escuro */
+    color: var(--dark-primary-text);
+}
+
+html[data-theme='light'] .main-content {
+    background-color: var(--light-secondary-bg); /* Fundo cinza claro */
+    color: var(--light-primary-text);
+}
+
+/* Ajuste da margem quando a sidebar está recolhida (definido no sidebar.css) */
+/* .sidebar.collapsed ~ .main-content { margin-left: var(--sidebar-width-collapsed); } */
+
+/* Ajuste da margem em telas mobile (definido no sidebar.css) */
+/* @media (max-width: 992px) { .main-content { margin-left: 0; } } */
+
+
+/* ===================================================================
+   ESTILOS PARA FORMULÁRIOS DENTRO DE MODAIS (Exemplo Básico)
+   =================================================================*/
+.modal-body form p { /* Estilo para forms gerados com {{ form.as_p }} */
+    margin-bottom: 1rem;
+}
+.modal-body form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.modal-body form input,
+.modal-body form select,
+.modal-body form textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    border: 1px solid var(--dark-border-color);
+    background-color: var(--dark-primary-bg);
+    color: var(--dark-primary-text);
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    box-sizing: border-box; /* Garante que padding não afete a largura */
+}
+html[data-theme='light'] .modal-body form input,
+html[data-theme='light'] .modal-body form select,
+html[data-theme='light'] .modal-body form textarea {
+    border-color: var(--light-border-color);
+    background-color: var(--light-primary-bg);
+    color: var(--light-primary-text);
+}
+.modal-body form input:focus,
+.modal-body form select:focus,
+.modal-body form textarea:focus {
+    outline: none;
+    border-color: var(--dark-highlight);
+    box-shadow: 0 0 0 2px rgba(var(--button-focus-ring-rgb, 255, 215, 0), 0.2);
+}
+html[data-theme='light'] .modal-body form input:focus,
+html[data-theme='light'] .modal-body form select:focus,
+html[data-theme='light'] .modal-body form textarea:focus {
+    border-color: var(--light-highlight);
+     box-shadow: 0 0 0 2px rgba(var(--button-focus-ring-rgb, 13, 110, 253), 0.2);
+}
+
+/* Estilo para formulários dentro de modais (exemplo básico) */
+.modal-body form p {
+    margin-bottom: 1rem;
+}
+.modal-body form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.modal-body form input,
+.modal-body form select,
+.modal-body form textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    border: 1px solid var(--dark-border-color);
+    background-color: var(--dark-primary-bg);
+    color: var(--dark-primary-text);
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+html[data-theme='light'] .modal-body form input,
+html[data-theme='light'] .modal-body form select,
+html[data-theme='light'] .modal-body form textarea {
+    border-color: var(--light-border-color);
+    background-color: var(--light-primary-bg);
+    color: var(--light-primary-text);
+}
+.modal-body form input:focus,
+.modal-body form select:focus,
+.modal-body form textarea:focus {
+    outline: none;
+    border-color: var(--dark-highlight);
+}
+html[data-theme='light'] .modal-body form input:focus,
+html[data-theme='light'] .modal-body form select:focus,
+html[data-theme='light'] .modal-body form textarea:focus {
+    border-color: var(--light-highlight);
+}
+
+/* ===================================================================
+   ESTILOS PARA MENSAGENS/TOASTS GLOBAIS
+   =================================================================*/
+.messages-container {
+    position: fixed; /* Fica fixo na tela */
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1060; /* Fica acima da maioria dos elementos */
+    display: flex;
+    flex-direction: column; /* Mensagens empilhadas */
+    gap: 0.5rem;
+}
+
+.message-item {
+    background: var(--dark-accent-bg);
+    color: var(--dark-primary-text);
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--dark-border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    opacity: 1;
+    transform: translateX(0);
+    /* Transições para aparecer e desaparecer */
+    transition: opacity 0.5s ease, transform 0.5s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.message-item .icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+/* Cores das mensagens */
+.message-item.message-success {
+    background-color: rgba(25, 135, 84, 0.9); /* Verde */
+    border-color: var(--success-color);
+    color: white;
+}
+.message-item.message-error {
+    background-color: rgba(220, 53, 69, 0.9); /* Vermelho */
+    border-color: var(--danger-color);
+    color: white;
+}
+.message-item.message-warning {
+    background-color: rgba(255, 193, 7, 0.9); /* Amarelo */
+    border-color: var(--warning-color);
+    color: #333; /* Texto escuro para amarelo */
+}
+
+/* Tema Claro */
+html[data-theme='light'] .message-item {
+    background: var(--light-primary-bg);
+    color: var(--light-primary-text);
+    border-color: var(--light-border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+html[data-theme='light'] .message-item.message-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+html[data-theme='light'] .message-item.message-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #842029;
+}
+ html[data-theme='light'] .message-item.message-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+}
+
+/* Estado de "saindo" que o JS vai adicionar */
+.message-item.fading-out {
+    opacity: 0;
+    transform: translateX(calc(100% + 1rem)); /* Desliza para a direita */
+}

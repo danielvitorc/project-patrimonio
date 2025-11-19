@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração - Vídeo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: #222;
+            font-size: 1.8rem;
+            text-align: center;
+            margin: 1rem 0 1.5rem 0;
+            line-height: 1.3;
+        }
+
+        video {
+            width: 100%;
+            max-width: 720px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        video:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+        }
+
+        .loader {
+            display: none;
+            margin-top: 1.5rem;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+        }
+
+        footer {
+            margin-top: 2rem;
+            font-size: 0.95rem;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+            max-width: 90%;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== Responsividade ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 1.5rem 1rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1.2rem;
+            }
+
+            video {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                justify-content: flex-start;
+                padding: 1.5rem 0.5rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+                padding: 0 1rem;
+            }
+
+            video {
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+            footer {
+                font-size: 0.85rem;
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Assista ao vídeo antes de prosseguir</h2>
+
+    <video id="videoIntegracao" controls playsinline controlsList="nodownload">
+        <source src="{% static 'patrimonio/videos/video_teste.mp4' %}" type="video/mp4">
+        Seu navegador não suporta vídeo.
+    </video>
+
+    <div class="loader" id="loader"></div>
+
+    <footer>Ao final do vídeo, você será redirecionado automaticamente.</footer>
+
+    <script>
+    const video = document.getElementById('videoIntegracao');
+    const loader = document.getElementById('loader');
+
+    video.addEventListener('ended', function() {
+        loader.style.display = 'inline-block';
+        const token = "{{ token }}";
+        const uuid = "{{ integracao.uuid_link }}";
+        const redirectUrl = `/integracao/${uuid}/formulario/?token=${token}`;
+        setTimeout(() => window.location.href = redirectUrl, 1500);
+    });
+    </script>
+
+</body>
+</html>

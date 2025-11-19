@@ -13,6 +13,13 @@ body {
     font-family: 'Segoe UI', sans-serif;
     color: var(--azulEscuro-nort);
 }
+.categoria-badge {
+    display: inline-block; /* Permite definir largura e altura, mas fica na linha */
+    text-align: center;    /* Centraliza o texto dentro do badge */
+    line-height: 1.4;      /* Ajusta o espaçamento entre as linhas */
+    padding-top: 5px;      /* Adiciona um pequeno espaço no topo */
+    padding-bottom: 5px;   /* Adiciona um pequeno espaço na base */
+}
 
 /* ===================================================================
    2. SIDEBAR ORIGINAL RESTAURADA
@@ -209,7 +216,7 @@ button.btn-warning:hover {
   border-collapse: collapse;
   background-color: #ffffff;
   border-radius: 12px;
-  overflow: hidden;
+  /*overflow: hidden;*/
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 

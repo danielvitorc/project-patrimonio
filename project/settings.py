@@ -154,4 +154,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Domínios confiáveis para CSRF
 CSRF_TRUSTED_ORIGINS = ['https://portaria.nortesistech.com']
-

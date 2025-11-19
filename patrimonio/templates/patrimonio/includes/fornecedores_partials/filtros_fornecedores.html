@@ -1,0 +1,36 @@
+<div class="table-filters">
+    <form id="filter-form" method="get" action="{% url 'fornecedores_filtrados' %}" class="filter-form-grid">
+        <div class="filter-group">
+            <label for="filtro-data" class="filter-label">Data de Integração:</label>
+            <input type="date" id="filtro-data" name="data_integracao" class="filter-input" />
+        </div>
+        <div class="filter-group">
+            <label for="filtro-categoria" class="filter-label">Categoria:</label>
+            <select id="filtro-categoria" name="categoria" class="filter-input">
+                <option value="">Todas</option>
+                <option value="VISITANTE">Visitante</option>
+                <option value="FORNECEDOR">Fornecedor/Prestador</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filtro-fornecedor" class="filter-label">Fornecedor:</label>
+            <input type="text" id="filtro-fornecedor" name="fornecedor" class="filter-input" placeholder="Buscar nome" />
+        </div>
+        <div class="filter-group">
+            <label for="filtro-status" class="filter-label">Status:</label>
+            <select id="filtro-status" name="status" class="filter-input">
+                <option value="">Todos</option>
+                <option value="Integrado">Integrado</option>
+                <option value="Pendente">Pendente</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="button button--primary">
+                <i class="fas fa-search icon"></i>Pesquisar
+            </button>
+            <a href="{% url 'fornecedores_filtrados' %}" class="button button--secondary" title="Limpar Filtros">
+                <i class="fas fa-times icon"></i> Limpar
+            </a>
+        </div>
+    </form>
+</div>

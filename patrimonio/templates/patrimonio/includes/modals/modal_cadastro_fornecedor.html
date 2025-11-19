@@ -1,0 +1,57 @@
+<div class="modal-overlay" id="modalDeCadastroUnicoOverlay" aria-labelledby="modalDeCadastroUnicoLabel" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog--xl"> {# Modal Extra Largo #}
+        <div class="modal-content">
+            <form method="post" enctype="multipart/form-data" action="{% url 'fornecedores_cadastrados' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalDeCadastroUnicoLabel">
+                        <i class="fas fa-plus-circle icon"></i> Novo Cadastro
+                    </h2>
+                    <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
+                </div>
+
+                <div class="modal-body" style="max-height: 70vh;">
+                    <div class="card-form-section">
+                        <h3 class="card-form-title">Tipo de Cadastro</h3>
+                        <div class="card-form-body">
+                             <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="categoria" class="form-label">Categoria:</label>
+                                    <select name="categoria" id="categoria" class="form-input" required>
+                                        <option value="">Selecione uma categoria</option>
+                                        <option value="FORNECEDOR">Fornecedor/Prestador de Serviços</option>
+                                        {# Adicionar VISITANTE se a view de cadastro for unificada #}
+                                        {# <option value="VISITANTE">Visitante</option> #}
+                                    </select>
+                                </div>
+                                <div class="form-group" id="subcategoria-container" style="display: none;">
+                                    <label for="subcategoria" class="form-label">Subcategoria:</label>
+                                    <select name="subcategoria" id="subcategoria" class="form-input">
+                                        <option value="">Selecione uma subcategoria</option>
+                                        <option value="trabalhador_clt">Trabalhador CLT</option>
+                                        <option value="pessoa_juridica">Pessoa Jurídica (PJ)</option>
+                                        <option value="mei">Microempreendedor Individual (MEI)</option>
+                                        <option value="autonomo">Autônomo</option>
+                                        <option value="associado">Associado</option>
+                                    </select>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div id="forms-container">
+                        </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>
+                        <i class="fas fa-times icon"></i> Cancelar
+                    </button>
+                    <button type="submit" class="modal-button modal-button--success">
+                        <i class="fas fa-save icon"></i> Salvar Cadastro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

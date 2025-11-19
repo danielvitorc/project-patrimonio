@@ -1,521 +1,301 @@
+{% extends 'patrimonio/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="icon" href="https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.nortetech.net&amp;client=VFE&amp;size=64&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;nfrp=2" type="image/png">
 
-    <title>Chaves - PATRIMÔNIO</title>
+{% block title %}Controle de Chaves{% endblock %}
 
-    <!-- Estilos -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'patrimonio/css/chaves.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body>
+{% block extra_css %}
+    {# O CSS antigo 'chaves.css' não é mais necessário #}
+{% endblock %}
 
-{% include 'patrimonio/includes/sidebar.html' %}
-
-<div class="main-content">
-    <h1>Controle de Chaves</h1>
-
-    <!-- Botão de nova solicitação -->
-    <button type="button" class="btn btn-primary my-3" data-bs-toggle="modal" data-bs-target="#modalCadastroChave">
-        Nova Solicitação
-    </button>
-
-    <h2>Registros Recentes</h2>
-    <div class="mb-3 d-flex flex-wrap gap-3 align-items-end">
-        <div>
-            <label for="filterDepartamento" class="form-label">Departamento</label>
-            <input type="text" id="filterDepartamento" class="form-control" placeholder="Filtrar por departamento">
+{% block page_header %}
+    <div class="header-content">
+        <h1 class="page-title">Controle de Chaves</h1>
+        <div class="header-actions">
+            <button type="button" class="button button--primary" data-modal-target="#modalCadastroChaveOverlay">
+                <i class="fas fa-plus icon"></i> Nova Solicitação
+            </button>
         </div>
+    </div>
+{% endblock %}
 
-        <div>
-            <label for="filterMatricula" class="form-label">Matrícula</label>
-            <input type="text" id="filterMatricula" class="form-control" placeholder="Filtrar por matrícula">
+{% block content %}
+
+    {# Filtros da Tabela #}
+    <div class="table-filters">
+        <div class="filter-group">
+            <label for="filterDepartamento" class="filter-label">Departamento</label>
+            <input type="text" id="filterDepartamento" class="filter-input" placeholder="Filtrar por departamento">
         </div>
-
-        <div>
-            <label for="filterSituacao" class="form-label">Situação</label>
-            <select id="filterSituacao" class="form-select">
+        <div class="filter-group">
+            <label for="filterMatricula" class="filter-label">Matrícula</label>
+            <input type="text" id="filterMatricula" class="filter-input" placeholder="Filtrar por matrícula">
+        </div>
+        <div class="filter-group">
+            <label for="filterSituacao" class="filter-label">Situação</label>
+            <select id="filterSituacao" class="filter-input"> {# Usando filter-input para estilo unificado #}
                 <option value="">Todas</option>
                 <option value="RETIRADO">RETIRADO</option>
                 <option value="DEVOLVIDO">DEVOLVIDO</option>
             </select>
         </div>
-
-        <div>
-            <label for="filterData" class="form-label">Data (Saída)</label>
-            <input type="date" id="filterData" class="form-control" />
+        <div class="filter-group">
+            <label for="filterData" class="filter-label">Data (Saída)</label>
+            <input type="date" id="filterData" class="filter-input" />
         </div>
     </div>
 
-    <table class="table-chaves">
-        <thead>
-            <tr>
-                <th>Base</th>
-                <th>Matrícula</th>
-                <th>Colaborador</th>
-                <th>Departamento</th>
-                <th>Chaves</th>
-                <th>Situação</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for chave in chaves %}
-            <tr
-                data-departamento="{{ chave.departamento|lower }}"
-                data-matricula="{{ chave.matricula_recebendo|lower }}"
-                data-situacao="{{ chave.situacao|upper }}"
-                data-data-saida="{{ chave.data_saida|date:'Y-m-d' }}"
-            >
-                <td>{{ chave.base }}</td>
-                <td>{{ chave.matricula_recebendo }}</td>
-                <td>{{ chave.colaborador_recebendo }}</td>
-                <td>{{ chave.departamento }}</td>
-                <td>{{ chave.chave }}</td>
-                <td>{{ chave.situacao }}</td>
-                <td>
-                    <!-- Botão DETALHES -->
-                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetalhes{{ chave.id }}">
-                        Detalhes
-                    </button>
+    {# Tabela de Registros #}
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Base</th>
+                    <th>Matrícula</th>
+                    <th>Colaborador</th>
+                    <th>Departamento</th>
+                    <th>Chave</th>
+                    <th>Situação</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chave in page_obj %}
+                <tr
+                    data-departamento="{{ chave.departamento|lower }}"
+                    data-matricula="{{ chave.matricula_recebendo|lower }}"
+                    data-situacao="{{ chave.situacao|upper }}"
+                    data-data-saida="{{ chave.data_saida|date:'Y-m-d' }}"
+                >
+                    <td>{{ chave.base }}</td>
+                    <td>{{ chave.matricula_recebendo }}</td>
+                    <td>{{ chave.colaborador_recebendo }}</td>
+                    <td>{{ chave.departamento }}</td>
+                    <td>{{ chave.chave }}</td>
+                    <td>
+                        {% if chave.situacao == "DEVOLVIDO" %}
+                            <span class="badge badge-secondary">{{ chave.situacao }}</span>
+                        {% else %}
+                            <span class="badge badge-warning">{{ chave.situacao }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button type="button" class="btn-action btn-action-details" data-modal-target="#modalDetalhesOverlay{{ chave.id }}">
+                                <i class="fas fa-eye"></i> Detalhes
+                            </button>
 
-                    <!-- Modal de detalhes -->
-                    <div class="modal fade" id="modalDetalhes{{ chave.id }}" tabindex="-1" aria-labelledby="modalDetalhesLabel{{ chave.id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                            <div class="modal-content">
+                            {% if chave.situacao != "DEVOLVIDO" %}
+                                <button type="button" class="button button--warning button--sm" data-modal-target="#modalDevolverOverlay{{ chave.id }}">
+                                    Devolver
+                                </button>
+                            {% endif %}
+
+                            <button type="button" class="btn-action btn-action-delete" data-modal-target="#modalExcluirOverlay{{ chave.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                {# ----- Início Modal Detalhes ----- #}
+                <div class="modal-overlay" id="modalDetalhesOverlay{{ chave.id }}" aria-labelledby="modalDetalhesLabel{{ chave.id }}" role="dialog" aria-modal="true">
+                    <div class="modal-dialog modal-dialog--lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="modalDetalhesLabel{{ chave.id }}">Detalhes da Chave</h2>
+                                <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
+                            </div>
+                        {# O max-height ativa o overflow-y: auto do modals.css #}
+                        <div class="modal-body" style="max-height: 70vh;">
+                            
+                            <div class="card-form-section">
+                                <h3 class="card-form-title">Dados da Entrega</h3>
+                                <div class="card-form-body">
+                                    <div class="info-grid"> {# Grid de informações #}
+                                        <div class="info-item"><strong>Base:</strong> <span>{{ chave.base }}</span></div>
+                                        <div class="info-item"><strong>Matrícula:</strong> <span>{{ chave.matricula_recebendo }}</span></div>
+                                        <div class="info-item"><strong>Colaborador:</strong> <span>{{ chave.colaborador_recebendo }}</span></div>
+                                        <div class="info-item"><strong>Departamento:</strong> <span>{{ chave.departamento }}</span></div>
+                                        <div class="info-item"><strong>Chave:</strong> <span>{{ chave.chave.nome }}</span></div>
+                                        <div class="info-item"><strong>Data Saída:</strong> <span>{{ chave.data_saida|date:"d/m/Y H:i" }}</span></div>
+                                    </div>
+                                    
+                                    {% if chave.foto_entrega %}
+                                        <div class="form-group" style="margin-top: 1rem;">
+                                            <label class="form-label">Foto da Entrega:</label>
+                                            <img src="{{ chave.foto_entrega.url }}" alt="Foto Entrega" style="width: 100%; max-width: 400px; border-radius: 6px; border: 1px solid var(--dark-border-color);">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="card-form-section">
+                                <h3 class="card-form-title">Dados da Devolução</h3>
+                                <div class="card-form-body">
+                                    <div class="info-grid">
+                                        <div class="info-item"><strong>Matrícula:</strong> <span>{{ chave.matricula_devolveu|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Colaborador:</strong> <span>{{ chave.colaborador_devolveu|default:"-" }}</span></div>
+                                        <div class="info-item"><strong>Data Devolução:</strong> <span>{{ chave.data_devolucao|date:"d/m/Y H:i"|default:"-" }}</span></div>
+                                    </div>
+                                    
+                                     {% if chave.foto_devolucao %}
+                                        <div class="form-group" style="margin-top: 1rem;">
+                                            <label class="form-label">Foto da Devolução:</label>
+                                            <img src="{{ chave.foto_devolucao.url }}" alt="Foto Devolução" style="width: 100%; max-width: 400px; border-radius: 6px; border: 1px solid var(--dark-border-color);">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+                            <div class="modal-footer">
+                                <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {# ----- Fim Modal Detalhes ----- #}
+
+                {# ----- Início Modal Devolução ----- #}
+                <div class="modal-overlay" id="modalDevolverOverlay{{ chave.id }}" aria-labelledby="modalDevolverLabel{{ chave.id }}" role="dialog" aria-modal="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="post" enctype="multipart/form-data" action="{% url 'entrega_de_chave' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_tipo" value="devolucao">
+                                <input type="hidden" name="chave_id" value="{{ chave.id }}">
+                                
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modalDetalhesLabel{{ chave.id }}">Detalhes da Chave</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    <h2 class="modal-title" id="modalDevolverLabel{{ chave.id }}">Registrar Devolução</h2>
+                                    <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                                 </div>
                                 <div class="modal-body">
-                                    <p><strong>Base:</strong> {{ chave.base }}</p>
-                                    <p><strong>Matrícula Entregou:</strong> {{ chave.matricula_recebendo }}</p>
-                                    <p><strong>Colaborador Entregou:</strong> {{ chave.colaborador_recebendo }}</p>
-                                    <p><strong>Departamento:</strong> {{ chave.departamento }}</p>
-                                    <p><strong>Chave:</strong> {{ chave.chave.nome }}</p>
-                                    <p><strong>Data Saída:</strong> {{ chave.data_saida|date:"d/m/Y H:i" }}</p>
-                                    {% if chave.foto_entrega %}
-                                        <p><strong>Foto Entrega:</strong><br><img src="{{ chave.foto_entrega.url }}" class="img-fluid rounded" style="max-width: 300px;"></p>
-                                    {% endif %}
-                                    <hr>
-                                    <p><strong>Matrícula Devolveu:</strong> {{ chave.matricula_devolveu }}</p>
-                                    <p><strong>Colaborador Devolveu:</strong> {{ chave.colaborador_devolveu }}</p>
-                                    <p><strong>Data Devolução:</strong> {{ chave.data_devolucao|date:"d/m/Y H:i" }}</p>
-                                    {% if chave.foto_devolucao %}
-                                        <p><strong>Foto Devolução:</strong><br><img src="{{ chave.foto_devolucao.url }}" class="img-fluid rounded" style="max-width: 300px;"></p>
-                                    {% endif %}
+                                    {# Usa o formulário anexo pela view #}
+                                    {% with form=chave.form_devolucao %}
+                                        
+                                        <div class="form-group">
+                                            <label for="{{ form.matricula_devolveu.id_for_label }}">Matrícula de quem devolveu:</label>
+                                            {{ form.matricula_devolveu }}
+                                            {% if form.matricula_devolveu.errors %}
+                                                <div class="field-errors">
+                                                    {% for error in form.matricula_devolveu.errors %}<span>{{ error }}</span>{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.colaborador_devolveu.id_for_label }}">Colaborador que devolveu:</label>
+                                            {{ form.colaborador_devolveu }}
+                                             {% if form.colaborador_devolveu.errors %}
+                                                <div class="field-errors">
+                                                    {% for error in form.colaborador_devolveu.errors %}<span>{{ error }}</span>{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.foto_devolucao.id_for_label }}">Foto da devolução:</label>
+                                            {{ form.foto_devolucao }}
+                                             {% if form.foto_devolucao.errors %}
+                                                <div class="field-errors">
+                                                    {% for error in form.foto_devolucao.errors %}<span>{{ error }}</span>{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if form.non_field_errors %}
+                                            <div class_form-errors" style="background-color: var(--danger-color); color: white; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
+                                                {% for error in form.non_field_errors %}
+                                                    <p style="margin: 0;">{{ error }}</p>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
                                 </div>
                                 <div class="modal-footer">
-                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                    <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
+                                    <button type="submit" class="modal-button modal-button--success">Confirmar Devolução</button>
                                 </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
+                </div>
+                {# ----- Fim Modal Devolução ----- #}
 
-                    <!-- Botão DEVOLVER -->
-                    {% if chave.situacao != "DEVOLVIDO" %}
-                        <!-- Botão para abrir modal de devolução -->
-                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmardevolucaoModal{{ chave.id }}">
-                            Devolver
-                        </button>
-
-                        <!-- Modal de devolução -->
-                        <div class="modal fade" id="confirmardevolucaoModal{{ chave.id }}" tabindex="-1" aria-labelledby="modalLabel{{ chave.id }}" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <form method="post" enctype="multipart/form-data" action="{% url 'entrega_de_chave' %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="form_tipo" value="devolucao">
-                                        <input type="hidden" name="chave_id" value="{{ chave.id }}">
-
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="modalLabel{{ chave.id }}">Registrar Devolução</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label for="matricula_{{ chave.id }}">Matrícula de quem devolveu</label>
-                                                <input type="text" name="matricula_devolveu" class="form-control" id="matricula_{{ chave.id }}" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="colaborador_{{ chave.id }}">Colaborador que devolveu</label>
-                                                <input type="text" name="colaborador_devolveu" class="form-control" id="colaborador_{{ chave.id }}" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="foto_{{ chave.id }}">Foto da devolução</label>
-                                                <input type="file" name="foto_devolucao" class="form-control" id="foto_{{ chave.id }}" accept="image/*" required>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="submit" class="btn btn-success">Confirmar Devolução</button>
-                                        </div>
-                                    </form>
+                {# ----- Início Modal Excluir ----- #}
+                <div class="modal-overlay" id="modalExcluirOverlay{{ chave.id }}" aria-labelledby="modalExcluirLabel{{ chave.id }}" role="dialog" aria-modal="true">
+                    <div class="modal-dialog modal-dialog--sm">
+                        <div class="modal-content">
+                            <form method="post" action="{% url 'excluir_chave' chave.id %}">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <h2 class="modal-title" id="modalExcluirLabel{{ chave.id }}">Confirmar Exclusão</h2>
+                                    <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                                 </div>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <!-- Botão EXCLUIR -->
-                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ chave.id }}">
-                        Excluir
-                    </button>
-
-                    <!-- Modal de confirmação de exclusão -->
-                    <div class="modal fade" id="modalExcluir{{ chave.id }}" tabindex="-1" aria-labelledby="modalExcluirLabel{{ chave.id }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form method="post" action="{% url 'excluir_chave' chave.id %}">
-                                    {% csrf_token %}
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalExcluirLabel{{ chave.id }}">Confirmar Exclusão</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        Tem certeza que deseja excluir o registro da chave <strong>{{ chave.chave.nome }}</strong>?
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-danger">Excluir</button>
-                                    </div>
-                                </form>
-                            </div>
+                                <div class="modal-body">
+                                    <p>Tem certeza que deseja excluir o registro da chave <strong>{{ chave.chave.nome }}</strong>?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
+                                    <button type="submit" class="modal-button modal-button--danger">Excluir</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
+                </div>
+                {# ----- Fim Modal Excluir ----- #}
 
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'patrimonio/includes/pagination.html' %}
 
-    <!-- Modal de cadastro (ENTREGA) -->
-    <div class="modal fade" id="modalCadastroChave" tabindex="-1" aria-labelledby="modalCadastroChaveLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    {# ----- Início Modal Cadastro (Entrega) ----- #}
+    <div class="modal-overlay" id="modalCadastroChaveOverlay" aria-labelledby="modalCadastroChaveLabel" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <form method="post" enctype="multipart/form-data" action="{% url 'entrega_de_chave' %}">
                     {% csrf_token %}
                     <input type="hidden" name="form_tipo" value="entrega">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modalCadastroChaveLabel">Nova Movimentação de Chave</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        <h2 class="modal-title" id="modalCadastroChaveLabel">Nova Movimentação de Chave</h2>
+                        <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
                     </div>
                     <div class="modal-body">
-                        {{ form_chave.as_p }}
+                        {# Renderiza form_chave manualmente #}
+                        {% for field in form_chave %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="field-errors">
+                                        {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        {% if form_chave.non_field_errors %}
+                            <div class="form-errors" style="background-color: var(--danger-color); color: white; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
+                                {% for error in form_chave.non_field_errors %}
+                                    <p style="margin: 0;">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Salvar</button>
+                        <button type="button" class="modal-button modal-button--secondary" data-modal-dismiss>Cancelar</button>
+                        <button type="submit" class="modal-button modal-button--success">Salvar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    {# ----- Fim Modal Cadastro ----- #}
 
+{% endblock %}
 
-    <!-- Toast messages -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
-        {% for message in messages %}
-            {% if message.level_tag == "error" %}
-            <div class="toast align-items-center text-bg-warning border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi bi-bell-fill me-2"></i> {{ message }}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
-                </div>
-            </div>
-            {% endif %}
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    // --- Configuração dos Toasts (sem alteração) ---
-    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-    var toastList = toastElList.map(function (toastEl) {
-        return new bootstrap.Toast(toastEl, { delay: 5000 });
-    });
-    toastList.forEach(toast => toast.show());
-
-    // --- Configuração do Sidebar (sem alteração) ---
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebarBtn');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('reduzida');
-        });
-    }
-
-    /**
-     * Função reutilizável para buscar dados do colaborador.
-     * @param {string} matricula - A matrícula a ser buscada.
-     * @returns {Promise<object>} - Uma promessa que resolve com os dados do colaborador.
-     */
-    function fetchColaborador(matricula) {
-        return fetch(`/buscar_colaborador/?matricula=${encodeURIComponent(matricula)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('A resposta da rede não foi bem-sucedida.');
-                }
-                return response.json();
-            });
-    }
-
-    /**
-     * Função para configurar o autopreenchimento em um formulário.
-     * @param {Element} formContainer - O elemento que contém o formulário (ex: o modal).
-     * @param {string} matriculaName - O atributo 'name' do campo de matrícula.
-     * @param {string} colaboradorName - O atributo 'name' do campo de colaborador.
-     */
-    function setupAutofill(formContainer, matriculaName, colaboradorName) {
-        const matriculaInput = formContainer.querySelector(`[name='${matriculaName}']`);
-        const colaboradorInput = formContainer.querySelector(`[name='${colaboradorName}']`);
-
-        if (matriculaInput && colaboradorInput) {
-            matriculaInput.addEventListener("blur", function () {
-                const matricula = this.value.trim();
-                if (!matricula) {
-                    colaboradorInput.value = ""; // Limpa o campo do colaborador
-                    return;
-                }
-
-                fetchColaborador(matricula)
-                    .then(data => {
-                        if (data && !data.erro) {
-                            colaboradorInput.value = data.nome;
-                        } else {
-                            alert(data.erro || "Matrícula não encontrada.");
-                            colaboradorInput.value = "";
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Erro ao buscar colaborador:", error);
-                        alert("Ocorreu um erro ao buscar os dados. Verifique o console.");
-                        colaboradorInput.value = "";
-                    });
-            });
-
-            // Limpa o campo do colaborador se a matrícula for apagada
-            matriculaInput.addEventListener("input", function () {
-                if (this.value.trim() === "") {
-                    colaboradorInput.value = "";
-                }
-            });
-        }
-    }
-
-    // --- LÓGICA PARA O MODAL DE CADASTRO (ENTREGA) ---
-    const modalCadastro = document.getElementById('modalCadastroChave');
-    if (modalCadastro) {
-        const matriculaInput = modalCadastro.querySelector("[name='matricula_recebendo']");
-        const colaboradorInput = modalCadastro.querySelector("[name='colaborador_recebendo']");
-        const departamentoInput = modalCadastro.querySelector("[name='departamento']");
-        const form = modalCadastro.querySelector("form");
-
-        if (matriculaInput && colaboradorInput && departamentoInput && form) {
-            matriculaInput.addEventListener("blur", function () {
-                const matricula = this.value.trim();
-                if (!matricula) {
-                    colaboradorInput.value = "";
-                    departamentoInput.value = "";
-                    return;
-                }
-
-                fetchColaborador(matricula)
-                    .then(data => {
-                        if (data && !data.erro) {
-                            colaboradorInput.value = data.nome;
-                            departamentoInput.value = data.departamento;
-                        } else {
-                            alert(data.erro || "Matrícula não encontrada.");
-                            colaboradorInput.value = "";
-                            departamentoInput.value = "";
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Erro ao buscar colaborador:", error);
-                        alert("Ocorreu um erro ao buscar os dados. Verifique o console.");
-                        colaboradorInput.value = "";
-                        departamentoInput.value = "";
-                    });
-            });
-
-            matriculaInput.addEventListener("input", function () {
-                if (this.value.trim() === "") {
-                    colaboradorInput.value = "";
-                    departamentoInput.value = "";
-                }
-            });
-        }
-    }
-
-    // --- LÓGICA PARA OS MODAIS DE DEVOLUÇÃO ---
-    // 1. Encontra TODOS os modais de devolução
-    const devolucoesModals = document.querySelectorAll('[id^="confirmardevolucaoModal"]');
-    
-    // 2. Itera sobre cada modal encontrado
-    devolucoesModals.forEach(modal => {
-        // 3. Aplica a lógica de autopreenchimento para cada um
-        // Note que os nomes dos campos são 'matricula_devolveu' e 'colaborador_devolveu'
-        setupAutofill(modal, 'matricula_devolveu', 'colaborador_devolveu');
-    });
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const filterDepartamento = document.getElementById('filterDepartamento');
-    const filterMatricula = document.getElementById('filterMatricula');
-    const filterSituacao = document.getElementById('filterSituacao');
-    const filterData = document.getElementById('filterData');
-    const tableRows = document.querySelectorAll('table.table-chaves tbody tr');
-
-    function normalize(text) {
-        return text.trim().toLowerCase();
-    }
-
-    function filterRows() {
-        const depValue = normalize(filterDepartamento.value);
-        const matValue = normalize(filterMatricula.value);
-        const situacaoValue = filterSituacao.value.toUpperCase();
-        const dataValue = filterData.value; // formato yyyy-mm-dd
-
-        tableRows.forEach(row => {
-            const rowDep = row.getAttribute('data-departamento') || '';
-            const rowMat = row.getAttribute('data-matricula') || '';
-            const rowSituacao = row.getAttribute('data-situacao') || '';
-            const rowData = row.getAttribute('data-data-saida') || '';
-
-            let show = true;
-
-            if (depValue && !rowDep.includes(depValue)) {
-                show = false;
-            }
-
-            if (matValue && !rowMat.includes(matValue)) {
-                show = false;
-            }
-
-            if (situacaoValue && situacaoValue !== '' && rowSituacao !== situacaoValue) {
-                show = false;
-            }
-
-            if (dataValue && rowData !== dataValue) {
-                show = false;
-            }
-
-            row.style.display = show ? '' : 'none';
-        });
-    }
-
-    // Adiciona eventos para filtro em todos os inputs
-    [filterDepartamento, filterMatricula, filterSituacao, filterData].forEach(input => {
-        input.addEventListener('input', filterRows);
-        input.addEventListener('change', filterRows);
-    });
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    // --- Configuração dos Toasts (sem alteração) ---
-    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-    var toastList = toastElList.map(function (toastEl) {
-        return new bootstrap.Toast(toastEl, { delay: 5000 });
-    });
-    toastList.forEach(toast => toast.show());
-
-    // --- Configuração do Sidebar (sem alteração) ---
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebarBtn');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('reduzida');
-        });
-    }
-
-    // --- LÓGICA CORRIGIDA PARA AUTOPREENCHIMENTO ---
-
-    // 1. Seleciona o modal de cadastro específico
-    const modalCadastro = document.getElementById('modalCadastroChave');
-    if (modalCadastro) {
-        
-        // 2. Encontra os campos DENTRO do modal com os NOMES CORRETOS do forms.py
-        const matriculaInput = modalCadastro.querySelector("[name='matricula_recebendo']");
-        const colaboradorInput = modalCadastro.querySelector("[name='colaborador_recebendo']");
-        const departamentoInput = modalCadastro.querySelector("[name='departamento']");
-        const form = modalCadastro.querySelector("form");
-
-        // Verifica se todos os campos foram encontrados antes de adicionar os eventos
-        if (matriculaInput && colaboradorInput && departamentoInput && form) {
-
-            function limparCampos() {
-                colaboradorInput.value = "";
-                departamentoInput.value = "";
-            }
-
-            // 3. Adiciona o evento 'blur' (quando o usuário sai do campo)
-            matriculaInput.addEventListener("blur", function () {
-                const matricula = this.value.trim();
-                if (!matricula) {
-                    limparCampos();
-                    return;
-                }
-
-                // A URL da sua view que busca o colaborador
-                fetch(`/buscar_colaborador/?matricula=${encodeURIComponent(matricula)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('A resposta da rede não foi bem-sucedida.');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data && !data.erro) {
-                            colaboradorInput.value = data.nome;
-                            departamentoInput.value = data.departamento;
-                        } else {
-                            alert(data.erro || "Matrícula não encontrada.");
-                            limparCampos();
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Erro ao buscar colaborador:", error);
-                        alert("Ocorreu um erro ao tentar buscar os dados do colaborador. Verifique o console para mais detalhes.");
-                        limparCampos();
-                    });
-            });
-
-            // Limpa os campos se a matrícula for apagada
-            matriculaInput.addEventListener("input", function () {
-                if (this.value.trim() === "") {
-                    limparCampos();
-                }
-            });
-
-            // Validação no envio do formulário
-            form.addEventListener("submit", function (event) {
-                const colaborador = colaboradorInput.value.trim();
-                if (!colaborador) {
-                    event.preventDefault(); // Impede o envio do formulário
-                    alert("Matrícula inválida ou não encontrada. Por favor, verifique a matrícula e tente novamente.");
-                }
-            });
-        } else {
-            console.error("Não foi possível encontrar os campos do formulário de cadastro de chave. Verifique os atributos 'name' dos campos no seu forms.py. Nomes esperados: 'matricula_recebendo', 'colaborador_recebendo', 'departamento'.");
-        }
-    }
-});
-</script>
-
-
-</body>
-</html>
+{% block extra_js %}
+    {# Adiciona a referência ao JS específico da página #}
+    <script src="{% static 'patrimonio/js/entrega_de_chave.js' %}"></script>
+{% endblock %}

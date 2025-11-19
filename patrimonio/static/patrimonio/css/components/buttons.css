@@ -1,0 +1,240 @@
+/* project-patrimonio/patrimonio/static/patrimonio/css/components/buttons.css */
+
+/* ===================================================================
+   ESTILOS PADRÃO PARA BOTÕES (.button)
+   =================================================================*/
+
+.button {
+    display: inline-flex; /* Permite alinhar ícones e texto facilmente */
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1.4rem; /* Padding padrão */
+    border-radius: 6px; /* Cantos arredondados */
+    border: 1px solid transparent; /* Borda padrão transparente */
+    font-size: 0.95rem; /* Tamanho da fonte */
+    font-weight: 500; /* Peso da fonte */
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none; /* Impede seleção de texto */
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    white-space: nowrap; /* Impede quebra de linha */
+    text-transform: uppercase; /* Opcional: Caixa alta */
+    letter-spacing: 0.5px; /* Opcional: Espaçamento letras */
+}
+
+/* --- Estados Comuns --- */
+.button:hover {
+    transform: translateY(-2px); /* Efeito sutil de elevação */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+.button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+.button:focus,
+.button:focus-visible { /* Estilo de foco para acessibilidade */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--button-focus-ring-rgb, 13, 110, 253), 0.4); /* Usa variável ou fallback azul */
+}
+.button:disabled,
+.button.disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* --- Alinhamento de Ícones (usando Font Awesome) --- */
+.button i.fas, .button i.fab, .button i.far, .button i.bi { /* Adapte para outras bibliotecas se usar */
+    margin-right: 0.5em; /* Espaço entre ícone e texto */
+    line-height: 1; /* Alinha melhor o ícone */
+}
+.button .icon-only i { /* Para botões que só têm ícone */
+    margin-right: 0;
+}
+.button .icon { /* Classe genérica para ícones */
+     margin-right: 0.5em;
+     line-height: 1;
+}
+
+/* ===================================================================
+   MODIFICADORES DE COR
+   =================================================================*/
+
+/* --- Botão Primário (Highlight) --- */
+.button--primary {
+    background-color: var(--dark-highlight);
+    color: var(--dark-accent-bg); /* Contraste */
+    border-color: var(--dark-highlight);
+    --button-focus-ring-rgb: 255, 215, 0; /* RGB do dourado para focus ring */
+}
+.button--primary:hover {
+    background-color: #e6c200; /* Dourado mais escuro */
+    border-color: #e6c200;
+    color: #010A26;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+html[data-theme='light'] .button--primary {
+    background-color: var(--light-link);
+    color: var(--light-primary-bg);
+    border-color: var(--light-link);
+    --button-focus-ring-rgb: 13, 110, 253; /* RGB do azul para focus ring */
+}
+html[data-theme='light'] .button--primary:hover {
+    background-color: var(--light-link-hover);
+    border-color: var(--light-link-hover);
+    color: var(--light-primary-bg);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* --- Botão Secundário --- */
+.button--secondary {
+    background-color: var(--dark-border-color); /* Cinza escuro */
+    color: var(--dark-primary-text);
+    border-color: var(--dark-border-color);
+    --button-focus-ring-rgb: 108, 117, 125; /* RGB do cinza */
+}
+.button--secondary:hover {
+    background-color: #495057; /* Cinza um pouco mais claro/azulado */
+    border-color: #495057;
+    color: var(--dark-primary-text);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+html[data-theme='light'] .button--secondary {
+    background-color: var(--light-secondary-text); /* Cinza médio */
+    color: var(--light-primary-bg);
+    border-color: var(--light-secondary-text);
+     --button-focus-ring-rgb: 108, 117, 125;
+}
+html[data-theme='light'] .button--secondary:hover {
+    background-color: #5a6268;
+    border-color: #5a6268;
+    color: var(--light-primary-bg);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Botão Sucesso --- */
+.button--success {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+     --button-focus-ring-rgb: 25, 135, 84;
+}
+.button--success:hover {
+    background-color: #157347; /* Verde mais escuro */
+    border-color: #146c43;
+    color: white;
+     box-shadow: 0 4px 15px rgba(25, 135, 84, 0.2);
+}
+
+/* --- Botão Perigo --- */
+.button--danger {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+     --button-focus-ring-rgb: 220, 53, 69;
+}
+.button--danger:hover {
+    background-color: #bb2d3b; /* Vermelho mais escuro */
+    border-color: #b02a37;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+}
+
+/* --- Botão Aviso --- */
+.button--warning {
+    background-color: var(--warning-color);
+    color: #333; /* Texto escuro para contraste */
+    border-color: var(--warning-color);
+     --button-focus-ring-rgb: 255, 193, 7;
+}
+.button--warning:hover {
+    background-color: #ffca2c; /* Amarelo um pouco mais escuro */
+    border-color: #ffc720;
+    color: #333;
+     box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+}
+html[data-theme='light'] .button--warning {
+    color: var(--light-primary-text); /* Garante texto escuro */
+}
+html[data-theme='light'] .button--warning:hover {
+    color: var(--light-primary-text);
+}
+
+
+/* --- Botão Info --- */
+.button--info {
+    background-color: var(--info-color);
+    color: #333; /* Texto escuro para contraste */
+    border-color: var(--info-color);
+     --button-focus-ring-rgb: 13, 202, 240;
+}
+.button--info:hover {
+    background-color: #31d2f2; /* Azul claro um pouco mais escuro */
+    border-color: #25cff2;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2);
+}
+html[data-theme='light'] .button--info {
+    color: var(--light-primary-text); /* Garante texto escuro */
+}
+html[data-theme='light'] .button--info:hover {
+    color: var(--light-primary-text);
+}
+
+
+/* --- Botão Outline (baseado no Primário) --- */
+.button--outline {
+    background-color: transparent;
+    color: var(--dark-highlight);
+    border-color: var(--dark-highlight);
+}
+.button--outline:hover {
+    background-color: var(--dark-highlight);
+    color: var(--dark-accent-bg);
+}
+html[data-theme='light'] .button--outline {
+    color: var(--light-link);
+    border-color: var(--light-link);
+}
+html[data-theme='light'] .button--outline:hover {
+    background-color: var(--light-link);
+    color: var(--light-primary-bg);
+}
+/* Adicione variações --outline-secondary, --outline-danger etc. se precisar */
+
+
+/* ===================================================================
+   MODIFICADORES DE TAMANHO
+   =================================================================*/
+
+.button--sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+.button--sm i.fas, .button--sm i.bi { /* Ícones menores */
+    margin-right: 0.3em;
+}
+
+
+.button--lg {
+    padding: 0.9rem 1.8rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}
+.button--lg i.fas, .button--lg i.bi { /* Ícones maiores */
+    margin-right: 0.6em;
+}
+
+
+/* ===================================================================
+   MODIFICADOR PARA LARGURA TOTAL
+   =================================================================*/
+.button--full-width {
+    width: 100%;
+    display: flex; /* Garante que o flex do .button funcione */
+}

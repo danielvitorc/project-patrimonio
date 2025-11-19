@@ -1,45 +1,71 @@
-<div class="sidebar {% if request.resolver_match.url_name == 'home' %}reduzida{% endif %}" id="sidebar">
-  
-  <!-- Botão com ícone de raio sempre visível -->
-  <button id="toggleSidebarBtn" class="toggle-btn-inside">
-    <i class="fas fa-bolt"></i>
-  </button>
+{% load static %}
+<aside class="sidebar" id="appSidebar" aria-label="Navegação Principal">
+    <div class="sidebar__header">
+        <button class="sidebar__toggle-button" id="sidebarToggleBtn" aria-expanded="true" aria-controls="appSidebar" title="Recolher/Expandir Menu">
+            <i class="fas fa-bars icon-menu"></i>
+            <i class="fas fa-times icon-close" style="display: none;"></i> {# Ícone opcional para estado fechado #}
+        </button>
+        <span class="sidebar__brand">Norte<span class="sidebar__brand--highlight">Tech</span></span>
+    </div>
 
-  <h4 class="text-center sidebar-title">Norte Tech</h4>
+    <nav class="sidebar__nav">
+        <ul class="sidebar__menu">
+            <li class="sidebar__menu-item">
+                <a href="{% url 'home' %}" class="sidebar__menu-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <i class="fas fa-home fa-fw sidebar__icon"></i>
+                    <span class="sidebar__link-text">Home</span>
+                </a>
+            </li>
+            <li class="sidebar__menu-item">
+                <a href="{% url 'livro_de_ocorrencia' %}" class="sidebar__menu-link {% if request.resolver_match.url_name == 'livro_de_ocorrencia' %}active{% endif %}">
+                    <i class="fas fa-book fa-fw sidebar__icon"></i>
+                    <span class="sidebar__link-text">Livro de Ocorrências</span>
+                </a>
+            </li>
+            <li class="sidebar__menu-item">
+                <a href="{% url 'ocorrencia_cracha' %}" class="sidebar__menu-link {% if request.resolver_match.url_name == 'ocorrencia_cracha' %}active{% endif %}">
+                    <i class="fas fa-id-badge fa-fw sidebar__icon"></i>
+                    <span class="sidebar__link-text">Ocorrências Crachá</span>
+                </a>
+            </li>
+            <li class="sidebar__menu-item">
+                <a href="{% url 'entrega_de_chave' %}" class="sidebar__menu-link {% if request.resolver_match.url_name == 'entrega_de_chave' %}active{% endif %}">
+                    <i class="fas fa-key fa-fw sidebar__icon"></i>
+                    <span class="sidebar__link-text">Controle de Chaves</span>
+                </a>
+            </li>
+            <li class="sidebar__menu-item">
+                <a href="{% url 'controle_visitantes' %}" class="sidebar__menu-link {% if request.resolver_match.url_name == 'controle_visitantes' %}active{% endif %}">
+                    <i class="fas fa-user-clock fa-fw sidebar__icon"></i> {# Ícone atualizado #}
+                    <span class="sidebar__link-text">Entrada/Saída</span>
+                </a>
+            </li>
+            <li class="sidebar__menu-item">
+                <a href="{% url 'fornecedores_cadastrados' %}" class="sidebar__menu-link {% if request.resolver_match.url_name == 'fornecedores-cadastrados' or request.resolver_match.url_name == 'fornecedores_filtrados' %}active{% endif %}">
+                    <i class="fas fa-address-book fa-fw sidebar__icon"></i> {# Ícone atualizado #}
+                    <span class="sidebar__link-text">Cadastros</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 
-  <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-      <i class="fa fa-home"></i>
-      <span class="link-text">HOME</span>
-  </a>
+    <div class="sidebar__footer">
+        {# Botão de Tema - Pode ser movido para o header principal da página se preferir #}
+        <button id="theme-toggle-sidebar" class="theme-toggle-button" title="Mudar Tema">
+             <i class="fas fa-sun"></i> <i class="fas fa-moon" style="display: none;"></i>
+        </button>
 
-  <a href="{% url 'livro_de_ocorrencia' %}" class="{% if request.resolver_match.url_name == 'livro_de_ocorrencia' %}active{% endif %}">
-      <i class="fas fa-users"></i>
-      <span class="link-text">LIVRO DE OCORRÊNCIAS</span>
-  </a>
+        {# Link de Logout #}
+        <a href="{% url 'logout' %}" class="sidebar__logout-link" title="Sair">
+            <i class="fas fa-sign-out-alt fa-fw sidebar__icon"></i>
+            <span class="sidebar__link-text">Logout</span>
+        </a>
+        {# Informações do Usuário (Opcional) #}
+        <div class="sidebar__user-info">
+             <span class="sidebar__link-text">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+    </div>
+</aside>
 
-  <a href="{% url 'ocorrencia_cracha' %}" class="{% if request.resolver_match.url_name == 'ocorrencia_cracha' %}active{% endif %}">
-      <i class="fas fa-id-badge"></i>
-      <span class="link-text">CRACHA OCORRÊNCIAS </span>
-  </a>
-
-  <a href="{% url 'entrega_de_chave' %}" class="{% if request.resolver_match.url_name == 'entrega_de_chave' %}active{% endif %}">
-      <i class="fas fa-key"></i>
-      <span class="link-text">CONTROLE DE CHAVES</span>
-  </a>
-
-  <a href="{% url 'controle_visitantes' %}" class="{% if request.resolver_match.url_name == 'controle_visitantes' %}active{% endif %}">
-      <i class="fas fa-door-open"></i>
-      <span class="link-text">VISITANTES</span>
-  </a>
-
-  <a href="{% url 'fornecedores-cadastrados' %}" class="{% if request.resolver_match.url_name == 'fornecedores-cadastrados' %}active{% endif %}">
-      <i class="fas fa-door-open"></i>
-      <span class="link-text">REGISTROS VISITANTES</span>
-  </a>
-
-  <a href="{% url 'logout' %}">
-      <i class="fas fa-sign-out-alt"></i>
-      <span class="link-text">LOGOUT</span>
-  </a>
-</div>
- 
+{# Div para overlay em telas pequenas quando a sidebar estiver aberta #}
+<div class="sidebar-overlay" id="sidebarOverlay"></div>

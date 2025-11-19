@@ -1,0 +1,30 @@
+{# patrimoio/templates/patrimonio/includes/modals/modal_edicao_fornecedor.html #}
+{# Esta é apenas a "casca" do modal. O conteúdo é carregado via JS. #}
+
+<div class="modal-overlay" id="modalEditarFornecedorOverlay" aria-labelledby="modalEditarFornecedorLabel" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog--lg"> {# Modal Largo #}
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalEditarFornecedorLabel">Editar Cadastro</h2>
+                <button type="button" class="modal-close-button" data-modal-dismiss aria-label="Fechar">&times;</button>
+            </div>
+
+            {# ========================================================== #}
+            {#      O ERRO ESTÁ AQUI. ESTE DIV ESTÁ FALTANDO NO SEU ARQUIVO #}
+            {#      Ele serve como o container para o conteúdo dinâmico. #}
+            {# ========================================================== #}
+            <div id="modal-body-content-wrapper">
+                {# O JS colocará o HTML de 'modal_edicao_fornecedor_form_content.html' aqui #}
+                <div class="modal-body">
+                    <p style="text-align: center; padding: 2rem; color: var(--dark-disabled);">Carregando...</p>
+                </div>
+            </div>
+
+            {# O <form> é carregado dinamicamente, então o footer
+               está DENTRO do HTML carregado (form_content.html)
+               para que os botões façam parte do form.
+               Deixamos este aqui vazio. #}
+        </div>
+    </div>
+</div>
