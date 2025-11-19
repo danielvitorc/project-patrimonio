@@ -21,4 +21,6 @@ urlpatterns = [
     path("", include("patrimonio.urls")),
     path("admin/", include("patrimonio.admin_urls")),
     path("django-admin/", admin.site.urls),
+    path("select2/", include("django_select2.urls")),
+
 ]

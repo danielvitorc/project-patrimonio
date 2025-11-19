@@ -1,6 +1,7 @@
 from django import forms
 from .models import ControleChaves, Chave, Ocorrencia, Colaborador, Fornecedor, Visitante, FornecedorServico, Entrega, EntradaFornecedor, EsquecimentoCRACHA
 from django.core.exceptions import ValidationError
+from django_select2.forms import Select2Widget # 1. IMPORTE O WIDGET
 
 class UploadFileForm(forms.Form):
     file = forms.FileField()
@@ -179,6 +180,7 @@ class EntregaForm(forms.ModelForm):
 
 
 
+# ESTA É A ÚNICA VERSÃO QUE DEVE EXISTIR DESTE FORMULÁRIO
 class EntradaFornecedorForm(forms.ModelForm):
     base = forms.ChoiceField(
         choices=BASE_CHOICES,
@@ -186,16 +188,24 @@ class EntradaFornecedorForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        # Pega o queryset ordenado que a view passou
+        queryset_ordenado = kwargs.pop('queryset', None)
         super().__init__(*args, **kwargs)
-        # Personaliza o texto de cada fornecedor no dropdown
+
+        # Usa o queryset ordenado, se disponível
+        if queryset_ordenado is not None:
+            self.fields['fornecedor'].queryset = queryset_ordenado
+
+        # Define como o texto de cada opção será exibido
         self.fields['fornecedor'].label_from_instance = self.label_fornecedor
 
     def label_fornecedor(self, obj):
-        if hasattr(obj, 'visitante'):
+        # Esta função está perfeita.
+        if hasattr(obj, 'visitante') and obj.visitante:
             return f"Visitante: {obj.visitante.nome}"
-        elif hasattr(obj, 'fornecedor_servico'):
+        elif hasattr(obj, 'fornecedor_servico') and obj.fornecedor_servico:
             return f"Fornecedor: {obj.fornecedor_servico.nome_representante}"
-        elif hasattr(obj, 'entrega'):
+        elif hasattr(obj, 'entrega') and obj.entrega:
             return f"Entrega: {obj.entrega.nome_entregador}"
         return f"Fornecedor ID {obj.id}"
 
@@ -203,7 +213,14 @@ class EntradaFornecedorForm(forms.ModelForm):
         model = EntradaFornecedor
         fields = ['base', 'fornecedor', 'assinatura_portaria', 'setor_destino', 'responsavel_autorizante', 'modelo_veiculo', 'placa_veiculo']
         widgets = {
-            'fornecedor': forms.Select(attrs={'class': 'form-control'}),
+            # AQUI ESTÁ A VERSÃO COMPLETA E CORRIGIDA DO WIDGET:
+            'fornecedor': Select2Widget(attrs={
+                'class': 'form-control',  # Adiciona a classe do Bootstrap para o tamanho correto
+                'data-theme': 'bootstrap-5', # Aplica o tema do Bootstrap 5 que você já importou
+                'data-dropdown-parent': '#entradafornecedorModal' # Resolve o problema de foco do modal
+            }),
+            
+            # Outros widgets
             'assinatura_portaria': forms.TextInput(attrs={'class': 'form-control'}),
             'setor_destino': forms.TextInput(attrs={'class': 'form-control'}),
             'responsavel_autorizante': forms.TextInput(attrs={'class': 'form-control'}),

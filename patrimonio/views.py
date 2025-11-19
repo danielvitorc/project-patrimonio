@@ -13,7 +13,8 @@ from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 import base64
 from django.core.files.base import ContentFile
-
+from django.db.models.functions import Coalesce
+from django.db.models import Value
 
 
 # ===== Tela de Login ===== 
@@ -270,69 +271,90 @@ def controle_visitantes(request):
     # Envia alerta por e-mail
     enviar_alerta_vencimentos()
 
+    # --- INÍCIO DA CORREÇÃO ---
+
+    # 1. Crie o queryset de Fornecedor ordenado alfabeticamente
+    fornecedores_ordenados = Fornecedor.objects.annotate(
+        # Cria um campo temporário 'nome_ordenado'
+        nome_ordenado=Coalesce(
+            'visitante__nome', 
+            'fornecedor_servico__nome_representante', 
+            'entrega__nome_entregador',
+            Value('Sem Nome') # Valor padrão para garantir que todos os registros sejam incluídos
+        )
+    ).order_by('nome_ordenado') # Ordena pelo campo criado
+
+    # 2. Instancie os formulários, passando o queryset para o form_entrada
     form_fornecedor = FornecedorForm()
     form_visitante = VisitanteForm()
     form_fornecedor_servico = FornecedorServicoForm()
     form_entrega = EntregaForm()
-    form_entrada = EntradaFornecedorForm()
+    
+    # Passe o queryset ordenado para o formulário de entrada
+    form_entrada = EntradaFornecedorForm(queryset=fornecedores_ordenados)
+
+    # --- FIM DA CORREÇÃO ---
 
     if request.method == 'POST':
-        # Novo Fornecedor
+        # Novo Fornecedor (esta parte não precisa mudar)
         if 'submit_novo_fornecedor' in request.POST:
-            form_fornecedor = FornecedorForm(request.POST)
-            categoria = request.POST.get('categoria')
+                    form_fornecedor = FornecedorForm(request.POST)
+                    categoria = request.POST.get('categoria')
 
-            form_visitante = VisitanteForm(request.POST, request.FILES) if categoria == 'VISITANTE' else VisitanteForm()
-            form_fornecedor_servico = FornecedorServicoForm(request.POST, request.FILES) if categoria == 'FORNECEDOR' else FornecedorServicoForm()
-            form_entrega = EntregaForm(request.POST, request.FILES) if categoria == 'ENTREGA' else EntregaForm()
+                    form_visitante = VisitanteForm(request.POST, request.FILES) if categoria == 'VISITANTE' else VisitanteForm()
+                    form_fornecedor_servico = FornecedorServicoForm(request.POST, request.FILES) if categoria == 'FORNECEDOR' else FornecedorServicoForm()
+                    form_entrega = EntregaForm(request.POST, request.FILES) if categoria == 'ENTREGA' else EntregaForm()
 
-            if form_fornecedor.is_valid():
-                fornecedor = form_fornecedor.save(commit=False)
-                fornecedor.save()
+                    if form_fornecedor.is_valid():
+                        fornecedor = form_fornecedor.save(commit=False)
+                        fornecedor.save()
 
-                if categoria == 'VISITANTE' and form_visitante.is_valid():
-                    visitante = form_visitante.save(commit=False)
-                    visitante.fornecedor = fornecedor
-                    
-                    foto_base64 = request.POST.get('foto_visitante')
-                    if foto_base64:
-                        img_file = process_webcam_photo(foto_base64, 'visitante')
-                        if img_file:
-                            visitante.foto_visitante = img_file
-                    
-                    visitante.save()
-                    
-                elif categoria == 'FORNECEDOR' and form_fornecedor_servico.is_valid():
-                    servico = form_fornecedor_servico.save(commit=False)
-                    servico.fornecedor = fornecedor
+                        if categoria == 'VISITANTE' and form_visitante.is_valid():
+                            visitante = form_visitante.save(commit=False)
+                            visitante.fornecedor = fornecedor
+                            
+                            foto_base64 = request.POST.get('foto_visitante')
+                            if foto_base64:
+                                img_file = process_webcam_photo(foto_base64, 'visitante')
+                                if img_file:
+                                    visitante.foto_visitante = img_file
+                            
+                            visitante.save()
+                            
+                        elif categoria == 'FORNECEDOR' and form_fornecedor_servico.is_valid():
+                            servico = form_fornecedor_servico.save(commit=False)
+                            servico.fornecedor = fornecedor
 
-                    # Processa foto da webcam se disponível
-                    foto_base64 = request.POST.get('foto_webcam')  # Corrigido aqui
-                    if foto_base64:
-                        img_file = process_webcam_photo(foto_base64, 'fornecedor')
-                        if img_file:
-                            servico.foto_fornecedor = img_file
+                            # Processa foto da webcam se disponível
+                            foto_base64 = request.POST.get('foto_webcam')  # Corrigido aqui
+                            if foto_base64:
+                                img_file = process_webcam_photo(foto_base64, 'fornecedor')
+                                if img_file:
+                                    servico.foto_fornecedor = img_file
 
-                    servico.save()
+                            servico.save()
 
-                elif categoria == 'ENTREGA' and form_entrega.is_valid():
-                    entrega = form_entrega.save(commit=False)
-                    entrega.fornecedor = fornecedor
-                    
-                    # Processa foto da webcam se disponível
-                    foto_webcam = request.POST.get('foto_webcam')
-                    if foto_webcam:
-                        img_file = process_webcam_photo(foto_webcam, 'entrega')
-                        if img_file:
-                            entrega.foto_caixa_entrega = img_file
-                    
-                    entrega.save()
+                        elif categoria == 'ENTREGA' and form_entrega.is_valid():
+                            entrega = form_entrega.save(commit=False)
+                            entrega.fornecedor = fornecedor
+                            
+                            # Processa foto da webcam se disponível
+                            foto_webcam = request.POST.get('foto_webcam')
+                            if foto_webcam:
+                                img_file = process_webcam_photo(foto_webcam, 'entrega')
+                                if img_file:
+                                    entrega.foto_caixa_entrega = img_file
+                            
+                            entrega.save()
 
-                return redirect('controle_visitantes')
+                        return redirect('controle_visitantes')
 
         # Entrada
         elif 'submit_entrada' in request.POST:
-            form_entrada = EntradaFornecedorForm(request.POST)
+            # Ao processar o POST, também precisamos passar o queryset
+            # para que, em caso de erro de validação, o formulário
+            # seja renderizado novamente com a lista ordenada.
+            form_entrada = EntradaFornecedorForm(request.POST, queryset=fornecedores_ordenados)
             if form_entrada.is_valid():
                 entrada = form_entrada.save(commit=False)
                 entrada.status = 'Em andamento'
@@ -340,7 +362,7 @@ def controle_visitantes(request):
                 entrada.save()
                 return redirect('controle_visitantes')
 
-        # Marcar saída
+        # Marcar saída (esta parte não precisa mudar)
         elif 'submit_saida' in request.POST:
             entrada_id = request.POST.get('entrada_id')
             entrada = get_object_or_404(EntradaFornecedor, id=entrada_id)
@@ -356,7 +378,7 @@ def controle_visitantes(request):
         'form_visitante': form_visitante,
         'form_fornecedor_servico': form_fornecedor_servico,
         'form_entrega': form_entrega,
-        'form_entrada': form_entrada,
+        'form_entrada': form_entrada, # O form_entrada agora contém a lista ordenada
         'fornecedores': fornecedores,
         'entradas': entradas,
     }
