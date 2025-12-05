@@ -367,19 +367,8 @@
 
 
 {% block extra_js %}
-    {# Carrega JS do Select2 (se ainda for usar) #}
-    <script>
-            $(document).ready(function() {
-                $('#dFornecedor').select2({
-                    // theme: 'bootstrap-5', <-- REMOVIDO
-                    dropdownParent: $('#modalEntradaFornecedorOverlay .modal-content'),
-                    width: '100%',
-                    placeholder: "Selecione um fornecedor"
-                });
-                // ...
-            });
-        </script>
-    {{ form_entrada.media.js }}
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>   
+ {{ form_entrada.media.js }}
     
     {# Adiciona o JS específico desta página #}
     <script src="{% static 'patrimonio/js/entrada_saida_visitantes.js' %}"></script>

@@ -220,7 +220,6 @@ class EntregaForm(forms.ModelForm):
             'foto_caixa_entrega': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
-# ESTA É A ÚNICA VERSÃO QUE DEVE EXISTIR DESTE FORMULÁRIO
 class EntradaFornecedorForm(forms.ModelForm):
     base = forms.ChoiceField(
         choices=BASE_CHOICES,
@@ -230,15 +229,15 @@ class EntradaFornecedorForm(forms.ModelForm):
     # 1. Defina o campo 'fornecedor' aqui, fora do Meta.
     #    Isso nos dá controle total sobre ele.
     fornecedor = forms.ModelChoiceField(
-        queryset=Fornecedor.objects.none(),
+        queryset=Fornecedor.objects.none(), # Será preenchido no __init__
         label="Fornecedor",
         widget=Select2Widget(attrs={
-            'class': 'form-input', # 1. Usa nossa classe (opcional, mas bom)
-            # 2. 'data-theme' FOI REMOVIDO
-            'data-dropdown-parent': '#modalEntradaFornecedorOverlay' # 3. ID do modal CORRETO
+            'class': 'form-input', 
+            'data-dropdown-parent': '#modalEntradaFornecedorOverlay', # ID do modal
+            'data-placeholder': 'Digite o nome para buscar...', # Texto de ajuda
+            'style': 'width: 100%', # Força ocupar o espaço todo
         })
     )
-#
 
     class Meta:
         model = EntradaFornecedor
